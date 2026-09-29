@@ -268,6 +268,8 @@ func startServer(runtimeDir string) (*exec.Cmd, string, *os.File, error) {
 		"GUI_VERSION=native-webview2",
 		fmt.Sprintf("DEEMIX_SERVER_PORT=%d", port),
 		"DEEMIX_HOST=127.0.0.1",
+		"WS_NO_UTF_8_VALIDATE=1",
+		"WS_NO_BUFFER_UTIL=1",
 	)
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
