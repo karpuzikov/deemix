@@ -14,6 +14,7 @@ const __dirname = path.dirname(__filename);
 async function main(argv) {
 	const IS_WATCH = hasArg(argv, "--watch");
 	const BUILD_MODE = getArg(argv, "--mode") || "development";
+	const IS_PRODUCTION = BUILD_MODE === "production" || BUILD_MODE === "prerelease";
 	const MAIN_DIR = path.resolve(__dirname, "../");
 	const DIST_DIR = path.resolve(MAIN_DIR, "dist");
 	const WEBUI_DIR = path.resolve(MAIN_DIR, "../webui");
@@ -53,6 +54,7 @@ async function main(argv) {
 				outfile: "./dist/main.js",
 				target: "esnext",
 				format: "esm",
+				minify: IS_PRODUCTION,
 				external: ["electron", "lightningcss"],
 				define: {
 					"process.env.NODE_ENV": JSON.stringify(BUILD_MODE),
@@ -83,7 +85,8 @@ async function main(argv) {
 				target: "es2017",
 				format: "iife",
 				external: ["electron"],
-				sourcemap: true,
+				minify: IS_PRODUCTION,
+				sourcemap: !IS_PRODUCTION,
 				plugins: [log],
 			};
 

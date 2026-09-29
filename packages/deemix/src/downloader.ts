@@ -46,6 +46,12 @@ const extensions = {
 	[TrackFormats.MP4_RA1]: ".mp4",
 } as const;
 
+const MAX_FALLBACK_ATTEMPTS = 20;
+
+function normalizeISRC(value: string) {
+	return value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+}
+
 const TEMPDIR = tmpdir() + "/deemix-imgs";
 mkdirSync(TEMPDIR, { recursive: true });
 
@@ -151,7 +157,8 @@ export class Downloader {
 
 	async download(
 		extraData: { trackAPI: APITrack; albumAPI?: APIAlbum; playlistAPI?: any },
-		track?: Track
+		track?: Track,
+		refetchTrack = true
 	) {
 		const returnData = <any>{};
 		const { trackAPI, albumAPI, playlistAPI } = extraData;
@@ -186,7 +193,8 @@ export class Downloader {
 				trackAPI.id,
 				trackAPI,
 				albumAPI,
-				playlistAPI
+				playlistAPI,
+				refetchTrack
 			);
 		} catch (e) {
 			if (e.name === "AlbumDoesntExists") {
@@ -477,9 +485,20 @@ export class Downloader {
 
 	async downloadWrapper(
 		extraData: { trackAPI: APITrack; albumAPI?: APIAlbum; playlistAPI?: any },
-		track?: Track
+		track?: Track,
+		refetchTrack = true,
+		fallbackState: {
+			visitedTrackIDs: Set<string>;
+			isrcAttempted: boolean;
+			attempts: number;
+		} = {
+			visitedTrackIDs: new Set<string>(),
+			isrcAttempted: false,
+			attempts: 0,
+		}
 	) {
 		const { trackAPI } = extraData;
+		fallbackState.visitedTrackIDs.add(String(track?.id ?? trackAPI.id));
 
 		// Temp metadata to generate logs
 		const itemData = {
@@ -490,56 +509,132 @@ export class Downloader {
 
 		let result;
 		try {
-			result = await this.download(extraData, track);
+			result = await this.download(extraData, track, refetchTrack);
 		} catch (e) {
 			if (e instanceof DownloadFailed) {
 				if (e.track) {
-					const track = e.track;
-					if (track.fallbackID !== 0) {
-						this.warn(itemData, e.errid, "fallback");
-						const gwTrack = await this.dz.gw.get_track_with_fallback(
-							track.fallbackID
-						);
-						track.parseEssentialData(map_track(gwTrack));
-						return await this.downloadWrapper(extraData, track);
-					}
-					if (track.albumsFallback.length && this.settings.fallbackISRC) {
-						const newAlbumID = track.albumsFallback.pop();
-						const newAlbum = await this.dz.gw.get_album_page(newAlbumID);
-						let fallbackID = 0;
-						for (const newTrack of newAlbum.SONGS.data) {
-							if (newTrack.ISRC === track.ISRC) {
-								fallbackID = newTrack.SNG_ID;
-								break;
-							}
+					const failedTrack = e.track;
+
+					const tryFallbackID = async (
+						fallbackID: number | string,
+						solution: "fallback" | "search"
+					) => {
+						const id = String(fallbackID);
+						if (
+							!id ||
+							id === "0" ||
+							fallbackState.visitedTrackIDs.has(id) ||
+							fallbackState.attempts >= MAX_FALLBACK_ATTEMPTS
+						) {
+							return null;
 						}
-						if (fallbackID !== 0) {
-							this.warn(itemData, e.errid, "fallback");
+
+						fallbackState.visitedTrackIDs.add(id);
+						fallbackState.attempts += 1;
+
+						try {
 							const gwTrack =
 								await this.dz.gw.get_track_with_fallback(fallbackID);
-							track.parseEssentialData(map_track(gwTrack));
-							return await this.downloadWrapper(extraData, track);
+							failedTrack.parseEssentialData(map_track(gwTrack));
+							this.warn(itemData, e.errid, solution);
+							if (solution === "search") {
+								failedTrack.searched = true;
+								this.log(itemData, "searchFallback");
+							}
+							return await this.downloadWrapper(
+								extraData,
+								failedTrack,
+								false,
+								fallbackState
+							);
+						} catch {
+							return null;
+						}
+					};
+
+					// First use Deezer's native fallback relationship, but never revisit
+					// an ID that has already failed in this fallback chain.
+					if (failedTrack.fallbackID !== 0) {
+						const fallbackResult = await tryFallbackID(
+							failedTrack.fallbackID,
+							"fallback"
+						);
+						if (fallbackResult) return fallbackResult;
+					}
+
+					// Resolve the exact ISRC directly before walking alternative albums.
+					// Deezer's public API supports the isrc:<ISRC> track identifier.
+					if (
+						this.settings.fallbackISRC &&
+						!fallbackState.isrcAttempted &&
+						failedTrack.ISRC
+					) {
+						fallbackState.isrcAttempted = true;
+						const targetISRC = normalizeISRC(failedTrack.ISRC);
+						try {
+							const isrcTrack = await this.dz.api.getTrack(`isrc:${targetISRC}`);
+							if (
+								isrcTrack?.id &&
+								normalizeISRC(isrcTrack.isrc || "") === targetISRC
+							) {
+								const fallbackResult = await tryFallbackID(
+									isrcTrack.id,
+									"fallback"
+								);
+								if (fallbackResult) return fallbackResult;
+							}
+						} catch {
+							/* Continue with alternative albums. */
 						}
 					}
-					if (!track.searched && this.settings.fallbackSearch) {
-						this.warn(itemData, e.errid, "search");
+
+					// Try every alternative album, not just the last one returned.
+					while (
+						failedTrack.albumsFallback.length &&
+						this.settings.fallbackISRC &&
+						fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
+					) {
+						const newAlbumID = failedTrack.albumsFallback.pop();
+						try {
+							const newAlbum = await this.dz.gw.get_album_page(newAlbumID);
+							const targetISRC = normalizeISRC(failedTrack.ISRC);
+							const alternativeTrack = newAlbum?.SONGS?.data?.find(
+								(newTrack) =>
+									normalizeISRC(newTrack.ISRC || "") === targetISRC &&
+									!fallbackState.visitedTrackIDs.has(String(newTrack.SNG_ID))
+							);
+
+							if (!alternativeTrack) continue;
+							const fallbackResult = await tryFallbackID(
+								alternativeTrack.SNG_ID,
+								"fallback"
+							);
+							if (fallbackResult) return fallbackResult;
+						} catch {
+							/* Try the next alternative album. */
+						}
+					}
+
+					if (
+						!failedTrack.searched &&
+						this.settings.fallbackSearch &&
+						fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
+					) {
 						const searchedID = await this.dz.api.get_track_id_from_metadata(
-							track.mainArtist.name,
-							track.title,
-							track.album.title
+							failedTrack.mainArtist.name,
+							failedTrack.title,
+							failedTrack.album.title
 						);
 						if (searchedID !== "0") {
-							const gwTrack =
-								await this.dz.gw.get_track_with_fallback(searchedID);
-							track.parseEssentialData(map_track(gwTrack));
-							track.searched = true;
-							this.log(itemData, "searchFallback");
-							return await this.downloadWrapper(extraData, track);
+							const searchResult = await tryFallbackID(searchedID, "search");
+							if (searchResult) return searchResult;
 						}
 					}
+
 					e.errid += "NoAlternative";
-					e.message = ErrorMessages[e.errid];
+					e.message = ErrorMessages[e.errid] || e.message;
 				}
+
 				result = {
 					error: {
 						message: e.message,

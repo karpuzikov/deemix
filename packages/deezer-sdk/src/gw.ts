@@ -76,6 +76,8 @@ export const EMPTY_TRACK_OBJ = {
 	ART_NAME: "",
 } satisfies Partial<GWTrack>;
 
+const MAX_GW_RETRIES = 3;
+
 export class GW {
 	httpHeaders: any;
 	cookieJar: any;
@@ -87,7 +89,12 @@ export class GW {
 		this.api_token = null;
 	}
 
-	async api_call(method: string, args?: any, params?: any): Promise<any> {
+	async api_call(
+		method: string,
+		args?: any,
+		params?: any,
+		retryCount = 0
+	): Promise<any> {
 		if (args === undefined) args = {};
 		if (params === undefined) params = {};
 		if (!this.api_token && method !== "deezer.getUserData")
@@ -121,28 +128,35 @@ export class GW {
 					"ECONNRESET",
 					"ENETRESET",
 					"ETIMEDOUT",
-				].includes(e.code)
+				].includes(e.code) &&
+				retryCount < MAX_GW_RETRIES
 			) {
-				await new Promise((resolve) => setTimeout(resolve, 2000)); // sleep(2000ms)
-				return this.api_call(method, args, params);
+				const delay = 1000 * 2 ** retryCount;
+				await new Promise((resolve) => setTimeout(resolve, delay));
+				return this.api_call(method, args, params, retryCount + 1);
 			}
 			throw new GWAPIError(`${method} ${args}:: ${e.name}: ${e.message}`);
 		}
 		if (result_json.error.length || Object.keys(result_json.error).length) {
 			if (
-				JSON.stringify(result_json.error) ===
+				(JSON.stringify(result_json.error) ===
 					'{"GATEWAY_ERROR":"invalid api token"}' ||
-				JSON.stringify(result_json.error) ===
-					'{"VALID_TOKEN_REQUIRED":"Invalid CSRF token"}'
+					JSON.stringify(result_json.error) ===
+						'{"VALID_TOKEN_REQUIRED":"Invalid CSRF token"}') &&
+				retryCount < MAX_GW_RETRIES
 			) {
 				this.api_token = await this._get_token();
-				return this.api_call(method, args, params);
+				return this.api_call(method, args, params, retryCount + 1);
 			}
-			if (result_json.payload && result_json.payload.FALLBACK) {
+			if (
+				result_json.payload &&
+				result_json.payload.FALLBACK &&
+				retryCount < MAX_GW_RETRIES
+			) {
 				Object.keys(result_json.payload.FALLBACK).forEach((key) => {
 					args[key] = result_json.payload.FALLBACK[key];
 				});
-				return this.api_call(method, args, params);
+				return this.api_call(method, args, params, retryCount + 1);
 			}
 			throw new GWAPIError(JSON.stringify(result_json.error));
 		}
