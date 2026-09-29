@@ -13,8 +13,16 @@ import {
 } from "./errors.js";
 import { SearchOrder, type APIAlbum, type APIOptions } from "./index.js";
 import { trackSchema, type DeezerTrack } from "./schema/track-schema.js";
+import {
+	compareStrings,
+	clean_search_query,
+	strip_presentation_info,
+	compareStringsTokenSort,
+} from "./utils.js";
 
 type APIArgs = Record<string | number, string | number>;
+
+const MAX_API_RETRIES = 3;
 
 export class API {
 	httpHeaders: { "User-Agent": string };
@@ -27,7 +35,11 @@ export class API {
 		this.access_token = null;
 	}
 
-	async call(endpoint: string, args: APIArgs = {}): Promise<unknown> {
+	async call(
+		endpoint: string,
+		args: APIArgs = {},
+		retryCount = 0
+	): Promise<unknown> {
 		if (this.access_token) args["access_token"] = this.access_token;
 
 		let response;
@@ -51,19 +63,25 @@ export class API {
 					"ECONNRESET",
 					"ENETRESET",
 					"ETIMEDOUT",
-				].includes(e.code)
+				].includes(e.code) &&
+				retryCount < MAX_API_RETRIES
 			) {
-				await new Promise((resolve) => setTimeout(resolve, 2000)); // sleep(2000ms)
-				return this.call(endpoint, args);
+				const delay = 1000 * 2 ** retryCount;
+				await new Promise((resolve) => setTimeout(resolve, delay));
+				return this.call(endpoint, args, retryCount + 1);
 			}
 			throw new APIError(`${endpoint} ${args}:: ${e.name}: ${e.message}`);
 		}
 
 		if (response.error) {
 			if (response.error.code) {
-				if ([4, 700].indexOf(response.error.code) !== -1) {
-					await new Promise((resolve) => setTimeout(resolve, 5000)); // sleep(5000ms)
-					return await this.call(endpoint, args);
+				if (
+					[4, 700].indexOf(response.error.code) !== -1 &&
+					retryCount < MAX_API_RETRIES
+				) {
+					const delay = 1000 * 2 ** retryCount;
+					await new Promise((resolve) => setTimeout(resolve, delay));
+					return await this.call(endpoint, args, retryCount + 1);
 				}
 				if (response.error.code === 100)
 					throw new ItemsLimitExceededException(
@@ -494,6 +512,8 @@ export class API {
 	}
 
 	async get_track_id_from_metadata(artist, track, album) {
+		const originalArtist = artist;
+		const originalTrack = track;
 		artist = artist.replace("–", "-").replace("’", "'");
 		track = track.replace("–", "-").replace("’", "'");
 		album = album.replace("–", "-").replace("’", "'");
@@ -518,6 +538,73 @@ export class API {
 				track: track.split(" - ")[0],
 			});
 			if (resp.data.length) return resp.data[0].id;
+		}
+
+		// Fuzzy fallback from upstream PR #273.
+		const cleanArtistQuery = clean_search_query(artist);
+		const cleanTrackQuery = clean_search_query(track);
+		resp = await this.search_track(`${cleanArtistQuery} ${cleanTrackQuery}`);
+
+		if (resp.data && resp.data.length > 0) {
+			let bestMatchId = "0";
+			let bestScore = 0;
+
+			for (const item of resp.data) {
+				let artistScore = compareStrings(originalArtist, item.artist.name);
+				const cleanArtist = clean_search_query(originalArtist);
+				if (cleanArtist !== originalArtist) {
+					const score = compareStrings(cleanArtist, item.artist.name);
+					if (score > artistScore) artistScore = score;
+				}
+				const strippedArtist = strip_presentation_info(originalArtist);
+				if (strippedArtist !== originalArtist) {
+					const score = compareStrings(strippedArtist, item.artist.name);
+					if (score > artistScore) artistScore = score;
+				}
+
+				const trackCandidates = [
+					originalTrack,
+					clean_search_query(originalTrack),
+					strip_presentation_info(originalTrack),
+				];
+				if (originalTrack.includes("("))
+					trackCandidates.push(originalTrack.split("(")[0].trim());
+				if (originalTrack.includes(" - "))
+					trackCandidates.push(originalTrack.split(" - ")[0].trim());
+
+				const deezerCandidates = [item.title];
+				if (item.title_short) deezerCandidates.push(item.title_short);
+
+				let bestTitleScore = 0;
+				for (const sourceTitle of trackCandidates) {
+					for (const targetTitle of deezerCandidates) {
+						const score = compareStrings(sourceTitle, targetTitle);
+						if (score > bestTitleScore) bestTitleScore = score;
+					}
+				}
+
+				const combinedScore = compareStringsTokenSort(
+					`${originalArtist} ${originalTrack}`,
+					`${item.artist.name} ${item.title}`
+				);
+				const individualScore = (artistScore + bestTitleScore) / 2;
+				const finalScore =
+					combinedScore > 0.85
+						? Math.max(individualScore, combinedScore)
+						: individualScore;
+
+				if (
+					finalScore > bestScore &&
+					finalScore > 0.6 &&
+					((artistScore > 0.4 && bestTitleScore > 0.4) ||
+						combinedScore > 0.85)
+				) {
+					bestScore = finalScore;
+					bestMatchId = item.id;
+				}
+			}
+
+			if (bestMatchId !== "0") return bestMatchId;
 		}
 
 		return "0";
