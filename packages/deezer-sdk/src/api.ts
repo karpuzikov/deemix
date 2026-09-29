@@ -34,11 +34,25 @@ export class API {
 	httpHeaders: { "User-Agent": string };
 	cookieJar: CookieJar;
 	access_token: string | null;
+	private inflight: Map<string, Promise<unknown>>;
 
 	constructor(cookieJar: CookieJar, headers: { "User-Agent": string }) {
 		this.httpHeaders = headers;
 		this.cookieJar = cookieJar;
 		this.access_token = null;
+		this.inflight = new Map();
+	}
+
+	private coalesce<T>(key: string, loader: () => Promise<T>): Promise<T> {
+		const existing = this.inflight.get(key) as Promise<T> | undefined;
+		if (existing) return existing;
+
+		let request: Promise<T>;
+		request = loader().finally(() => {
+			if (this.inflight.get(key) === request) this.inflight.delete(key);
+		});
+		this.inflight.set(key, request);
+		return request;
 	}
 
 	async call(
@@ -133,8 +147,10 @@ export class API {
 	// -----===== Tracks =====-----
 
 	async getTrack(song_id: string | number): Promise<DeezerTrack> {
-		const response = await this.call(`track/${song_id}`);
-		return trackSchema.parse(response);
+		return this.coalesce(`track:${song_id}`, async () => {
+			const response = await this.call(`track/${song_id}`);
+			return trackSchema.parse(response);
+		});
 	}
 
 	getTrackByISRC(isrc: string): Promise<DeezerTrack> {
@@ -144,7 +160,9 @@ export class API {
 	// -----===== Albums =====-----
 
 	async get_album(album_id: string | number): Promise<APIAlbum> {
-		return this.call(`album/${album_id}`) as Promise<APIAlbum>;
+		return this.coalesce(`album:${album_id}`, () =>
+			this.call(`album/${album_id}`) as Promise<APIAlbum>
+		);
 	}
 
 	get_album_by_UPC(upc: string) {
@@ -172,7 +190,9 @@ export class API {
 	// -----===== Artists =====-----
 
 	get_artist(artist_id) {
-		return this.call(`artist/${artist_id}`);
+		return this.coalesce(`artist:${artist_id}`, () =>
+			this.call(`artist/${artist_id}`)
+		);
 	}
 
 	get_artist_top(artist_id, options: APIOptions = {}) {
@@ -421,7 +441,10 @@ export class API {
 
 	search_album(query, options: APIOptions = {}) {
 		const args = this._generate_search_args(query, options);
-		return this.call("search/album", args);
+		return this.coalesce(
+			`search-album:${query}:${JSON.stringify(args)}`,
+			() => this.call("search/album", args)
+		);
 	}
 
 	search_artist(query, options: APIOptions = {}) {

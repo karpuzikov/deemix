@@ -88,11 +88,25 @@ export class GW {
 	httpHeaders: any;
 	cookieJar: any;
 	api_token: any;
+	private inflight: Map<string, Promise<any>>;
 
 	constructor(cookieJar, headers) {
 		this.httpHeaders = headers;
 		this.cookieJar = cookieJar;
 		this.api_token = null;
+		this.inflight = new Map();
+	}
+
+	private coalesce<T>(key: string, loader: () => Promise<T>): Promise<T> {
+		const existing = this.inflight.get(key) as Promise<T> | undefined;
+		if (existing) return existing;
+
+		let request: Promise<T>;
+		request = loader().finally(() => {
+			if (this.inflight.get(key) === request) this.inflight.delete(key);
+		});
+		this.inflight.set(key, request);
+		return request;
 	}
 
 	async api_call(
@@ -196,15 +210,21 @@ export class GW {
 	}
 
 	getTrack(sng_id: string | number): Promise<GWTrack> {
-		return this.api_call("song.getData", { SNG_ID: sng_id });
+		return this.coalesce(`track:${sng_id}`, () =>
+			this.api_call("song.getData", { SNG_ID: sng_id })
+		);
 	}
 
 	get_track_page(sng_id) {
-		return this.api_call("deezer.pageTrack", { SNG_ID: sng_id });
+		return this.coalesce(`track-page:${sng_id}`, () =>
+			this.api_call("deezer.pageTrack", { SNG_ID: sng_id })
+		);
 	}
 
 	get_track_lyrics(sng_id) {
-		return this.api_call("song.getLyrics", { SNG_ID: sng_id });
+		return this.coalesce(`lyrics:${sng_id}`, () =>
+			this.api_call("song.getLyrics", { SNG_ID: sng_id })
+		);
 	}
 
 	async get_tracks(sng_ids) {
@@ -223,16 +243,20 @@ export class GW {
 	}
 
 	get_album(alb_id) {
-		return this.api_call("album.getData", { ALB_ID: alb_id });
+		return this.coalesce(`album:${alb_id}`, () =>
+			this.api_call("album.getData", { ALB_ID: alb_id })
+		);
 	}
 
 	get_album_page(alb_id) {
-		return this.api_call("deezer.pageAlbum", {
-			ALB_ID: alb_id,
-			lang: "en",
-			header: true,
-			tab: 0,
-		});
+		return this.coalesce(`album-page:${alb_id}`, () =>
+			this.api_call("deezer.pageAlbum", {
+				ALB_ID: alb_id,
+				lang: "en",
+				header: true,
+				tab: 0,
+			})
+		);
 	}
 
 	async get_album_tracks(alb_id) {
@@ -250,7 +274,9 @@ export class GW {
 	}
 
 	get_artist(art_id) {
-		return this.api_call("artist.getData", { ART_ID: art_id });
+		return this.coalesce(`artist:${art_id}`, () =>
+			this.api_call("artist.getData", { ART_ID: art_id })
+		);
 	}
 
 	get_artist_page(art_id) {
