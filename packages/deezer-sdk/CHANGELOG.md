@@ -1,5 +1,15 @@
 # deezer-sdk
 
+## 1.11.0
+
+### Minor Changes
+
+- b98f4ad: update all dependencies
+
+### Patch Changes
+
+- d3a939c: Harden queue recovery, plugin typing, retry handling, and GUI server sessions.
+
 ## 1.10.2
 
 ### Patch Changes

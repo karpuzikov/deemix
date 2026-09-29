@@ -1,5 +1,19 @@
 # deemix-gui
 
+## 0.6.0
+
+### Minor Changes
+
+- b98f4ad: update all dependencies
+
+### Patch Changes
+
+- d3a939c: Harden queue recovery, plugin typing, retry handling, and GUI server sessions.
+- Updated dependencies [59694f3]
+- Updated dependencies [b98f4ad]
+- Updated dependencies [d3a939c]
+  - deemix-webui@4.8.0
+
 ## 0.5.0
 
 ### Minor Changes

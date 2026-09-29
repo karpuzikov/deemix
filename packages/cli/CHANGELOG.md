@@ -1,5 +1,19 @@
 # deemix-cli
 
+## 0.3.0
+
+### Minor Changes
+
+- b98f4ad: update all dependencies
+
+### Patch Changes
+
+- Updated dependencies [59694f3]
+- Updated dependencies [b98f4ad]
+- Updated dependencies [d3a939c]
+  - deemix@3.15.0
+  - deezer-sdk@1.11.0
+
 ## 0.2.0
 
 ### Minor Changes

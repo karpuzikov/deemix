@@ -1,5 +1,21 @@
 # deemix-webui
 
+## 4.8.0
+
+### Minor Changes
+
+- 59694f3: Add support for listenbrainz playlists
+- b98f4ad: update all dependencies
+
+### Patch Changes
+
+- d3a939c: Harden queue recovery, plugin typing, retry handling, and GUI server sessions.
+- Updated dependencies [59694f3]
+- Updated dependencies [b98f4ad]
+- Updated dependencies [d3a939c]
+  - deemix@3.15.0
+  - deezer-sdk@1.11.0
+
 ## 4.7.0
 
 ### Minor Changes

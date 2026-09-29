@@ -1,5 +1,19 @@
 # deemix
 
+## 3.15.0
+
+### Minor Changes
+
+- 59694f3: Add support for listenbrainz playlists
+- b98f4ad: update all dependencies
+
+### Patch Changes
+
+- d3a939c: Harden queue recovery, plugin typing, retry handling, and GUI server sessions.
+- Updated dependencies [b98f4ad]
+- Updated dependencies [d3a939c]
+  - deezer-sdk@1.11.0
+
 ## 3.14.0
 
 ### Minor Changes
