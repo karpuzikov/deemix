@@ -30,6 +30,7 @@ import {
 	resolveISRCTrackID,
 } from "./utils/isrcCache.js";
 import { enrichLyricsFromLRCLIB } from "./utils/lyricsFallback.js";
+import { enrichMetadataFromMusicBrainz } from "./utils/musicbrainzFallback.js";
 import { downloadImage } from "./utils/downloadImage.js";
 import { checkShouldDownload, tagTrack } from "./utils/downloadUtils.js";
 import { getPreferredBitrate } from "./utils/getPreferredBitrate.js";
@@ -211,6 +212,10 @@ export class Downloader {
 				!track.lyrics.unsync
 			) {
 				await enrichLyricsFromLRCLIB(track);
+			}
+
+			if (this.settings.musicBrainzMetadataFallback) {
+				await enrichMetadataFromMusicBrainz(track);
 			}
 		} catch (e) {
 			if (e.name === "AlbumDoesntExists") {

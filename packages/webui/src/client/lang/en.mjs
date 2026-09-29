@@ -312,6 +312,7 @@ const en = {
 			fallbackBitrate: "Bitrate fallback",
 			fallbackSearch: "Search fallback",
 			fallbackISRC: "Fallback with ISRC search",
+			musicBrainzMetadataFallback: "Fill missing genre/label from MusicBrainz",
 			feelingLucky: "Gamble with CDNs and caches",
 			logErrors: "Create log files for errors",
 			logSearched: "Create log files for searched tracks",

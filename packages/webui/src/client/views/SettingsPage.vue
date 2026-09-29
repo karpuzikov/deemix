@@ -998,6 +998,16 @@ function canDownload(bitrate: number) {
 							t("settings.downloads.fallbackISRC")
 						}}</span>
 					</label>
+
+					<label class="with-checkbox">
+						<input
+							v-model="settings.musicBrainzMetadataFallback"
+							type="checkbox"
+						/>
+						<span class="checkbox-text">{{
+							t("settings.downloads.musicBrainzMetadataFallback")
+						}}</span>
+					</label>
 				</div>
 				<div
 					class="settings-container__third settings-container__third--only-checkbox"

@@ -41,6 +41,7 @@ export interface Settings {
 
 	padSingleDigit?: boolean;
 	fallbackISRC?: boolean;
+	musicBrainzMetadataFallback?: boolean;
 	clearQueueOnExit?: boolean;
 	autoCheckForUpdates?: boolean;
 	feelingLucky?: boolean;
