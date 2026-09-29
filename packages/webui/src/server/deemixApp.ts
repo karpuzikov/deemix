@@ -183,11 +183,28 @@ export class DeemixApp {
 		return configFolder + `queue${sep}${uuid}.json`;
 	}
 
-	private persistQueueOrder(): void {
+	private writeQueueJson(filePath: string, value: unknown): void {
 		fs.mkdirSync(configFolder + "queue", { recursive: true });
-		fs.writeFileSync(
+		const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+		try {
+			fs.writeFileSync(tempPath, JSON.stringify(value));
+			try {
+				fs.renameSync(tempPath, filePath);
+			} catch {
+				// Windows can occasionally refuse replacement if the destination
+				// is momentarily held open. Fall back to replace-then-rename.
+				fs.rmSync(filePath, { force: true });
+				fs.renameSync(tempPath, filePath);
+			}
+		} finally {
+			fs.rmSync(tempPath, { force: true });
+		}
+	}
+
+	private persistQueueOrder(): void {
+		this.writeQueueJson(
 			configFolder + `queue${sep}order.json`,
-			JSON.stringify(this.queueOrder)
+			this.queueOrder
 		);
 	}
 
@@ -278,10 +295,10 @@ export class DeemixApp {
 			this.queue[downloadObj.uuid] = downloadObj.getEssentialDict();
 			this.queue[downloadObj.uuid].status = "inQueue";
 
-			fs.writeFileSync(
-				this.queueFile(downloadObj.uuid),
-				JSON.stringify({ ...downloadObj.toDict(), status: "inQueue" })
-			);
+			this.writeQueueJson(this.queueFile(downloadObj.uuid), {
+				...downloadObj.toDict(),
+				status: "inQueue",
+			});
 
 			slimmedObjects.push(downloadObj.getSlimmedDict());
 		});
@@ -317,6 +334,8 @@ export class DeemixApp {
 				currentItem = JSON.parse(
 					fs.readFileSync(this.queueFile(currentUUID)).toString()
 				);
+				currentItem.status = "downloading";
+				this.writeQueueJson(this.queueFile(currentUUID), currentItem);
 
 				let downloadObject: Single | Collection | Convertable | undefined;
 
@@ -342,10 +361,10 @@ export class DeemixApp {
 							this.settings,
 							this.listener
 						);
-						fs.writeFileSync(
-							this.queueFile(downloadObject.uuid),
-							JSON.stringify({ ...downloadObject.toDict(), status: "inQueue" })
-						);
+						this.writeQueueJson(this.queueFile(downloadObject.uuid), {
+							...downloadObject.toDict(),
+							status: "downloading",
+						});
 						break;
 					}
 					default:
@@ -381,10 +400,7 @@ export class DeemixApp {
 						status: this.queue[currentUUID].status,
 					};
 					this.queue[currentUUID] = savedObject;
-					fs.writeFileSync(
-						this.queueFile(currentUUID),
-						JSON.stringify(savedObject)
-					);
+					this.writeQueueJson(this.queueFile(currentUUID), savedObject);
 				}
 			} catch (error) {
 				const queueError =
@@ -402,10 +418,7 @@ export class DeemixApp {
 							: { ...this.queue[currentUUID], status: "failed" };
 
 					try {
-						fs.writeFileSync(
-							this.queueFile(currentUUID),
-							JSON.stringify(persistedItem)
-						);
+						this.writeQueueJson(this.queueFile(currentUUID), persistedItem);
 					} catch (persistError) {
 						logger.error(persistError);
 					}
@@ -492,12 +505,13 @@ export class DeemixApp {
 					);
 				} catch {
 					this.queueOrder = [];
-					fs.writeFileSync(
-						configFolder + `queue${sep}order.json`,
-						JSON.stringify(this.queueOrder)
-					);
+					this.persistQueueOrder();
 				}
 			} else {
+				if (filename.endsWith(".tmp")) {
+					fs.rmSync(configFolder + `queue${sep}${filename}`, { force: true });
+					return;
+				}
 				let currentItem: any;
 				try {
 					currentItem = JSON.parse(
@@ -507,7 +521,10 @@ export class DeemixApp {
 					fs.rmSync(configFolder + `queue${sep}${filename}`, { force: true });
 					return;
 				}
-				if (currentItem.status === "inQueue") {
+				if (
+					currentItem.status === "inQueue" ||
+					currentItem.status === "downloading"
+				) {
 					let downloadObject: any;
 					switch (currentItem.__type__) {
 						case "Single":
@@ -538,6 +555,13 @@ export class DeemixApp {
 					if (!downloadObject) return;
 					this.queue[downloadObject.uuid] = downloadObject.getEssentialDict();
 					this.queue[downloadObject.uuid].status = "inQueue";
+					if (currentItem.status === "downloading") {
+						currentItem.status = "inQueue";
+						this.writeQueueJson(
+							this.queueFile(downloadObject.uuid),
+							currentItem
+						);
+					}
 				} else {
 					this.queue[currentItem.uuid] = currentItem;
 				}
