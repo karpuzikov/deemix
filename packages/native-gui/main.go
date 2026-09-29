@@ -96,7 +96,17 @@ func main() {
 	}()
 
 	if err := waitForServer(baseURL, 30*time.Second); err != nil {
-		showFatal("Deemix server did not start", err)
+		message := err.Error()
+		if data, readErr := os.ReadFile(filepath.Join(runtimeDir, "server.log")); readErr == nil {
+			logText := strings.TrimSpace(string(data))
+			if logText != "" {
+				if len(logText) > 4000 {
+					logText = logText[len(logText)-4000:]
+				}
+				message += "\n\nServer log:\n" + logText
+			}
+		}
+		showFatal("Deemix server did not start", errors.New(message))
 		return
 	}
 
