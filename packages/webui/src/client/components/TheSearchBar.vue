@@ -16,6 +16,7 @@ const router = useRouter();
 const { t } = useI18n();
 
 const searchbar = ref<HTMLInputElement | null>(null);
+const searchText = ref("");
 const lastTextSearch = ref("");
 
 const showSearchButton = computed(() => appInfoStore.showSearchButton);
@@ -23,20 +24,20 @@ const showSearchButton = computed(() => appInfoStore.showSearchButton);
 function focusSearchBar(keyEvent: KeyboardEvent) {
 	if (keyEvent.keyCode === 70 && keyEvent.ctrlKey) {
 		keyEvent.preventDefault();
-		searchbar.value.focus();
+		searchbar.value?.focus();
 	}
 }
 function deleteSearchBarContent(keyEvent: KeyboardEvent) {
 	if (!(keyEvent.key === "Backspace" && keyEvent.ctrlKey && keyEvent.shiftKey))
 		return;
 
-	searchbar.value.value = "";
-	searchbar.value.focus();
+	searchText.value = "";
+	searchbar.value?.focus();
 }
 
 async function clickPerformSearch(ev: MouseEvent) {
 	ev.preventDefault();
-	const term = searchbar.value.value;
+	const term = searchText.value.trim();
 	const isEmptySearch = term === "";
 	if (isEmptySearch) return;
 
@@ -46,7 +47,7 @@ async function clickPerformSearch(ev: MouseEvent) {
 async function rightClickPerformSearch(ev: MouseEvent) {
 	ev.preventDefault();
 	ev.stopPropagation();
-	const term = searchbar.value.value;
+	const term = searchText.value.trim();
 	if (!term) return;
 
 	await performSearch(term, true);
@@ -56,7 +57,7 @@ async function keyPerformSearch(keyEvent: KeyboardEvent) {
 	const isEnterPressed = keyEvent.keyCode === 13;
 	if (!isEnterPressed) return;
 
-	const term = searchbar.value.value;
+	const term = searchText.value.trim();
 	if (!term) return;
 
 	const isCtrlPressed = keyEvent.ctrlKey;
@@ -146,20 +147,22 @@ onUnmounted(() => {
 			autocomplete="off"
 			type="search"
 			name="searchbar"
-			value=""
+			v-model="searchText"
 			:placeholder="t('searchbar')"
 			autofocus
-			@keyup="keyPerformSearch($event)"
+			@keydown.enter.prevent="keyPerformSearch($event)"
 		/>
 
-		<a
+		<button
 			v-show="showSearchButton"
-			href="#"
+			type="button"
 			class="searchButton"
-			@contextmenu="rightClickPerformSearch"
-			@click="clickPerformSearch"
-			><i class="material-icons">search</i></a
+			aria-label="Search"
+			@contextmenu.prevent="rightClickPerformSearch"
+			@click.stop.prevent="clickPerformSearch"
 		>
+			<i class="material-icons">search</i>
+		</button>
 	</header>
 </template>
 
@@ -225,6 +228,9 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 #search .searchButton {
 	background-color: var(--primary-color);
+	border: 0;
+	padding: 0;
+	cursor: pointer;
 	color: var(--primary-text);
 	align-self: stretch;
 	width: 48px;
