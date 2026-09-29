@@ -159,6 +159,29 @@ func prepareRuntime() (string, error) {
 	hash := sha256.New()
 	_, _ = hash.Write(nodeZip)
 	_, _ = hash.Write(serverJS)
+
+	// Include the complete embedded web UI in the runtime cache key.
+	// Otherwise a UI-only rebuild can incorrectly reuse stale files extracted
+	// by an older EXE.
+	if err := fs.WalkDir(payload, "payload/public", func(sourcePath string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() {
+			return nil
+		}
+
+		data, err := payload.ReadFile(sourcePath)
+		if err != nil {
+			return err
+		}
+		_, _ = hash.Write([]byte(sourcePath))
+		_, _ = hash.Write(data)
+		return nil
+	}); err != nil {
+		return "", err
+	}
+
 	version := hex.EncodeToString(hash.Sum(nil))[:16]
 
 	cacheDir, err := os.UserCacheDir()
