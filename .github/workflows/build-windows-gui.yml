@@ -20,7 +20,7 @@ jobs:
   build-windows-gui:
     runs-on: windows-2022
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -50,13 +50,27 @@ jobs:
       - name: Build Windows GUI
         run: pnpm make
 
-      - name: Upload Windows GUI
-        uses: actions/upload-artifact@v4
-        with:
-          name: Deemix-Windows-GUI
-          if-no-files-found: error
-          retention-days: 30
-          path: |
-            packages/gui/out/**/Deemix.exe
-            packages/gui/out/**/Deemix*Setup.exe
-            packages/gui/out/make/zip/**/*.zip
+      - name: Prepare single EXE
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installer = Get-ChildItem "packages/gui/out" -Recurse -File | Where-Object { $_.Name -match "Setup\.exe$" } | Select-Object -First 1
+          if (-not $installer) { throw "Windows installer EXE was not produced." }
+          New-Item -ItemType Directory -Force -Path "dist" | Out-Null
+          Copy-Item $installer.FullName "dist/Deemix.exe" -Force
+
+      - name: Publish single-file Windows build
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          git tag -f windows-latest $env:GITHUB_SHA
+          git push origin refs/tags/windows-latest --force
+          gh release view windows-latest --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create windows-latest --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Deemix Windows GUI" --notes "Under construction ⚠️ - Download Deemix.exe and double-click it." --prerelease
+          } else {
+            gh release edit windows-latest --repo $env:GITHUB_REPOSITORY --title "Deemix Windows GUI" --notes "Under construction ⚠️ - Download Deemix.exe and double-click it." --prerelease
+          }
+          gh release upload windows-latest "dist/Deemix.exe#Deemix.exe" --repo $env:GITHUB_REPOSITORY --clobber
