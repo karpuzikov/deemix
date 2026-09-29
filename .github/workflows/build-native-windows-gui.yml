@@ -1,0 +1,85 @@
+name: Build Native Windows GUI
+
+on:
+  push:
+    branches:
+      - native-webview2
+    paths:
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - ".github/workflows/build-native-windows-gui.yml"
+  workflow_dispatch:
+
+env:
+  HUSKY: 0
+
+jobs:
+  build-native-windows-gui:
+    runs-on: windows-2022
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+          cache: false
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Deemix backend and web UI
+        run: pnpm build
+
+      - name: Prepare native payload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $payload = "packages/native-gui/payload"
+          Remove-Item $payload -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $payload | Out-Null
+
+          Copy-Item "packages/webui/dist/public" "$payload/public" -Recurse
+
+          pnpm --dir packages/gui exec node scripts/build-native-server.mjs
+
+          $node = (Get-Command node).Source
+          Compress-Archive -Path $node -DestinationPath "$payload/node.zip" -Force
+
+      - name: Install native shell dependencies
+        shell: pwsh
+        working-directory: packages/native-gui
+        run: |
+          go get github.com/jchv/go-webview2@56598839c808a2340edee99204db479f410e9bf4
+          go get github.com/sqweek/dialog@64c163d53aaca9f71023982d1c1a4227dda2eda5
+          go mod tidy
+
+      - name: Build single native EXE
+        shell: pwsh
+        working-directory: packages/native-gui
+        run: |
+          New-Item -ItemType Directory -Force -Path "../../dist" | Out-Null
+          go build -trimpath -ldflags="-s -w -H windowsgui" -o "../../dist/Deemix-Native.exe" .
+
+      - name: Show EXE size
+        shell: pwsh
+        run: |
+          Get-Item "dist/Deemix-Native.exe" | Select-Object Name, Length
+
+      - name: Upload native EXE
+        uses: actions/upload-artifact@v6
+        with:
+          name: Deemix-Native-WebView2
+          if-no-files-found: error
+          retention-days: 30
+          path: dist/Deemix-Native.exe
