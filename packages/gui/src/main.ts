@@ -21,7 +21,7 @@ if (require("electron-squirrel-startup") === true) app.quit();
 
 const argv = await yargs(hideBin(process.argv)).options({
 	port: { type: "string", default: "6595" },
-	host: { type: "string", default: "0.0.0.0" },
+	host: { type: "string", default: "127.0.0.1" },
 	dev: { type: "boolean", default: false },
 }).argv;
 
@@ -107,7 +107,7 @@ async function main() {
 		return { action: "deny" };
 	});
 
-	win.loadURL(`http://localhost:${PORT}`);
+	win.loadURL(`http://127.0.0.1:${PORT}`);
 
 	win.on("close", () => {
 		saveWindowState(win!);

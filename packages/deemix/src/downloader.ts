@@ -511,10 +511,12 @@ export class Downloader {
 		fallbackState: {
 			visitedTrackIDs: Set<string>;
 			isrcAttempted: boolean;
+			isrcSearchAttempted: boolean;
 			attempts: number;
 		} = {
 			visitedTrackIDs: new Set<string>(),
 			isrcAttempted: false,
+			isrcSearchAttempted: false,
 			attempts: 0,
 		},
 		finalizeFailure = true
@@ -634,6 +636,63 @@ export class Downloader {
 							if (fallbackResult) return fallbackResult;
 						} catch {
 							/* Try the next alternative album. */
+						}
+					}
+
+					// If Deezer's direct ISRC lookup points to an unavailable copy,
+					// search Deezer and validate candidates by the exact same ISRC.
+					if (
+						this.settings.fallbackISRC &&
+						!fallbackState.isrcSearchAttempted &&
+						failedTrack.ISRC &&
+						fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
+					) {
+						fallbackState.isrcSearchAttempted = true;
+						const targetISRC = normalizeISRC(failedTrack.ISRC);
+						const searchQuery = `${failedTrack.mainArtist?.name || ""} ${failedTrack.title || ""}`.trim();
+
+						try {
+							let index = 0;
+							let total = Number.POSITIVE_INFINITY;
+							const pageSize = 100;
+
+							while (
+								index < total &&
+								index < 300 &&
+								fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
+							) {
+								const response: any = await this.dz.api.search_track(searchQuery, {
+									index,
+									limit: pageSize,
+								});
+								const candidates = Array.isArray(response?.data)
+									? response.data
+									: [];
+
+								for (const candidate of candidates) {
+									if (
+										normalizeISRC(candidate?.isrc || "") !== targetISRC ||
+										fallbackState.visitedTrackIDs.has(String(candidate?.id))
+									) {
+										continue;
+									}
+
+									const fallbackResult = await tryFallbackID(
+										candidate.id,
+										"fallback"
+									);
+									if (fallbackResult) {
+										putCachedISRCTrackID(targetISRC, candidate.id);
+										return fallbackResult;
+									}
+								}
+
+								total = Number(response?.total ?? candidates.length);
+								if (candidates.length === 0) break;
+								index += candidates.length;
+							}
+						} catch {
+							/* Continue to the metadata fallback. */
 						}
 					}
 
