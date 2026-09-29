@@ -9,6 +9,9 @@ await esbuild.build({
 	outfile: "../native-gui/payload/server.mjs",
 	minify: true,
 	legalComments: "none",
+	banner: {
+		js: 'import { createRequire as __nativeCreateRequire } from "node:module"; const require = __nativeCreateRequire(import.meta.url);',
+	},
 	external: ["utf-8-validate", "bufferutil", "lightningcss"],
 	define: {
 		"process.env.NODE_ENV": JSON.stringify("production"),
