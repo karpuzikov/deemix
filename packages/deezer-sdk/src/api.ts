@@ -14,6 +14,11 @@ import {
 import { SearchOrder, type APIAlbum, type APIOptions } from "./index.js";
 import { trackSchema, type DeezerTrack } from "./schema/track-schema.js";
 import {
+	DEFAULT_MAX_RETRIES,
+	getRetryDelay,
+	isTransientNetworkError,
+} from "./retry.js";
+import {
 	compareStrings,
 	clean_search_query,
 	strip_presentation_info,
@@ -22,7 +27,6 @@ import {
 
 type APIArgs = Record<string | number, string | number>;
 
-const MAX_API_RETRIES = 3;
 
 export class API {
 	httpHeaders: { "User-Agent": string };
@@ -57,16 +61,10 @@ export class API {
 		} catch (e) {
 			console.error("[ERROR] deezer.api", endpoint, args, e.name, e.message);
 			if (
-				[
-					"ECONNABORTED",
-					"ECONNREFUSED",
-					"ECONNRESET",
-					"ENETRESET",
-					"ETIMEDOUT",
-				].includes(e.code) &&
-				retryCount < MAX_API_RETRIES
+				isTransientNetworkError(e) &&
+				retryCount < DEFAULT_MAX_RETRIES
 			) {
-				const delay = 1000 * 2 ** retryCount;
+				const delay = getRetryDelay(retryCount);
 				await new Promise((resolve) => setTimeout(resolve, delay));
 				return this.call(endpoint, args, retryCount + 1);
 			}
@@ -77,9 +75,9 @@ export class API {
 			if (response.error.code) {
 				if (
 					[4, 700].indexOf(response.error.code) !== -1 &&
-					retryCount < MAX_API_RETRIES
+					retryCount < DEFAULT_MAX_RETRIES
 				) {
-					const delay = 1000 * 2 ** retryCount;
+					const delay = getRetryDelay(retryCount);
 					await new Promise((resolve) => setTimeout(resolve, delay));
 					return await this.call(endpoint, args, retryCount + 1);
 				}

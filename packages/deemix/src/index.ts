@@ -1,4 +1,4 @@
-import BasePlugin from "@/plugins/base.js";
+import type { PluginRegistry } from "@/plugins/types.js";
 import { type Deezer } from "deezer-sdk";
 import got from "got";
 import { Downloader } from "./downloader.js";
@@ -58,7 +58,7 @@ async function generateDownloadObject(
 	dz: Deezer,
 	link: string,
 	bitrate: number,
-	plugins: Record<string, BasePlugin> = {},
+	plugins: PluginRegistry = {},
 	listener: Listener
 ): Promise<DownloadObject | DownloadObject[]> {
 	let link_type: string | null = null;

@@ -17,6 +17,8 @@ import {
 	type Listener,
 	type Settings,
 	type SpotifySettings,
+	type PluginRegistry,
+	isConvertiblePlugin,
 } from "deemix";
 import { Deezer, setDeezerCacheDir } from "deezer-sdk";
 import fs from "fs";
@@ -33,6 +35,11 @@ export const sessionDZ: Record<string, Deezer> = {};
 
 type DeezerAvailable = "yes" | "no" | "no-network";
 
+type AppPlugins = PluginRegistry & {
+	spotify: SpotifyPlugin;
+	listenbrainz: ListenBrainzPlugin;
+};
+
 export class DeemixApp {
 	queueOrder: string[];
 	queue: Record<string, any>;
@@ -41,7 +48,7 @@ export class DeemixApp {
 	deezerAvailable?: DeezerAvailable;
 	latestVersion: string | null;
 
-	plugins: Record<string, any>;
+	plugins: AppPlugins;
 	settings: Settings;
 
 	listener: Listener;
@@ -88,9 +95,8 @@ export class DeemixApp {
 
 			return this.deezerAvailable;
 		}
-		const title = (
-			response.body.match(/<title[^>]*>([^<]+)<\/title>/)![1] || ""
-		).trim();
+		const title =
+			response.body.match(/<title[^>]*>([^<]+)<\/title>/)?.[1]?.trim() ?? "";
 
 		this.deezerAvailable =
 			title !== "Deezer will soon be available in your country." ? "yes" : "no";
@@ -136,13 +142,12 @@ export class DeemixApp {
 	}
 
 	isUpdateAvailable(): boolean {
+		if (!this.latestVersion || this.latestVersion === "NotFound") return false;
 		return (
 			this.latestVersion.localeCompare(
 				GUI_VERSION ?? WEBUI_PACKAGE_VERSION,
 				undefined,
-				{
-					numeric: true,
-				}
+				{ numeric: true }
 			) === 1
 		);
 	}
@@ -172,6 +177,22 @@ export class DeemixApp {
 		}
 
 		return result;
+	}
+
+	private queueFile(uuid: string): string {
+		return configFolder + `queue${sep}${uuid}.json`;
+	}
+
+	private persistQueueOrder(): void {
+		fs.mkdirSync(configFolder + "queue", { recursive: true });
+		fs.writeFileSync(
+			configFolder + `queue${sep}order.json`,
+			JSON.stringify(this.queueOrder)
+		);
+	}
+
+	private removeQueueFile(uuid: string): void {
+		fs.rmSync(this.queueFile(uuid), { force: true });
 	}
 
 	async addToQueue(
@@ -253,15 +274,12 @@ export class DeemixApp {
 			fs.mkdirSync(configFolder + "queue", { recursive: true });
 
 			this.queueOrder.push(downloadObj.uuid);
-			fs.writeFileSync(
-				configFolder + `queue${sep}order.json`,
-				JSON.stringify(this.queueOrder)
-			);
+			this.persistQueueOrder();
 			this.queue[downloadObj.uuid] = downloadObj.getEssentialDict();
 			this.queue[downloadObj.uuid].status = "inQueue";
 
 			fs.writeFileSync(
-				configFolder + `queue${sep}${downloadObj.uuid}.json`,
+				this.queueFile(downloadObj.uuid),
 				JSON.stringify({ ...downloadObj.toDict(), status: "inQueue" })
 			);
 
@@ -278,99 +296,134 @@ export class DeemixApp {
 	async startQueue(dz: Deezer) {
 		do {
 			if (this.currentJob !== null || this.queueOrder.length === 0) {
-				// Should not start another download
 				return null;
 			}
-			this.currentJob = true; // lock currentJob
 
-			let currentUUID: string;
-			do {
-				currentUUID = this.queueOrder.shift() || "";
-			} while (this.queue[currentUUID] === undefined && this.queueOrder.length);
-			if (this.queue[currentUUID] === undefined) {
-				fs.writeFileSync(
-					configFolder + `queue${sep}order.json`,
-					JSON.stringify(this.queueOrder)
+			this.currentJob = true;
+			let currentUUID = "";
+			let currentItem: any = null;
+
+			try {
+				do {
+					currentUUID = this.queueOrder.shift() || "";
+				} while (
+					this.queue[currentUUID] === undefined &&
+					this.queueOrder.length
 				);
-				this.currentJob = null;
-				return null;
-			}
-			this.queue[currentUUID].status = "downloading";
-			const currentItem = JSON.parse(
-				fs
-					.readFileSync(configFolder + `queue${sep}${currentUUID}.json`)
-					.toString()
-			);
-			let downloadObject: Single | Collection | Convertable | undefined =
-				undefined;
 
-			switch (currentItem.__type__) {
-				case "Single":
-					downloadObject = new Single(currentItem);
-					break;
-				case "Collection":
-					downloadObject = new Collection(currentItem);
-					break;
-				case "Convertable": {
-					const convertable = new Convertable(currentItem);
-					downloadObject = await this.plugins[convertable.plugin].convert(
-						dz,
-						convertable,
-						this.settings,
-						this.listener
-					);
+				if (this.queue[currentUUID] === undefined) return null;
+
+				this.queue[currentUUID].status = "downloading";
+				currentItem = JSON.parse(
+					fs.readFileSync(this.queueFile(currentUUID)).toString()
+				);
+
+				let downloadObject: Single | Collection | Convertable | undefined;
+
+				switch (currentItem.__type__) {
+					case "Single":
+						downloadObject = new Single(currentItem);
+						break;
+					case "Collection":
+						downloadObject = new Collection(currentItem);
+						break;
+					case "Convertable": {
+						const convertable = new Convertable(currentItem);
+						const plugin = this.plugins[convertable.plugin];
+						if (!isConvertiblePlugin(plugin)) {
+							throw new Error(
+								`Plugin "${convertable.plugin}" cannot convert queued items`
+							);
+						}
+
+						downloadObject = await plugin.convert(
+							dz,
+							convertable,
+							this.settings,
+							this.listener
+						);
+						fs.writeFileSync(
+							this.queueFile(downloadObject.uuid),
+							JSON.stringify({ ...downloadObject.toDict(), status: "inQueue" })
+						);
+						break;
+					}
+					default:
+						throw new Error(
+							`Unsupported queued item type: ${String(currentItem.__type__)}`
+						);
+				}
+
+				this.currentJob = new Downloader(
+					dz,
+					downloadObject,
+					this.settings,
+					this.listener
+				);
+
+				this.listener.send("startDownload", currentUUID);
+				await this.currentJob.start();
+
+				if (!downloadObject.isCanceled && this.queue[currentUUID]) {
+					if (
+						downloadObject.failed === downloadObject.size &&
+						downloadObject.size !== 0
+					) {
+						this.queue[currentUUID].status = "failed";
+					} else if (downloadObject.failed > 0) {
+						this.queue[currentUUID].status = "withErrors";
+					} else {
+						this.queue[currentUUID].status = "completed";
+					}
+
+					const savedObject = {
+						...downloadObject.getSlimmedDict(),
+						status: this.queue[currentUUID].status,
+					};
+					this.queue[currentUUID] = savedObject;
 					fs.writeFileSync(
-						configFolder + `queue${sep}${downloadObject.uuid}.json`,
-						JSON.stringify({ ...downloadObject.toDict(), status: "inQueue" })
+						this.queueFile(currentUUID),
+						JSON.stringify(savedObject)
 					);
-					break;
 				}
-			}
+			} catch (error) {
+				const queueError =
+					error instanceof Error ? error : new Error(String(error));
+				logger.error(queueError);
 
-			if (typeof downloadObject === "undefined") return;
-
-			this.currentJob = new Downloader(
-				dz,
-				downloadObject,
-				this.settings,
-				this.listener
-			);
-
-			this.listener.send("startDownload", currentUUID);
-			await this.currentJob.start();
-
-			if (!downloadObject.isCanceled) {
-				// Set status
-				if (
-					downloadObject.failed === downloadObject.size &&
-					downloadObject.size !== 0
-				) {
+				if (currentUUID && this.queue[currentUUID]) {
 					this.queue[currentUUID].status = "failed";
-				} else if (downloadObject.failed > 0) {
-					this.queue[currentUUID].status = "withErrors";
-				} else {
-					this.queue[currentUUID].status = "completed";
+					const persistedItem =
+						currentItem && typeof currentItem === "object"
+							? {
+									...currentItem,
+									status: "failed",
+								}
+							: { ...this.queue[currentUUID], status: "failed" };
+
+					try {
+						fs.writeFileSync(
+							this.queueFile(currentUUID),
+							JSON.stringify(persistedItem)
+						);
+					} catch (persistError) {
+						logger.error(persistError);
+					}
+
+					this.listener.send("updateQueue", {
+						uuid: currentUUID,
+						failed: true,
+						error: queueError.message,
+						type: "queue",
+					});
 				}
-
-				const savedObject = {
-					...downloadObject.getSlimmedDict(),
-					status: this.queue[currentUUID].status,
-				};
-				// Save queue status
-				this.queue[currentUUID] = savedObject;
-				fs.writeFileSync(
-					configFolder + `queue${sep}${currentUUID}.json`,
-					JSON.stringify(savedObject)
-				);
+			} finally {
+				this.persistQueueOrder();
+				this.currentJob = null;
 			}
-
-			fs.writeFileSync(
-				configFolder + `queue${sep}order.json`,
-				JSON.stringify(this.queueOrder)
-			);
-
-			this.currentJob = null;
 		} while (this.queueOrder.length);
+
+		return null;
 	}
 
 	cancelDownload(uuid: string) {
@@ -382,20 +435,19 @@ export class DeemixApp {
 					}
 					this.listener.send("cancellingCurrentItem", uuid);
 					break;
-				case "inQueue":
-					this.queueOrder.splice(this.queueOrder.indexOf(uuid), 1);
-					fs.writeFileSync(
-						configFolder + `queue${sep}order.json`,
-						JSON.stringify(this.queueOrder)
-					);
+				case "inQueue": {
+					const index = this.queueOrder.indexOf(uuid);
+					if (index !== -1) this.queueOrder.splice(index, 1);
+					this.persistQueueOrder();
 					this.listener.send("removedFromQueue", { uuid });
 					break;
+				}
 
 				default:
 					this.listener.send("removedFromQueue", { uuid });
 					break;
 			}
-			fs.unlinkSync(configFolder + `queue${sep}${uuid}.json`);
+			this.removeQueueFile(uuid);
 			delete this.queue[uuid];
 		}
 	}
@@ -412,20 +464,17 @@ export class DeemixApp {
 				this.listener.send("cancellingCurrentItem", downloadObject.uuid);
 				currentItem = downloadObject.uuid;
 			}
-			fs.unlinkSync(configFolder + `queue${sep}${downloadObject.uuid}.json`);
+			this.removeQueueFile(downloadObject.uuid);
 			delete this.queue[downloadObject.uuid];
 		});
-		fs.writeFileSync(
-			configFolder + `queue${sep}order.json`,
-			JSON.stringify(this.queueOrder)
-		);
+		this.persistQueueOrder();
 		this.listener.send("removedAllDownloads", currentItem);
 	}
 
 	clearCompletedDownloads() {
 		Object.values(this.queue).forEach((downloadObject: any) => {
 			if (downloadObject.status === "completed") {
-				fs.unlinkSync(configFolder + `queue${sep}${downloadObject.uuid}.json`);
+				this.removeQueueFile(downloadObject.uuid);
 				delete this.queue[downloadObject.uuid];
 			}
 		});
@@ -455,7 +504,7 @@ export class DeemixApp {
 						fs.readFileSync(configFolder + `queue${sep}${filename}`).toString()
 					);
 				} catch {
-					fs.unlinkSync(configFolder + `queue${sep}${filename}`);
+					fs.rmSync(configFolder + `queue${sep}${filename}`, { force: true });
 					return;
 				}
 				if (currentItem.status === "inQueue") {
@@ -465,7 +514,7 @@ export class DeemixApp {
 							downloadObject = new Single(currentItem);
 							// Remove old incompatible queue items
 							if (downloadObject.single.trackAPI_gw) {
-								fs.unlinkSync(configFolder + `queue${sep}${filename}`);
+								fs.rmSync(configFolder + `queue${sep}${filename}`, { force: true });
 								return;
 							}
 							break;
@@ -473,14 +522,20 @@ export class DeemixApp {
 							downloadObject = new Collection(currentItem);
 							// Remove old incompatible queue items
 							if (downloadObject.collection.tracks_gw) {
-								fs.unlinkSync(configFolder + `queue${sep}${filename}`);
+								fs.rmSync(configFolder + `queue${sep}${filename}`, { force: true });
 								return;
 							}
 							break;
 						case "Convertable":
 							downloadObject = new Convertable(currentItem);
 							break;
+						default:
+							fs.rmSync(configFolder + `queue${sep}${filename}`, {
+								force: true,
+							});
+							return;
 					}
+					if (!downloadObject) return;
 					this.queue[downloadObject.uuid] = downloadObject.getEssentialDict();
 					this.queue[downloadObject.uuid].status = "inQueue";
 				} else {
@@ -488,5 +543,10 @@ export class DeemixApp {
 				}
 			}
 		});
+
+		this.queueOrder = this.queueOrder.filter(
+			(uuid) => this.queue[uuid]?.status === "inQueue"
+		);
+		this.persistQueueOrder();
 	}
 }

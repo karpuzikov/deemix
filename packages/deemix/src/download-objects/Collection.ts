@@ -1,6 +1,5 @@
 import type { Listener } from "@/types/listener.js";
 import { DownloadObject } from "./DownloadObject.js";
-import { type Track as SpotifyTrack } from "@spotify/web-api-ts-sdk";
 
 export class Collection extends DownloadObject {
 	collection: any;
@@ -28,9 +27,9 @@ export class Collection extends DownloadObject {
 	}
 }
 
-export class Convertable extends Collection {
+export class Convertable<T = any> extends Collection {
 	plugin: string;
-	conversionData: SpotifyTrack[];
+	conversionData: T[];
 
 	constructor(obj) {
 		super(obj);

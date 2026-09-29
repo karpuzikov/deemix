@@ -8,6 +8,11 @@ import {
 } from "./utils.js";
 import { GWAPIError } from "./errors.js";
 import { type APIOptions } from "./index.js";
+import {
+	DEFAULT_MAX_RETRIES,
+	getRetryDelay,
+	isTransientNetworkError,
+} from "./retry.js";
 
 export const PlaylistStatus = {
 	PUBLIC: 0,
@@ -76,7 +81,6 @@ export const EMPTY_TRACK_OBJ = {
 	ART_NAME: "",
 } satisfies Partial<GWTrack>;
 
-const MAX_GW_RETRIES = 3;
 
 export class GW {
 	httpHeaders: any;
@@ -122,16 +126,10 @@ export class GW {
 		} catch (e) {
 			console.error("[ERROR] deezer.gw", method, args, e.name, e.message);
 			if (
-				[
-					"ECONNABORTED",
-					"ECONNREFUSED",
-					"ECONNRESET",
-					"ENETRESET",
-					"ETIMEDOUT",
-				].includes(e.code) &&
-				retryCount < MAX_GW_RETRIES
+				isTransientNetworkError(e) &&
+				retryCount < DEFAULT_MAX_RETRIES
 			) {
-				const delay = 1000 * 2 ** retryCount;
+				const delay = getRetryDelay(retryCount);
 				await new Promise((resolve) => setTimeout(resolve, delay));
 				return this.api_call(method, args, params, retryCount + 1);
 			}
@@ -143,7 +141,7 @@ export class GW {
 					'{"GATEWAY_ERROR":"invalid api token"}' ||
 					JSON.stringify(result_json.error) ===
 						'{"VALID_TOKEN_REQUIRED":"Invalid CSRF token"}') &&
-				retryCount < MAX_GW_RETRIES
+				retryCount < DEFAULT_MAX_RETRIES
 			) {
 				this.api_token = await this._get_token();
 				return this.api_call(method, args, params, retryCount + 1);
@@ -151,7 +149,7 @@ export class GW {
 			if (
 				result_json.payload &&
 				result_json.payload.FALLBACK &&
-				retryCount < MAX_GW_RETRIES
+				retryCount < DEFAULT_MAX_RETRIES
 			) {
 				Object.keys(result_json.payload.FALLBACK).forEach((key) => {
 					args[key] = result_json.payload.FALLBACK[key];

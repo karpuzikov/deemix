@@ -2,6 +2,7 @@ import { DeemixApp } from "@/deemixApp.js";
 import { logger, removeOldLogs } from "@/helpers/logger.js";
 import { loadLoginCredentials } from "@/helpers/loginStorage.js";
 import cookieParser from "cookie-parser";
+import { randomBytes } from "crypto";
 import { utils, type Listener } from "deemix";
 import express, { type Express } from "express";
 import session from "express-session";
@@ -68,7 +69,8 @@ app.use(
 		store: new MemoryStore({
 			checkPeriod: 86400000, // prune expired entries every 24h
 		}),
-		secret: "U2hoLCBpdHMgYSBzZWNyZXQh",
+		secret:
+			process.env.DEEMIX_SESSION_SECRET ?? randomBytes(32).toString("hex"),
 		resave: true,
 		saveUninitialized: true,
 	})

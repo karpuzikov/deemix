@@ -1,7 +1,13 @@
 import type { Listener } from "@/types/listener.js";
 
 export class DownloadObject {
-	type: "track" | "album" | "playlist" | "artist" | "spotify_playlist";
+	type:
+		| "track"
+		| "album"
+		| "playlist"
+		| "artist"
+		| "spotify_playlist"
+		| "listenbrainz_playlist";
 	id: number | string;
 	bitrate: number;
 	title: string;
@@ -18,7 +24,7 @@ export class DownloadObject {
 	progressNext: number;
 	uuid: string;
 	isCanceled: boolean;
-	__type__: "Single" | "Collection" | "Convertable";
+	__type__: "Single" | "Collection" | "Convertable" | null;
 
 	constructor(obj) {
 		this.type = obj.type;
