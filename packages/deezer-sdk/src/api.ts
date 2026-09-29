@@ -16,6 +16,8 @@ import { trackSchema, type DeezerTrack } from "./schema/track-schema.js";
 import {
 	DEFAULT_MAX_RETRIES,
 	getRetryDelay,
+	getRetryDelayForError,
+	isRetryableHTTPError,
 	isTransientNetworkError,
 } from "./retry.js";
 import {
@@ -61,10 +63,12 @@ export class API {
 		} catch (e) {
 			console.error("[ERROR] deezer.api", endpoint, args, e.name, e.message);
 			if (
-				isTransientNetworkError(e) &&
+				(isTransientNetworkError(e) || isRetryableHTTPError(e)) &&
 				retryCount < DEFAULT_MAX_RETRIES
 			) {
-				const delay = getRetryDelay(retryCount);
+				const delay = isRetryableHTTPError(e)
+					? getRetryDelayForError(e, retryCount)
+					: getRetryDelay(retryCount);
 				await new Promise((resolve) => setTimeout(resolve, delay));
 				return this.call(endpoint, args, retryCount + 1);
 			}

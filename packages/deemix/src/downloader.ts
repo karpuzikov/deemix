@@ -23,6 +23,13 @@ import { Playlist } from "./types/Playlist.js";
 import type { Settings } from "./types/Settings.js";
 import Track, { formatsName } from "./types/Track.js";
 import { shellEscape } from "./utils/core.js";
+import {
+	invalidateCachedISRCTrackID,
+	normalizeISRC,
+	putCachedISRCTrackID,
+	resolveISRCTrackID,
+} from "./utils/isrcCache.js";
+import { enrichLyricsFromLRCLIB } from "./utils/lyricsFallback.js";
 import { downloadImage } from "./utils/downloadImage.js";
 import { checkShouldDownload, tagTrack } from "./utils/downloadUtils.js";
 import { getPreferredBitrate } from "./utils/getPreferredBitrate.js";
@@ -47,10 +54,6 @@ const extensions = {
 } as const;
 
 const MAX_FALLBACK_ATTEMPTS = 20;
-
-function normalizeISRC(value: string) {
-	return value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-}
 
 const TEMPDIR = tmpdir() + "/deemix-imgs";
 mkdirSync(TEMPDIR, { recursive: true });
@@ -196,6 +199,19 @@ export class Downloader {
 				playlistAPI,
 				refetchTrack
 			);
+
+			// SpotiFLAC-inspired metadata fallback: only ask LRCLIB when lyrics
+			// are actually requested and Deezer did not provide them.
+			if (
+				(this.settings.syncedLyrics ||
+					this.settings.tags.lyrics ||
+					this.settings.tags.syncedLyrics) &&
+				track.lyrics &&
+				!track.lyrics.sync &&
+				!track.lyrics.unsync
+			) {
+				await enrichLyricsFromLRCLIB(track);
+			}
 		} catch (e) {
 			if (e.name === "AlbumDoesntExists") {
 				throw new DownloadFailed("albumDoesntExists");
@@ -495,7 +511,8 @@ export class Downloader {
 			visitedTrackIDs: new Set<string>(),
 			isrcAttempted: false,
 			attempts: 0,
-		}
+		},
+		finalizeFailure = true
 	) {
 		const { trackAPI } = extraData;
 		fallbackState.visitedTrackIDs.add(String(track?.id ?? trackAPI.id));
@@ -541,12 +558,14 @@ export class Downloader {
 								failedTrack.searched = true;
 								this.log(itemData, "searchFallback");
 							}
-							return await this.downloadWrapper(
+							const fallbackResult = await this.downloadWrapper(
 								extraData,
 								failedTrack,
 								false,
-								fallbackState
+								fallbackState,
+								false
 							);
+							return fallbackResult;
 						} catch {
 							return null;
 						}
@@ -571,20 +590,17 @@ export class Downloader {
 					) {
 						fallbackState.isrcAttempted = true;
 						const targetISRC = normalizeISRC(failedTrack.ISRC);
-						try {
-							const isrcTrack = await this.dz.api.getTrack(`isrc:${targetISRC}`);
-							if (
-								isrcTrack?.id &&
-								normalizeISRC(isrcTrack.isrc || "") === targetISRC
-							) {
-								const fallbackResult = await tryFallbackID(
-									isrcTrack.id,
-									"fallback"
-								);
-								if (fallbackResult) return fallbackResult;
-							}
-						} catch {
-							/* Continue with alternative albums. */
+						const cachedOrResolvedID = await resolveISRCTrackID(
+							this.dz,
+							targetISRC
+						);
+						if (cachedOrResolvedID) {
+							const fallbackResult = await tryFallbackID(
+								cachedOrResolvedID,
+								"fallback"
+							);
+							if (fallbackResult) return fallbackResult;
+							invalidateCachedISRCTrackID(targetISRC, cachedOrResolvedID);
 						}
 					}
 
@@ -605,6 +621,7 @@ export class Downloader {
 							);
 
 							if (!alternativeTrack) continue;
+							putCachedISRCTrackID(targetISRC, alternativeTrack.SNG_ID);
 							const fallbackResult = await tryFallbackID(
 								alternativeTrack.SNG_ID,
 								"fallback"
@@ -657,7 +674,11 @@ export class Downloader {
 			}
 		}
 
-		if (result.error) {
+		if (result?.error && !finalizeFailure) {
+			return null;
+		}
+
+		if (result?.error) {
 			if (
 				this.downloadObject instanceof Single ||
 				this.downloadObject instanceof Collection
