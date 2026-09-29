@@ -544,9 +544,17 @@ export class DeemixApp {
 			}
 		});
 
-		this.queueOrder = this.queueOrder.filter(
+		const pendingUUIDs = Object.values(this.queue)
+			.filter((item: any) => item?.status === "inQueue" && item?.uuid)
+			.map((item: any) => String(item.uuid));
+
+		const restoredOrder = this.queueOrder.filter(
 			(uuid) => this.queue[uuid]?.status === "inQueue"
 		);
+		for (const uuid of pendingUUIDs) {
+			if (!restoredOrder.includes(uuid)) restoredOrder.push(uuid);
+		}
+		this.queueOrder = restoredOrder;
 		this.persistQueueOrder();
 	}
 }
