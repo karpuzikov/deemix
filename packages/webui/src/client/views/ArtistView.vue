@@ -214,16 +214,23 @@ const sortedData = computed(() => {
 					<td class="w-20 text-center xl:w-32">
 						{{ release.releaseTracksNumber }}
 					</td>
-					<td
-						:data-cm-link="release.releaseLink"
-						class="w-8 cursor-pointer"
-						@click.stop="sendAddToQueue(release.releaseLink)"
-					>
-						<i
-							class="material-icons hover:text-primary"
-							:title="t('globals.download_hint').toString()"
-							>file_download</i
-						>
+					<td class="w-16">
+						<div class="flex items-center justify-center gap-1">
+							<i
+								:data-cm-link="release.releaseLink"
+								class="material-icons hover:text-primary cursor-pointer"
+								:title="t('globals.download_hint').toString()"
+								@click.stop="sendAddToQueue(release.releaseLink)"
+								>file_download</i
+							>
+							<i
+								v-if="canChooseFolder"
+								class="material-icons hover:text-primary cursor-pointer"
+								:title="t('globals.download_to_folder')"
+								@click.stop="sendAddToQueueWithFolder(release.releaseLink)"
+								>folder_open</i
+							>
+						</div>
 					</td>
 				</tr>
 			</tbody>
@@ -240,6 +247,15 @@ const sortedData = computed(() => {
 						thing: t(`globals.listTabs.${state.currentTab}`, 2),
 					})}`
 				}}<i class="material-icons ml-2">file_download</i>
+			</button>
+			<button
+				v-if="canChooseFolder"
+				type="button"
+				class="btn btn-primary ml-2 flex items-center"
+				:title="t('globals.download_to_folder')"
+				@click.stop="sendAddToQueueWithFolder(downloadLink + '/' + state.currentTab)"
+			>
+				<i class="material-icons">folder_open</i>
 			</button>
 		</footer>
 	</div>
