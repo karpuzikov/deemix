@@ -65,7 +65,7 @@ export function shouldExpandArtistDiscography(tab: string): boolean {
 
 function normalizeBarcode(value: unknown): string {
 	const barcode = String(value ?? "").replace(/\D/g, "");
-	if (!barcode) return "";
+	if (!barcode || /^0+$/.test(barcode)) return "";
 	return barcode.replace(/^0+(?=\d)/, "");
 }
 
