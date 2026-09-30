@@ -605,6 +605,15 @@ export class Downloader {
 				);
 				track.album.parseAlbum(albumAPI);
 				track.position = trackAPI.position;
+				if (track.mainArtist && !track.artist.Main.length) {
+					track.artist.Main = [track.mainArtist.name];
+				}
+				if (
+					track.mainArtist &&
+					!track.artists.includes(track.mainArtist.name)
+				) {
+					track.artists.push(track.mainArtist.name);
+				}
 				track.generateMainFeatStrings();
 				track.bitrate = this.bitrate as any;
 				track.album.bitrate = this.bitrate;
