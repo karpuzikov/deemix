@@ -144,12 +144,6 @@ export async function generateArtistItem(
 	const addCandidate = (album: any) => {
 		const albumID = album?.id ?? album?.ALB_ID;
 		if (albumID === undefined || albumID === null) return;
-
-		// Discography means releases where this artist is the album-level main
-		// artist. Ignore compilations and appearances whenever Deezer already
-		// exposes the release artist on the candidate.
-		if (album?.artist && !isSameReleaseArtist(rootArtist, album.artist)) return;
-
 		candidateAlbums.set(String(albumID), album);
 	};
 

@@ -59,13 +59,35 @@ export function isSameReleaseArtist(
 	);
 }
 
+export function isMainArtistRelease(
+	rootArtist: { id?: string | number; name?: string },
+	albumAPI: any
+): boolean {
+	if (!albumAPI) return false;
+
+	// Deezer exposes one primary album artist plus contributor roles. A genuine
+	// co-main artist may therefore be present in contributors rather than in the
+	// single album.artist field.
+	if (isSameReleaseArtist(rootArtist, albumAPI.artist)) return true;
+
+	const contributors = Array.isArray(albumAPI.contributors)
+		? albumAPI.contributors
+		: [];
+
+	return contributors.some(
+		(contributor: any) =>
+			String(contributor?.role ?? "").toLowerCase() === "main" &&
+			isSameReleaseArtist(rootArtist, contributor)
+	);
+}
+
 export function isMainArtistDownloadObject(
 	rootArtist: { id?: string | number; name?: string },
 	downloadObject: any
 ): boolean {
 	const albumAPI =
 		downloadObject?.collection?.albumAPI ?? downloadObject?.single?.albumAPI;
-	return isSameReleaseArtist(rootArtist, albumAPI?.artist);
+	return isMainArtistRelease(rootArtist, albumAPI);
 }
 
 export function shouldExpandArtistDiscography(tab: string): boolean {

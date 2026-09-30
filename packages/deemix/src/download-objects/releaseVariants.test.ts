@@ -3,6 +3,7 @@ import {
 	getReleaseEditionKey,
 	getReleaseFamilyTitle,
 	isMainArtistDownloadObject,
+	isMainArtistRelease,
 	isReleaseVariantTitle,
 	isSameReleaseArtist,
 	shouldExpandArtistDiscography,
@@ -33,30 +34,43 @@ describe("release variant helpers", () => {
 		).toBe(true);
 	});
 
-	it("keeps only releases where the selected artist is the album main artist", () => {
+	it("keeps releases where the selected artist is an album-level main artist", () => {
 		const rootArtist = { id: 123, name: "INNA" };
 
 		expect(
-			isMainArtistDownloadObject(rootArtist, {
-				collection: {
-					albumAPI: { artist: { id: 123, name: "INNA" } },
-				},
+			isMainArtistRelease(rootArtist, {
+				artist: { id: 123, name: "INNA" },
 			})
 		).toBe(true);
 
 		expect(
-			isMainArtistDownloadObject(rootArtist, {
-				collection: {
-					albumAPI: { artist: { id: 5080, name: "Various Artists" } },
-					tracks: [{ artist: { id: 123, name: "INNA" } }],
-				},
+			isMainArtistRelease(rootArtist, {
+				artist: { id: 999, name: "Collaborator" },
+				contributors: [
+					{ id: 999, name: "Collaborator", role: "Main" },
+					{ id: 123, name: "INNA", role: "Main" },
+				],
+			})
+		).toBe(true);
+	});
+
+	it("excludes featured appearances and Various Artists compilations", () => {
+		const rootArtist = { id: 123, name: "INNA" };
+
+		expect(
+			isMainArtistRelease(rootArtist, {
+				artist: { id: 999, name: "Another Artist" },
+				contributors: [{ id: 123, name: "INNA", role: "Featured" }],
 			})
 		).toBe(false);
 
 		expect(
 			isMainArtistDownloadObject(rootArtist, {
 				collection: {
-					albumAPI: { artist: { id: 999, name: "Another Artist" } },
+					albumAPI: {
+						artist: { id: 5080, name: "Various Artists" },
+						contributors: [],
+					},
 					tracks: [{ artist: { id: 123, name: "INNA" } }],
 				},
 			})
