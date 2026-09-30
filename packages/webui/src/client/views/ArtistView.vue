@@ -108,8 +108,8 @@ const sortedData = computed(() => {
 				class="bg-primary text-grayscale-870 ml-auto grid h-16 w-16 cursor-pointer place-items-center rounded-full"
 				aria-label="download"
 				role="button"
-				:data-cm-link="downloadLink"
-				@click.stop="sendAddToQueue(downloadLink)"
+				:data-cm-link="downloadLink + '/all'"
+				@click.stop="sendAddToQueue(downloadLink + '/all')"
 			>
 				<i class="material-icons text-4xl" :title="t('globals.download_hint')"
 					>get_app</i
@@ -215,19 +215,7 @@ const sortedData = computed(() => {
 			</tbody>
 		</table>
 		<footer class="bg-background-main">
-			<div style="flex-grow: 1">
-				<button
-					:data-link="downloadLink + '/discography'"
-					class="btn btn-flat"
-					@click.stop="sendAddToQueue(downloadLink)"
-				>
-					{{
-						`${t("globals.download", {
-							thing: t("globals.listTabs.discography"),
-						})}`
-					}}
-				</button>
-			</div>
+			<div style="flex-grow: 1"></div>
 			<button
 				:data-link="downloadLink + '/' + state.currentTab"
 				class="btn btn-primary flex items-center"
