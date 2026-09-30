@@ -141,8 +141,7 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.on("openDownloadsFolder", () => {
-	const { downloadLocation } = deemixApp.getSettings().settings;
-	shell.openPath(downloadLocation);
+	shell.openPath(deemixApp.getDownloadLocation());
 });
 
 ipcMain.on("openFolder", (_event, folderPath) => {
@@ -150,6 +149,19 @@ ipcMain.on("openFolder", (_event, folderPath) => {
 	const resolvedPath = path.resolve(folderPath);
 	if (!fs.existsSync(resolvedPath)) return;
 	shell.openPath(resolvedPath);
+});
+
+ipcMain.on("selectSessionDownloadFolder", async () => {
+	if (!win) return;
+	const result = await dialog.showOpenDialog(win, {
+		defaultPath: deemixApp.getDownloadLocation(),
+		properties: ["openDirectory", "createDirectory"],
+	});
+	const selectedPath = result.filePaths[0];
+	if (!selectedPath) return;
+
+	const activePath = deemixApp.setSessionDownloadLocation(selectedPath);
+	win.webContents.send("sessionDownloadFolderSelected", activePath);
 });
 
 ipcMain.on("selectDownloadFolder", async (event, downloadLocation) => {

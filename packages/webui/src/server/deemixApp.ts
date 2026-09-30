@@ -50,11 +50,13 @@ export class DeemixApp {
 
 	plugins: AppPlugins;
 	settings: Settings;
+	sessionDownloadLocation: string | null;
 
 	listener: Listener;
 
 	constructor(listener: Listener) {
 		this.settings = loadSettings(configFolder);
+		this.sessionDownloadLocation = null;
 
 		this.queueOrder = [];
 		this.queue = {};
@@ -164,6 +166,25 @@ export class DeemixApp {
 		saveSettings(newSettings, configFolder);
 		this.settings = newSettings;
 		this.plugins.spotify.saveSettings(newSpotifySettings);
+	}
+
+	getDownloadLocation(): string {
+		return this.sessionDownloadLocation || this.settings.downloadLocation;
+	}
+
+	setSessionDownloadLocation(downloadLocation: string | null): string {
+		const normalized =
+			typeof downloadLocation === "string" ? downloadLocation.trim() : "";
+		this.sessionDownloadLocation = normalized || null;
+		return this.getDownloadLocation();
+	}
+
+	private getEffectiveSettings(): Settings {
+		if (!this.sessionDownloadLocation) return this.settings;
+		return {
+			...this.settings,
+			downloadLocation: this.sessionDownloadLocation,
+		};
 	}
 
 	getQueue() {
@@ -338,6 +359,7 @@ export class DeemixApp {
 				this.writeQueueJson(this.queueFile(currentUUID), currentItem);
 
 				let downloadObject: Single | Collection | Convertable | undefined;
+				const effectiveSettings = this.getEffectiveSettings();
 
 				switch (currentItem.__type__) {
 					case "Single":
@@ -358,7 +380,7 @@ export class DeemixApp {
 						downloadObject = await plugin.convert(
 							dz,
 							convertable,
-							this.settings,
+							effectiveSettings,
 							this.listener
 						);
 						this.writeQueueJson(this.queueFile(downloadObject.uuid), {
@@ -376,7 +398,7 @@ export class DeemixApp {
 				this.currentJob = new Downloader(
 					dz,
 					downloadObject,
-					this.settings,
+					effectiveSettings,
 					this.listener
 				);
 

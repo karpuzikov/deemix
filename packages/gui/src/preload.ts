@@ -5,13 +5,21 @@ import { contextBridge, ipcRenderer } from "electron";
 contextBridge.exposeInMainWorld("api", {
 	send: (channel, data) => {
 		// whitelist channels
-		const validChannels = ["openDownloadsFolder", "openFolder", "selectDownloadFolder"];
+		const validChannels = [
+			"openDownloadsFolder",
+			"openFolder",
+			"selectDownloadFolder",
+			"selectSessionDownloadFolder",
+		];
 		if (validChannels.includes(channel)) {
 			ipcRenderer.send(channel, data);
 		}
 	},
 	receive: (channel, func) => {
-		const validChannels = ["downloadFolderSelected"];
+		const validChannels = [
+			"downloadFolderSelected",
+			"sessionDownloadFolderSelected",
+		];
 		if (validChannels.includes(channel)) {
 			// Deliberately strip event as it includes `sender`
 			ipcRenderer.on(channel, (event, ...args) => func(...args));
