@@ -84,3 +84,12 @@ jobs:
           $titleTrack = Invoke-RestMethod "https://api.deezer.com/search/track?q=Diggy%20Down&limit=100"
           $titleTrackMatch = $titleTrack.data | Where-Object { $_.album.id -eq 9374018 }
           Write-Host "FOUND_IN_TITLE_TRACK_SEARCH=$([bool]$titleTrackMatch)"
+
+          $mbHeaders = @{ "User-Agent" = "karpuzikov-deemix-diagnostic/1.0 (https://github.com/karpuzikov/deemix)" }
+          $mbBarcode = Invoke-RestMethod "https://musicbrainz.org/ws/2/release/?query=barcode:5948204052898&fmt=json&limit=10" -Headers $mbHeaders
+          Write-Host "MUSICBRAINZ_BARCODE_COUNT=$($mbBarcode.count)"
+          if ($mbBarcode.releases) {
+            Write-Host "MUSICBRAINZ_BARCODE_MATCH_START"
+            $mbBarcode.releases | Select-Object id,title,barcode,date,status,country | ConvertTo-Json -Depth 6
+            Write-Host "MUSICBRAINZ_BARCODE_MATCH_END"
+          }
