@@ -4,6 +4,7 @@ import {
 	getReleaseFamilyTitle,
 	isReleaseVariantTitle,
 	isSameReleaseArtist,
+	shouldExpandArtistDiscography,
 } from "./releaseVariants.js";
 
 describe("release variant helpers", () => {
@@ -29,6 +30,24 @@ describe("release variant helpers", () => {
 				{ id: 123, name: "Maître Gims" }
 			)
 		).toBe(true);
+	});
+
+	it("treats a plain artist link as exhaustive discography mode", () => {
+		expect(shouldExpandArtistDiscography("all")).toBe(true);
+		expect(shouldExpandArtistDiscography("discography")).toBe(true);
+		expect(shouldExpandArtistDiscography("album")).toBe(false);
+	});
+
+	it("keeps different barcodes as different release editions", () => {
+		const a = { collection: { albumAPI: { upc: "3610154144078" } } };
+		const b = { collection: { albumAPI: { upc: "3610154144085" } } };
+		expect(getReleaseEditionKey(a)).not.toBe(getReleaseEditionKey(b));
+	});
+
+	it("uses alternate barcode field names", () => {
+		const a = { collection: { albumAPI: { barcode: "3610154144078" } } };
+		const b = { collection: { albumAPI: { UPC: "3610154144078" } } };
+		expect(getReleaseEditionKey(a)).toBe(getReleaseEditionKey(b));
 	});
 
 	it("deduplicates equivalent UPC formatting", () => {
