@@ -9,20 +9,23 @@ contextBridge.exposeInMainWorld("api", {
 			"openDownloadsFolder",
 			"openFolder",
 			"selectDownloadFolder",
-			"selectSessionDownloadFolder",
 		];
 		if (validChannels.includes(channel)) {
 			ipcRenderer.send(channel, data);
 		}
 	},
 	receive: (channel, func) => {
-		const validChannels = [
-			"downloadFolderSelected",
-			"sessionDownloadFolderSelected",
-		];
+		const validChannels = ["downloadFolderSelected"];
 		if (validChannels.includes(channel)) {
 			// Deliberately strip event as it includes `sender`
 			ipcRenderer.on(channel, (event, ...args) => func(...args));
 		}
+	},
+	invoke: (channel, ...args) => {
+		const validChannels = ["selectSessionDownloadFolder"];
+		if (validChannels.includes(channel)) {
+			return ipcRenderer.invoke(channel, ...args);
+		}
+		return Promise.resolve(null);
 	},
 });
