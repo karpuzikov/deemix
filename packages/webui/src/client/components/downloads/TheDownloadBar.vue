@@ -310,10 +310,6 @@ function openDownloadsFolder() {
 	window.api.send("openDownloadsFolder");
 }
 
-function saveAsDownloadFolder() {
-	window.api.send("selectSessionDownloadFolder");
-}
-
 function handleDrag(event) {
 	let newWidth = window.innerWidth - event.pageX + 2;
 
@@ -372,15 +368,6 @@ async function showErrorsTab(item) {
 }
 
 onMounted(() => {
-	if (clientMode.value && window.api?.receive) {
-		window.api.receive("sessionDownloadFolderSelected", (selectedPath: string) => {
-			toast(
-				t("toasts.saveAsDownloadFolder", { path: selectedPath }),
-				"save_alt"
-			);
-		});
-	}
-
 	socket.on("startDownload", startDownload);
 	socket.on("startConversion", startConversion);
 	socket.on("finishConversion", finishConversion);
@@ -468,14 +455,6 @@ onUnmounted(() => {
 				<i
 					v-if="clientMode"
 					class="material-icons cursor-pointer text-xl"
-					:title="t('globals.save_as')"
-					@click="saveAsDownloadFolder"
-				>
-					save_alt
-				</i>
-				<i
-					v-if="clientMode"
-					class="material-icons cursor-pointer text-xl"
 					@click="openDownloadsFolder"
 				>
 					folder_open
@@ -548,15 +527,6 @@ onUnmounted(() => {
 				'visible opacity-100': isExpanded,
 			}"
 		>
-			<button
-				v-if="clientMode"
-				type="button"
-				class="btn btn-flat mr-1 px-2 py-1 text-xs"
-				:title="t('globals.save_as')"
-				@click="saveAsDownloadFolder"
-			>
-				{{ t("globals.save_as") }}
-			</button>
 			<i
 				v-if="clientMode"
 				class="material-icons m-1 cursor-pointer text-2xl"
