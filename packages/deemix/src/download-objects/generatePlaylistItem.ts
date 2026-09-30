@@ -19,6 +19,7 @@ import {
 	isReleaseVariantTitle,
 	isSameReleaseArtist,
 	normalizeReleaseTitle,
+	shouldExpandArtistDiscography,
 } from "./releaseVariants.js";
 import type { Single } from "./Single.js";
 
@@ -144,11 +145,11 @@ export async function generateArtistItem(
 		candidateAlbums.set(String(albumID), album);
 	};
 
-	if (tab === "discography") {
+	if (shouldExpandArtistDiscography(tab)) {
 		// Preserve deemix's existing discography coverage while removing duplicate
 		// album IDs that can appear in multiple Deezer tabs.
-		Object.entries(artistDiscographyAPI).forEach(([key, releases]: any) => {
-			if (key === "all" || !Array.isArray(releases)) return;
+		Object.values(artistDiscographyAPI).forEach((releases: any) => {
+			if (!Array.isArray(releases)) return;
 			releases.forEach(addCandidate);
 		});
 
@@ -171,6 +172,38 @@ export async function generateArtistItem(
 			}
 		} catch (e) {
 			console.warn("Could not expand artist albums through public API", e);
+		}
+
+		// Search Deezer's album index independently of the artist page. This can
+		// reveal barcode editions that Deezer collapses out of the visible discography.
+		const collectArtistSearch = async (query: string) => {
+			const pageSize = 100;
+			let index = 0;
+			let total = Number.POSITIVE_INFINITY;
+
+			while (index < total && index < 5000) {
+				const response: any = await dz.api.search_album(query, {
+					index,
+					limit: pageSize,
+				});
+				const data = Array.isArray(response?.data) ? response.data : [];
+
+				for (const candidate of data) {
+					if (isSameReleaseArtist(rootArtist, candidate?.artist)) {
+						addCandidate(candidate);
+					}
+				}
+
+				total = Number(response?.total ?? data.length);
+				if (data.length === 0) break;
+				index += data.length;
+			}
+		};
+
+		try {
+			await collectArtistSearch(String(rootArtist.name ?? ""));
+		} catch (e) {
+			console.warn("Could not expand artist releases through album search", e);
 		}
 
 		// Artist pages can still collapse several editions into one canonical
