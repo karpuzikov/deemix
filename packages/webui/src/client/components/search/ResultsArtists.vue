@@ -47,7 +47,7 @@ const { t } = useI18n();
 							<CoverContainer
 								is-circle
 								:cover="release.artistPictureMedium"
-								:link="release.artistLink"
+								:link="release.artistLink + '/all'"
 								@click.stop="$emit('add-to-queue', $event)"
 							/>
 
