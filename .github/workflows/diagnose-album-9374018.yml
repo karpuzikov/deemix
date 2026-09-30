@@ -71,3 +71,16 @@ jobs:
           $exact = Invoke-RestMethod "https://api.deezer.com/search/track?q=$exactQuery&limit=100"
           $exactMatch = $exact.data | Where-Object { $_.album.id -eq 9374018 }
           Write-Host "FOUND_IN_EXACT_TRACK_SEARCH=$([bool]$exactMatch)"
+
+          $plainTrack = Invoke-RestMethod "https://api.deezer.com/search/track?q=Inna&limit=100&index=0"
+          $plainTrackMatch = $plainTrack.data | Where-Object { $_.album.id -eq 9374018 }
+          Write-Host "FOUND_IN_PLAIN_TRACK_SEARCH=$([bool]$plainTrackMatch)"
+          Write-Host "PLAIN_TRACK_TOTAL=$($plainTrack.total)"
+
+          $titleAlbum = Invoke-RestMethod "https://api.deezer.com/search/album?q=Diggy%20Down&limit=100"
+          $titleAlbumMatch = $titleAlbum.data | Where-Object { $_.id -eq 9374018 }
+          Write-Host "FOUND_IN_TITLE_ALBUM_SEARCH=$([bool]$titleAlbumMatch)"
+
+          $titleTrack = Invoke-RestMethod "https://api.deezer.com/search/track?q=Diggy%20Down&limit=100"
+          $titleTrackMatch = $titleTrack.data | Where-Object { $_.album.id -eq 9374018 }
+          Write-Host "FOUND_IN_TITLE_TRACK_SEARCH=$([bool]$titleTrackMatch)"
