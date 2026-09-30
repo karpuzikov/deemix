@@ -48,10 +48,9 @@ export function isSameReleaseArtist(
 	if (!candidateArtist) return false;
 	if (
 		rootArtist.id !== undefined &&
-		candidateArtist.id !== undefined &&
-		String(rootArtist.id) === String(candidateArtist.id)
+		candidateArtist.id !== undefined
 	) {
-		return true;
+		return String(rootArtist.id) === String(candidateArtist.id);
 	}
 
 	return (
