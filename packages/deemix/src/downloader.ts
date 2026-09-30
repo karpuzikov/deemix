@@ -649,15 +649,18 @@ export class Downloader {
 			isrcAttempted: boolean;
 			isrcSearchAttempted: boolean;
 			attempts: number;
+			indeterminate?: boolean;
 		} = {
 			visitedTrackIDs: new Set<string>(),
 			isrcAttempted: false,
 			isrcSearchAttempted: false,
 			attempts: 0,
+			indeterminate: false,
 		},
 		finalizeFailure = true,
 		probeOnly = false,
-		requireExactBitrate = false
+		requireExactBitrate = false,
+		probeRoot = false
 	) {
 		const { trackAPI } = extraData;
 		fallbackState.visitedTrackIDs.add(String(track?.id ?? trackAPI.id));
@@ -722,6 +725,7 @@ export class Downloader {
 							);
 							return fallbackResult;
 						} catch {
+							if (probeOnly) fallbackState.indeterminate = true;
 							return null;
 						}
 					};
@@ -783,6 +787,7 @@ export class Downloader {
 							);
 							if (fallbackResult) return fallbackResult;
 						} catch {
+							if (probeOnly) fallbackState.indeterminate = true;
 							/* Try the next alternative album. */
 						}
 					}
@@ -840,6 +845,7 @@ export class Downloader {
 								index += candidates.length;
 							}
 						} catch {
+							if (probeOnly) fallbackState.indeterminate = true;
 							/* Continue to the metadata fallback. */
 						}
 					}
@@ -875,6 +881,7 @@ export class Downloader {
 			} else if (e instanceof DownloadCanceled) {
 				return;
 			} else {
+				if (probeOnly) fallbackState.indeterminate = true;
 				result = {
 					error: {
 						message: e.message,
@@ -887,6 +894,14 @@ export class Downloader {
 		}
 
 		if (result?.error && !finalizeFailure) {
+			if (probeOnly && probeRoot) {
+				return {
+					probeUnavailable:
+						!fallbackState.indeterminate && Boolean(result.error.errid),
+					probeIndeterminate:
+						Boolean(fallbackState.indeterminate) || !result.error.errid,
+				};
+			}
 			return null;
 		}
 
@@ -947,13 +962,15 @@ export class Downloader {
 						isrcAttempted: false,
 						isrcSearchAttempted: false,
 						attempts: 0,
+						indeterminate: false,
 					},
 					false,
+					true,
 					true,
 					true
 				);
 
-				if (!result?.probeAvailable) {
+				if (result?.probeUnavailable) {
 					unavailableTracks.push({
 						id: trackAPI.id,
 						title: trackAPI.title,
