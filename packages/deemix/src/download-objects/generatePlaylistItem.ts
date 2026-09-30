@@ -18,6 +18,7 @@ import {
 	getReleaseFamilyTitle,
 	isReleaseVariantTitle,
 	isSameReleaseArtist,
+	isMainArtistDownloadObject,
 	normalizeReleaseTitle,
 	shouldExpandArtistDiscography,
 } from "./releaseVariants.js";
@@ -143,6 +144,12 @@ export async function generateArtistItem(
 	const addCandidate = (album: any) => {
 		const albumID = album?.id ?? album?.ALB_ID;
 		if (albumID === undefined || albumID === null) return;
+
+		// Discography means releases where this artist is the album-level main
+		// artist. Ignore compilations and appearances whenever Deezer already
+		// exposes the release artist on the candidate.
+		if (album?.artist && !isSameReleaseArtist(rootArtist, album.artist)) return;
+
 		candidateAlbums.set(String(albumID), album);
 	};
 
@@ -298,6 +305,12 @@ export async function generateArtistItem(
 					bitrate,
 					rootArtist
 				);
+
+				// Never treat track appearances, featured credits, or Various Artists
+				// compilations as part of an artist's discography. The authoritative
+				// check is the full album metadata, not whether the artist appears on
+				// one or more tracks.
+				if (!isMainArtistDownloadObject(rootArtist, albumData)) return;
 
 				// Multiple Deezer IDs may point to the same real edition. Keep
 				// different UPCs, but collapse duplicate IDs/territorial mirrors of

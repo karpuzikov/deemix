@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	getReleaseEditionKey,
 	getReleaseFamilyTitle,
+	isMainArtistDownloadObject,
 	isReleaseVariantTitle,
 	isSameReleaseArtist,
 	shouldExpandArtistDiscography,
@@ -30,6 +31,36 @@ describe("release variant helpers", () => {
 				{ id: 123, name: "Maître Gims" }
 			)
 		).toBe(true);
+	});
+
+	it("keeps only releases where the selected artist is the album main artist", () => {
+		const rootArtist = { id: 123, name: "INNA" };
+
+		expect(
+			isMainArtistDownloadObject(rootArtist, {
+				collection: {
+					albumAPI: { artist: { id: 123, name: "INNA" } },
+				},
+			})
+		).toBe(true);
+
+		expect(
+			isMainArtistDownloadObject(rootArtist, {
+				collection: {
+					albumAPI: { artist: { id: 5080, name: "Various Artists" } },
+					tracks: [{ artist: { id: 123, name: "INNA" } }],
+				},
+			})
+		).toBe(false);
+
+		expect(
+			isMainArtistDownloadObject(rootArtist, {
+				collection: {
+					albumAPI: { artist: { id: 999, name: "Another Artist" } },
+					tracks: [{ artist: { id: 123, name: "INNA" } }],
+				},
+			})
+		).toBe(false);
 	});
 
 	it("treats a plain artist link as exhaustive discography mode", () => {

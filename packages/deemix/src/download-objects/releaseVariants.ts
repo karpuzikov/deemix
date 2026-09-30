@@ -59,6 +59,15 @@ export function isSameReleaseArtist(
 	);
 }
 
+export function isMainArtistDownloadObject(
+	rootArtist: { id?: string | number; name?: string },
+	downloadObject: any
+): boolean {
+	const albumAPI =
+		downloadObject?.collection?.albumAPI ?? downloadObject?.single?.albumAPI;
+	return isSameReleaseArtist(rootArtist, albumAPI?.artist);
+}
+
 export function shouldExpandArtistDiscography(tab: string): boolean {
 	return tab === "all" || tab === "discography";
 }
