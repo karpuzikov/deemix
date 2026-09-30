@@ -11,6 +11,10 @@ on:
       - ".github/workflows/build-windows-gui.yml"
   workflow_dispatch:
 
+concurrency:
+  group: build-windows-gui-main
+  cancel-in-progress: true
+
 env:
   HUSKY: 0
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -65,6 +69,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          $mainSha = gh api "repos/$env:GITHUB_REPOSITORY/commits/main" --jq ".sha"
+          if ($mainSha -ne $env:GITHUB_SHA) {
+            Write-Host "A newer main commit exists; skipping outdated publish."
+            exit 0
+          }
           git tag -f windows-latest $env:GITHUB_SHA
           git push origin refs/tags/windows-latest --force
           gh release view windows-latest --repo $env:GITHUB_REPOSITORY *> $null
