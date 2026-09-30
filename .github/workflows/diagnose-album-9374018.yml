@@ -19,6 +19,10 @@ jobs:
           $album | Select-Object id,title,upc,release_date,available,nb_tracks,@{n='artist_id';e={$_.artist.id}},@{n='artist_name';e={$_.artist.name}},contributors | ConvertTo-Json -Depth 8
           Write-Host "ALBUM_JSON_END"
 
+          $upcAlbum = Invoke-RestMethod "https://api.deezer.com/album/upc:5948204052898"
+          Write-Host "UPC_LOOKUP_ID=$($upcAlbum.id)"
+          Write-Host "UPC_LOOKUP_TITLE=$($upcAlbum.title)"
+
           $artistId = $album.artist.id
           $artistName = [uri]::EscapeDataString($album.artist.name)
           Write-Host "ARTIST_ID=$artistId"
