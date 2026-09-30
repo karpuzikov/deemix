@@ -4,7 +4,11 @@ import BaseTabs from "@/components/globals/BaseTabs.vue";
 import CoverContainer from "@/components/globals/CoverContainer.vue";
 import PreviewControls from "@/components/globals/PreviewControls.vue";
 import { useFavorites } from "@/use/favorites";
-import { aggregateDownloadLinks, sendAddToQueue } from "@/utils/downloads";
+import {
+	aggregateDownloadLinks,
+	sendAddToQueue,
+	sendAddToQueueWithFolder,
+} from "@/utils/downloads";
 import { emitter } from "@/utils/emitter";
 import { toast } from "@/utils/toasts";
 import { convertDuration } from "@/utils/utils";
@@ -12,6 +16,8 @@ import { computed, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
+const canChooseFolder =
+	typeof window !== "undefined" && typeof window.api?.invoke === "function";
 
 const tabs = ["playlist", "album", "artist", "track"] as const;
 
@@ -378,21 +384,23 @@ const activeTabEmpty = computed(() => {
 					<td class="table__cell--small">
 						{{ convertDuration(track.duration) }}
 					</td>
-					<td
-						:data-link="track.link"
-						aria-label="download"
-						class="group cursor-pointer"
-						role="button"
-						@click.stop="addToQueue"
-					>
-						<div
-							class="table__cell-content table__cell-content--vertical-center"
-						>
+					<td class="table__cell--center">
+						<div class="flex items-center justify-center gap-1">
 							<i
+								:data-link="track.link"
 								:title="t('globals.download_hint')"
-								class="material-icons group-hover:text-primary transition-colors duration-150 ease-in-out"
+								class="material-icons hover:text-primary cursor-pointer transition-colors duration-150 ease-in-out"
+								@click.stop="addToQueue"
 							>
 								get_app
+							</i>
+							<i
+								v-if="canChooseFolder"
+								:title="t('globals.download_to_folder')"
+								class="material-icons hover:text-primary cursor-pointer transition-colors duration-150 ease-in-out"
+								@click.stop="sendAddToQueueWithFolder(track.link)"
+							>
+								folder_open
 							</i>
 						</div>
 					</td>
