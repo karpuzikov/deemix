@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import PreviewControls from "@/components/globals/PreviewControls.vue";
 import { getChartsData, getChartTracks } from "@/data/charts";
-import { sendAddToQueue } from "@/utils/downloads";
+import { sendAddToQueue, sendAddToQueueWithFolder } from "@/utils/downloads";
 import { emitter } from "@/utils/emitter";
 import { convertDuration } from "@/utils/utils";
 import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
+const canChooseFolder =
+	typeof window !== "undefined" && typeof window.api?.invoke === "function";
 
 const country = ref("");
 const id = ref(0);
@@ -182,19 +184,25 @@ watch(id, (newId) => {
 						<td class="table__cell--small table__cell--center">
 							{{ convertDuration(track.duration) }}
 						</td>
-						<td
-							:data-link="track.link"
-							aria-label="download"
-							class="group cursor-pointer"
-							role="button"
-							@click.stop="addToQueue"
-						>
-							<i
-								:title="t('globals.download_hint')"
-								class="material-icons group-hover:text-primary transition-colors duration-150 ease-in-out"
-							>
-								get_app
-							</i>
+						<td class="table__cell--center">
+							<div class="flex items-center justify-center gap-1">
+								<i
+									:data-link="track.link"
+									:title="t('globals.download_hint')"
+									class="material-icons hover:text-primary cursor-pointer transition-colors duration-150 ease-in-out"
+									@click.stop="addToQueue"
+								>
+									get_app
+								</i>
+								<i
+									v-if="canChooseFolder"
+									:title="t('globals.download_to_folder')"
+									class="material-icons hover:text-primary cursor-pointer transition-colors duration-150 ease-in-out"
+									@click.stop="sendAddToQueueWithFolder(track.link)"
+								>
+									folder_open
+								</i>
+							</div>
 						</td>
 					</tr>
 				</tbody>
