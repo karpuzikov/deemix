@@ -1,4 +1,4 @@
-import { each, queue } from "async";
+import { each, eachLimit, queue } from "async";
 import { exec } from "child_process";
 import {
 	Deezer,
@@ -115,6 +115,35 @@ export class Downloader {
 			if (track) await this.afterDownloadSingle(track);
 		} else if (this.downloadObject instanceof Collection) {
 			const tracks = [];
+			let skipIncompleteRelease = false;
+
+			if (
+				this.settings.dontDownloadIncompleteReleases &&
+				this.downloadObject.type === "album"
+			) {
+				const unavailableTracks = await this.findUnavailableReleaseTracks();
+				if (unavailableTracks.length) {
+					skipIncompleteRelease = true;
+					const error =
+						`Release skipped because ${unavailableTracks.length} of ${this.downloadObject.size} track(s) are not available at the desired quality.`;
+
+					this.downloadObject.errors.push({
+						message: error,
+						data: { tracks: unavailableTracks },
+						type: "post",
+					});
+
+					if (this.listener) {
+						this.listener.send("updateQueue", {
+							uuid: this.downloadObject.uuid,
+							postFailed: true,
+							error,
+							data: { tracks: unavailableTracks },
+							type: "post",
+						});
+					}
+				}
+			}
 
 			const q = queue(
 				async (data: { track: APITrack; pos: number }, callback) => {
@@ -132,14 +161,14 @@ export class Downloader {
 				this.settings.queueConcurrency
 			);
 
-			if (this.downloadObject.collection.tracks.length) {
+			if (!skipIncompleteRelease && this.downloadObject.collection.tracks.length) {
 				this.downloadObject.collection.tracks.forEach((track, pos) => {
 					q.push({ track, pos }, () => {});
 				});
 
 				await q.drain();
 			}
-			await this.afterDownloadCollection(tracks);
+			if (!skipIncompleteRelease) await this.afterDownloadCollection(tracks);
 		}
 
 		if (this.downloadObject.isCanceled) {
@@ -162,7 +191,9 @@ export class Downloader {
 	async download(
 		extraData: { trackAPI: APITrack; albumAPI?: APIAlbum; playlistAPI?: any },
 		track?: Track,
-		refetchTrack = true
+		refetchTrack = true,
+		probeOnly = false,
+		requireExactBitrate = false
 	) {
 		const returnData = <any>{};
 		const { trackAPI, albumAPI, playlistAPI } = extraData;
@@ -204,6 +235,7 @@ export class Downloader {
 			// SpotiFLAC-inspired metadata fallback: only ask LRCLIB when lyrics
 			// are actually requested and Deezer did not provide them.
 			if (
+				!probeOnly &&
 				(this.settings.syncedLyrics ||
 					this.settings.tags.lyrics ||
 					this.settings.tags.syncedLyrics) &&
@@ -214,7 +246,7 @@ export class Downloader {
 				await enrichLyricsFromLRCLIB(track);
 			}
 
-			if (this.settings.musicBrainzMetadataFallback) {
+			if (!probeOnly && this.settings.musicBrainzMetadataFallback) {
 				await enrichMetadataFromMusicBrainz(track);
 			}
 		} catch (e) {
@@ -239,7 +271,7 @@ export class Downloader {
 				this.dz,
 				track,
 				this.bitrate,
-				this.settings.fallbackBitrate,
+				requireExactBitrate ? false : this.settings.fallbackBitrate,
 				this.settings.feelingLucky,
 				this.downloadObject.uuid,
 				this.listener
@@ -263,10 +295,23 @@ export class Downloader {
 		track.bitrate = selectedFormat;
 		track.album.bitrate = selectedFormat;
 
+		if (probeOnly) {
+			return {
+				probeAvailable: selectedFormat === this.bitrate,
+				bitrate: selectedFormat,
+				trackID: track.id,
+			};
+		}
+
 		track.applySettings(this.settings);
 
 		const { filename, filepath, artistPath, coverPath, extrasPath } =
 			generatePath(track, this.downloadObject.type, this.settings);
+
+		if (extrasPath && !this.downloadObject.extrasPath) {
+			this.downloadObject.extrasPath = extrasPath;
+		}
+		const downloadFolder = String(extrasPath || filepath);
 
 		// Make sure the filepath exsists
 		mkdirSync(filepath, { recursive: true });
@@ -298,6 +343,7 @@ export class Downloader {
 					uuid: this.downloadObject.uuid,
 					alreadyDownloaded: true,
 					downloadPath: writepath,
+					downloadFolder,
 					extrasPath: this.downloadObject.extrasPath,
 				});
 			}
@@ -494,6 +540,7 @@ export class Downloader {
 				uuid: this.downloadObject.uuid,
 				downloaded: true,
 				downloadPath: String(writepath),
+				downloadFolder,
 				extrasPath: String(this.downloadObject.extrasPath),
 			});
 		}
@@ -519,7 +566,9 @@ export class Downloader {
 			isrcSearchAttempted: false,
 			attempts: 0,
 		},
-		finalizeFailure = true
+		finalizeFailure = true,
+		probeOnly = false,
+		requireExactBitrate = false
 	) {
 		const { trackAPI } = extraData;
 		fallbackState.visitedTrackIDs.add(String(track?.id ?? trackAPI.id));
@@ -533,7 +582,13 @@ export class Downloader {
 
 		let result;
 		try {
-			result = await this.download(extraData, track, refetchTrack);
+			result = await this.download(
+				extraData,
+				track,
+				refetchTrack,
+				probeOnly,
+				requireExactBitrate
+			);
 		} catch (e) {
 			if (e instanceof DownloadFailed) {
 				if (e.track) {
@@ -560,17 +615,21 @@ export class Downloader {
 							const gwTrack =
 								await this.dz.gw.get_track_with_fallback(fallbackID);
 							failedTrack.parseEssentialData(map_track(gwTrack));
-							this.warn(itemData, e.errid, solution);
+							if (!probeOnly) {
+								this.warn(itemData, e.errid, solution);
+							}
 							if (solution === "search") {
 								failedTrack.searched = true;
-								this.log(itemData, "searchFallback");
+								if (!probeOnly) this.log(itemData, "searchFallback");
 							}
 							const fallbackResult = await this.downloadWrapper(
 								extraData,
 								failedTrack,
 								false,
 								fallbackState,
-								false
+								false,
+								probeOnly,
+								requireExactBitrate
 							);
 							return fallbackResult;
 						} catch {
@@ -766,6 +825,56 @@ export class Downloader {
 			}
 		}
 		return result;
+	}
+
+	async findUnavailableReleaseTracks() {
+		const downloadObject = this.downloadObject;
+		if (!(downloadObject instanceof Collection)) return [];
+
+		const unavailableTracks: Array<{
+			id: string | number;
+			title: string;
+			artist: string;
+		}> = [];
+		const concurrency = Math.max(
+			1,
+			Math.min(Number(this.settings.queueConcurrency) || 1, 4)
+		);
+
+		await eachLimit(
+			downloadObject.collection.tracks,
+			concurrency,
+			async (trackAPI: APITrack) => {
+				const result = await this.downloadWrapper(
+					{
+						trackAPI,
+						albumAPI: downloadObject.collection.albumAPI,
+						playlistAPI: downloadObject.collection.playlistAPI,
+					},
+					undefined,
+					true,
+					{
+						visitedTrackIDs: new Set<string>(),
+						isrcAttempted: false,
+						isrcSearchAttempted: false,
+						attempts: 0,
+					},
+					false,
+					true,
+					true
+				);
+
+				if (!result?.probeAvailable) {
+					unavailableTracks.push({
+						id: trackAPI.id,
+						title: trackAPI.title,
+						artist: trackAPI.artist?.name || "",
+					});
+				}
+			}
+		);
+
+		return unavailableTracks;
 	}
 
 	afterDownloadErrorReport(position, error, itemData = {}) {

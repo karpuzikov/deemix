@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	fallbackBitrate: false,
 	fallbackSearch: false,
 	fallbackISRC: false,
+	dontDownloadIncompleteReleases: false,
 	musicBrainzMetadataFallback: false,
 	logErrors: true,
 	logSearched: false,

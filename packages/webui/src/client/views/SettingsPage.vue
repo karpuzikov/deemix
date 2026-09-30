@@ -1001,6 +1001,16 @@ function canDownload(bitrate: number) {
 
 					<label class="with-checkbox">
 						<input
+							v-model="settings.dontDownloadIncompleteReleases"
+							type="checkbox"
+						/>
+						<span class="checkbox-text">{{
+							t("settings.downloads.dontDownloadIncompleteReleases")
+						}}</span>
+					</label>
+
+					<label class="with-checkbox">
+						<input
 							v-model="settings.musicBrainzMetadataFallback"
 							type="checkbox"
 						/>

@@ -145,6 +145,13 @@ ipcMain.on("openDownloadsFolder", () => {
 	shell.openPath(downloadLocation);
 });
 
+ipcMain.on("openFolder", (_event, folderPath) => {
+	if (typeof folderPath !== "string" || !folderPath.trim()) return;
+	const resolvedPath = path.resolve(folderPath);
+	if (!fs.existsSync(resolvedPath)) return;
+	shell.openPath(resolvedPath);
+});
+
 ipcMain.on("selectDownloadFolder", async (event, downloadLocation) => {
 	const path = await dialog.showOpenDialog(win, {
 		defaultPath: downloadLocation,

@@ -30,6 +30,8 @@ interface Props {
 		};
 		artists: string[];
 		explicit: boolean;
+		downloadFolder?: string;
+		extrasPath?: string;
 	};
 	showTags: boolean;
 }
@@ -173,7 +175,11 @@ function onResultIconClick() {
 </script>
 
 <template>
-	<div class="download-object" :data-link-only="generateLink">
+	<div
+		class="download-object"
+		:data-link-only="generateLink"
+		:data-folder="queueItem.downloadFolder || queueItem.extrasPath || ''"
+	>
 		<div class="download-info">
 			<div class="coverart relative rounded">
 				<img

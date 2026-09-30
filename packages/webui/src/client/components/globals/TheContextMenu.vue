@@ -16,6 +16,7 @@ const yPos = ref<string | number>(0);
 const deezerHref = ref("");
 const generalHref = ref("");
 const imgSrc = ref("");
+const folderPath = ref("");
 
 const options = computed(() => {
 	const options = {
@@ -59,10 +60,21 @@ const options = computed(() => {
 				copyToClipboard(deezerHref.value);
 			},
 		},
+		openFolder: {
+			label: t("globals.openFolder"),
+			preserveCase: true,
+			show: false,
+			position: 6,
+			action: () => {
+				if (folderPath.value && window.api?.send) {
+					window.api.send("openFolder", folderPath.value);
+				}
+			},
+		},
 		paste: {
 			label: t("globals.paste"),
 			show: false,
-			position: 6,
+			position: 7,
 			action: () => {
 				// Paste does not always work
 				if ("clipboard" in navigator) {
@@ -112,12 +124,17 @@ function showMenu(contextMenuEvent) {
 	const { pageX, pageY, target: elementClicked } = contextMenuEvent;
 	const path = generatePath(elementClicked);
 	let deezerLink = null;
+	let queueFolder = "";
 	let isLinkOnly = false;
 
 	// Searching for the first element with a data-link attribute
 	// let deezerLink = this.searchForDataLink(...)
 	for (let i = 0; i < path.length; i++) {
 		if (path[i] == document) break;
+
+		if (!queueFolder && path[i].matches?.("[data-folder]")) {
+			queueFolder = path[i].dataset.folder || "";
+		}
 
 		if (path[i].matches("[data-link]")) {
 			deezerLink = path[i].dataset.link;
@@ -140,8 +157,9 @@ function showMenu(contextMenuEvent) {
 	const isImage = elementClicked.matches("img");
 	const isSearchbar = elementClicked.matches("input#searchbar");
 	const hasDeezerLink = !!deezerLink;
+	const hasFolder = !!queueFolder;
 
-	if (!isLink && !isImage && !hasDeezerLink) return;
+	if (!isLink && !isImage && !hasDeezerLink && !hasFolder) return;
 
 	if (!contextMenuEvent.dummy) contextMenuEvent.preventDefault();
 	menuOpen.value = true;
@@ -164,6 +182,11 @@ function showMenu(contextMenuEvent) {
 		deezerHref.value = deezerLink;
 		showDeezerOptions(isSearchbar, isLinkOnly);
 	}
+
+	if (hasFolder && window.api?.send) {
+		folderPath.value = queueFolder;
+		options.value.openFolder.show = true;
+	}
 }
 function hideMenu() {
 	if (!menuOpen.value) return;
@@ -176,6 +199,8 @@ function hideMenu() {
 			options.value.copyLink.show = false;
 			options.value.copyDeezerLink.show = false;
 			options.value.copyImageLink.show = false;
+			options.value.openFolder.show = false;
+			folderPath.value = "";
 
 			downloadQualities.forEach((quality) => {
 				options.value[quality.objName].show = false;
@@ -235,7 +260,12 @@ onMounted(() => {
 			class="btn menu-option"
 			@click.prevent="option.action"
 		>
-			<span class="menu-option__text">{{ option.label }}</span>
+			<span
+				class="menu-option__text"
+				:class="{ 'preserve-case': option.preserveCase }"
+			>
+				{{ option.label }}
+			</span>
 		</button>
 	</div>
 </template>
@@ -269,6 +299,9 @@ onMounted(() => {
 }
 .menu-option__text {
 	text-transform: capitalize;
+}
+.menu-option__text.preserve-case {
+	text-transform: none;
 }
 
 /* Resetting buttons only for this component (because the style is scoped) */

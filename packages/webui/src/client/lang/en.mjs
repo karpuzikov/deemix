@@ -17,6 +17,7 @@ const en = {
 		copyLink: "copy link",
 		copyImageLink: "copy image link",
 		copyDeezerLink: "copy deezer link",
+		openFolder: "Open the folder",
 		paste: "paste",
 		listTabs: {
 			empty: "",
@@ -312,6 +313,7 @@ const en = {
 			fallbackBitrate: "Bitrate fallback",
 			fallbackSearch: "Search fallback",
 			fallbackISRC: "Fallback with ISRC search",
+			dontDownloadIncompleteReleases: "Don\'t download incomplete releases",
 			musicBrainzMetadataFallback: "Fill missing genre/label from MusicBrainz",
 			feelingLucky: "Gamble with CDNs and caches",
 			logErrors: "Create log files for errors",

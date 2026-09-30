@@ -201,6 +201,8 @@ function updateQueue(update) {
 		errid,
 		stack,
 		postFailed,
+		downloadFolder,
+		extrasPath,
 	} = update;
 
 	if (uuid && queue.value.includes(uuid)) {
@@ -224,6 +226,14 @@ function updateQueue(update) {
 
 		if (conversion) {
 			queueList.value[uuid].conversion = conversion;
+		}
+
+		if (downloadFolder) {
+			queueList.value[uuid].downloadFolder = downloadFolder;
+		}
+
+		if (extrasPath) {
+			queueList.value[uuid].extrasPath = extrasPath;
 		}
 
 		if (postFailed) {
