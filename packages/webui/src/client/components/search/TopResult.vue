@@ -21,6 +21,10 @@ interface Props {
 
 const { info } = defineProps<Props>();
 
+const downloadLink = computed(() =>
+	info.type === "artist" ? info.link + "/all" : info.link
+);
+
 const fansNumber = computed(() => {
 	let number: string;
 
@@ -56,7 +60,7 @@ const fansNumber = computed(() => {
 					:is-rounded="info.type !== 'artist'"
 					:is-circle="info.type === 'artist'"
 					:cover="info.picture"
-					:link="info.link"
+					:link="downloadLink"
 					@click.stop="$emit('add-to-queue', $event)"
 				/>
 
