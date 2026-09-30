@@ -1,0 +1,47 @@
+name: Diagnose Deezer Album 9374018
+
+on:
+  push:
+    branches:
+      - diag-album-9374018
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Deezer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $album = Invoke-RestMethod "https://api.deezer.com/album/9374018"
+          Write-Host "ALBUM_JSON_START"
+          $album | Select-Object id,title,upc,release_date,available,nb_tracks,@{n='artist_id';e={$_.artist.id}},@{n='artist_name';e={$_.artist.name}},contributors | ConvertTo-Json -Depth 8
+          Write-Host "ALBUM_JSON_END"
+
+          $artistId = $album.artist.id
+          $artistName = [uri]::EscapeDataString($album.artist.name)
+          Write-Host "ARTIST_ID=$artistId"
+          Write-Host "ARTIST_NAME=$($album.artist.name)"
+
+          $foundArtistAlbums = $false
+          for ($index = 0; $index -lt 5000; $index += 100) {
+            $page = Invoke-RestMethod "https://api.deezer.com/artist/$artistId/albums?limit=100&index=$index"
+            if ($page.data | Where-Object { $_.id -eq 9374018 }) { $foundArtistAlbums = $true }
+            if (-not $page.next) { break }
+          }
+          Write-Host "FOUND_IN_ARTIST_ALBUMS=$foundArtistAlbums"
+
+          $foundSearch = $false
+          for ($index = 0; $index -lt 5000; $index += 100) {
+            $page = Invoke-RestMethod "https://api.deezer.com/search/album?q=$artistName&limit=100&index=$index"
+            $match = $page.data | Where-Object { $_.id -eq 9374018 }
+            if ($match) {
+              $foundSearch = $true
+              Write-Host "SEARCH_MATCH_JSON_START"
+              $match | ConvertTo-Json -Depth 8
+              Write-Host "SEARCH_MATCH_JSON_END"
+            }
+            if (-not $page.next) { break }
+          }
+          Write-Host "FOUND_IN_ALBUM_SEARCH=$foundSearch"
