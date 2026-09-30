@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { isEmpty } from "lodash-es";
-import { sendAddToQueue } from "@/utils/downloads";
+import { sendAddToQueue, sendAddToQueueWithFolder } from "@/utils/downloads";
 import { convertDuration } from "@/utils/utils";
 import { emitter } from "@/utils/emitter";
 import { useI18n } from "vue-i18n";
 import { onMounted, ref } from "vue";
 
 const { t } = useI18n();
+const canChooseFolder =
+	typeof window !== "undefined" && typeof window.api?.invoke === "function";
 
 const title = ref("");
 const metadata = ref("");
@@ -377,12 +379,30 @@ onMounted(() => {
 				}}
 			</button>
 			<button
+				v-if="canChooseFolder"
+				type="button"
+				class="btn btn-primary mr-2 flex items-center"
+				:title="t('globals.download_to_folder')"
+				@click.stop="sendAddToQueueWithFolder(link)"
+			>
+				<i class="material-icons">folder_open</i>
+			</button>
+			<button
 				:data-link="selectedLinks()"
 				class="btn btn-primary flex items-center"
 				@click.stop="addToQueue"
 			>
 				{{ t("tracklist.downloadSelection")
 				}}<i class="material-icons ml-2">file_download</i>
+			</button>
+			<button
+				v-if="canChooseFolder"
+				type="button"
+				class="btn btn-primary ml-2 flex items-center"
+				:title="t('globals.download_to_folder')"
+				@click.stop="sendAddToQueueWithFolder(selectedLinks())"
+			>
+				<i class="material-icons">folder_open</i>
 			</button>
 		</footer>
 	</div>
