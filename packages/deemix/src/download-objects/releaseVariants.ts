@@ -60,6 +60,10 @@ export function isSameReleaseArtist(
 	);
 }
 
+export function shouldExpandArtistDiscography(tab: string): boolean {
+	return tab === "all" || tab === "discography";
+}
+
 function normalizeBarcode(value: unknown): string {
 	const barcode = String(value ?? "").replace(/\D/g, "");
 	if (!barcode) return "";
@@ -75,7 +79,12 @@ function normalizeISRC(value: unknown): string {
 export function getReleaseEditionKey(downloadObject: any): string {
 	const albumAPI =
 		downloadObject?.collection?.albumAPI ?? downloadObject?.single?.albumAPI;
-	const barcode = normalizeBarcode(albumAPI?.upc);
+	const barcode = normalizeBarcode(
+		albumAPI?.upc ??
+			albumAPI?.barcode ??
+			albumAPI?.UPC ??
+			albumAPI?.BARCODE
+	);
 	if (barcode) return `barcode:${barcode}`;
 
 	const tracks =
