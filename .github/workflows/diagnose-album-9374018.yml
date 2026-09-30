@@ -102,12 +102,16 @@ jobs:
             Write-Host "MUSICBRAINZ_URL_SEARCH_START"
             $mbUrlSearch.urls | ConvertTo-Json -Depth 10
             Write-Host "MUSICBRAINZ_URL_SEARCH_END"
-            $urlId = $mbUrlSearch.urls[0].id
-            Start-Sleep -Milliseconds 1200
-            $mbUrlLookup = Invoke-RestMethod "https://musicbrainz.org/ws/2/url/$urlId?inc=artist-rels&fmt=json" -Headers $mbHeaders
-            Write-Host "MUSICBRAINZ_URL_LOOKUP_START"
-            $mbUrlLookup | ConvertTo-Json -Depth 12
-            Write-Host "MUSICBRAINZ_URL_LOOKUP_END"
+            try {
+              $urlId = $mbUrlSearch.urls[0].id
+              Start-Sleep -Milliseconds 1200
+              $mbUrlLookup = Invoke-RestMethod "https://musicbrainz.org/ws/2/url/$urlId?inc=artist-rels&fmt=json" -Headers $mbHeaders
+              Write-Host "MUSICBRAINZ_URL_LOOKUP_START"
+              $mbUrlLookup | ConvertTo-Json -Depth 12
+              Write-Host "MUSICBRAINZ_URL_LOOKUP_END"
+            } catch {
+              Write-Host "MUSICBRAINZ_URL_LOOKUP_ERROR=$($_.Exception.Message)"
+            }
           }
 
           Start-Sleep -Milliseconds 1200
