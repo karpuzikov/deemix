@@ -151,17 +151,16 @@ ipcMain.on("openFolder", (_event, folderPath) => {
 	shell.openPath(resolvedPath);
 });
 
-ipcMain.on("selectSessionDownloadFolder", async () => {
-	if (!win) return;
+ipcMain.handle("selectSessionDownloadFolder", async () => {
+	if (!win) return null;
 	const result = await dialog.showOpenDialog(win, {
 		defaultPath: deemixApp.getDownloadLocation(),
 		properties: ["openDirectory", "createDirectory"],
 	});
 	const selectedPath = result.filePaths[0];
-	if (!selectedPath) return;
+	if (!selectedPath) return null;
 
-	const activePath = deemixApp.setSessionDownloadLocation(selectedPath);
-	win.webContents.send("sessionDownloadFolderSelected", activePath);
+	return deemixApp.setSessionDownloadLocation(selectedPath);
 });
 
 ipcMain.on("selectDownloadFolder", async (event, downloadLocation) => {
