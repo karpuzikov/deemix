@@ -3,7 +3,7 @@ import BaseTab from "@/components/globals/BaseTab.vue";
 import BaseTabs from "@/components/globals/BaseTabs.vue";
 import { formatArtistData, getArtistData } from "@/data/artist";
 import { checkNewRelease } from "@/utils/dates";
-import { sendAddToQueue } from "@/utils/downloads";
+import { sendAddToQueue, sendAddToQueueWithFolder } from "@/utils/downloads";
 import { orderBy } from "lodash-es";
 import { computed, reactive, ref, unref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -11,6 +11,8 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 const { t } = useI18n();
+const canChooseFolder =
+	typeof window !== "undefined" && typeof window.api?.invoke === "function";
 
 const head = ref([
 	{
@@ -104,16 +106,28 @@ const sortedData = computed(() => {
 		<header class="flex items-center" :style="headerStyle">
 			<h1 class="m-0">{{ state.artistName }}</h1>
 
-			<div
-				class="bg-primary text-grayscale-870 ml-auto grid h-16 w-16 cursor-pointer place-items-center rounded-full"
-				aria-label="download"
-				role="button"
-				:data-cm-link="downloadLink + '/all'"
-				@click.stop="sendAddToQueue(downloadLink + '/all')"
-			>
-				<i class="material-icons text-4xl" :title="t('globals.download_hint')"
-					>get_app</i
+			<div class="ml-auto flex gap-2">
+				<div
+					class="bg-primary text-grayscale-870 grid h-16 w-16 cursor-pointer place-items-center rounded-full"
+					aria-label="download"
+					role="button"
+					:data-cm-link="downloadLink + '/all'"
+					@click.stop="sendAddToQueue(downloadLink + '/all')"
 				>
+					<i class="material-icons text-4xl" :title="t('globals.download_hint')"
+						>get_app</i
+					>
+				</div>
+				<div
+					v-if="canChooseFolder"
+					class="bg-primary text-grayscale-870 grid h-16 w-16 cursor-pointer place-items-center rounded-full"
+					aria-label="download to folder"
+					role="button"
+					:title="t('globals.download_to_folder')"
+					@click.stop="sendAddToQueueWithFolder(downloadLink + '/all')"
+				>
+					<i class="material-icons text-4xl">folder_open</i>
+				</div>
 			</div>
 		</header>
 
