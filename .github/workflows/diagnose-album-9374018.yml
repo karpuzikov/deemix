@@ -45,3 +45,29 @@ jobs:
             if (-not $page.next) { break }
           }
           Write-Host "FOUND_IN_ALBUM_SEARCH=$foundSearch"
+
+          $foundTrackSearch = $false
+          $trackAlbumIds = New-Object System.Collections.Generic.HashSet[string]
+          $trackQuery = [uri]::EscapeDataString('artist:"' + $album.artist.name + '"')
+          for ($index = 0; $index -lt 5000; $index += 100) {
+            $page = Invoke-RestMethod "https://api.deezer.com/search/track?q=$trackQuery&limit=100&index=$index"
+            foreach ($track in @($page.data)) {
+              if ($track.artist.id -eq $artistId) {
+                [void]$trackAlbumIds.Add([string]$track.album.id)
+                if ($track.album.id -eq 9374018) {
+                  $foundTrackSearch = $true
+                  Write-Host "TRACK_SEARCH_MATCH_JSON_START"
+                  $track | Select-Object id,title,@{n='artist_id';e={$_.artist.id}},@{n='artist_name';e={$_.artist.name}},album | ConvertTo-Json -Depth 8
+                  Write-Host "TRACK_SEARCH_MATCH_JSON_END"
+                }
+              }
+            }
+            if (-not $page.next) { break }
+          }
+          Write-Host "FOUND_IN_TRACK_SEARCH=$foundTrackSearch"
+          Write-Host "TRACK_SEARCH_UNIQUE_ALBUMS=$($trackAlbumIds.Count)"
+
+          $exactQuery = [uri]::EscapeDataString('artist:"Inna" track:"Diggy Down"')
+          $exact = Invoke-RestMethod "https://api.deezer.com/search/track?q=$exactQuery&limit=100"
+          $exactMatch = $exact.data | Where-Object { $_.album.id -eq 9374018 }
+          Write-Host "FOUND_IN_EXACT_TRACK_SEARCH=$([bool]$exactMatch)"
