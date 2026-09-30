@@ -3,6 +3,7 @@ import BaseLoadingPlaceholder from "@/components/globals/BaseLoadingPlaceholder.
 import PreviewControls from "@/components/globals/PreviewControls.vue";
 import ResultsError from "@/components/search/ResultsError.vue";
 import { formatTitle } from "@/data/search";
+import { sendAddToQueueWithFolder } from "@/utils/downloads";
 import { emitter } from "@/utils/emitter";
 import { convertDuration } from "@/utils/utils";
 import { useI18n } from "vue-i18n";
@@ -20,6 +21,8 @@ interface Props {
 const { viewInfo, itemsToShow = 6, wantHeaders = false } = defineProps<Props>();
 
 const { t } = useI18n();
+const canChooseFolder =
+	typeof window !== "undefined" && typeof window.api?.invoke === "function";
 
 const playPausePreview = (e: MouseEvent) => {
 	emitter.emit("trackPreview:playPausePreview", e);
@@ -117,18 +120,25 @@ const playPausePreview = (e: MouseEvent) => {
 							{{ convertDuration(track.trackDuration) }}
 						</td>
 
-						<td
-							class="table__cell--center group cursor-pointer"
-							:data-link="track.trackLink"
-							aria-label="download"
-							@click.stop="$emit('add-to-queue', $event)"
-						>
-							<i
-								class="material-icons group-hover:text-primary transition-colors duration-150 ease-in-out"
-								:title="t('globals.download_hint')"
-							>
-								get_app
-							</i>
+						<td class="table__cell--center">
+							<div class="flex items-center justify-center gap-1">
+								<i
+									class="material-icons hover:text-primary cursor-pointer transition-colors duration-150 ease-in-out"
+									:data-link="track.trackLink"
+									:title="t('globals.download_hint')"
+									@click.stop="$emit('add-to-queue', $event)"
+								>
+									get_app
+								</i>
+								<i
+									v-if="canChooseFolder"
+									class="material-icons hover:text-primary cursor-pointer transition-colors duration-150 ease-in-out"
+									:title="t('globals.download_to_folder')"
+									@click.stop="sendAddToQueueWithFolder(track.trackLink)"
+								>
+									folder_open
+								</i>
+							</div>
 						</td>
 					</tr>
 				</tbody>
