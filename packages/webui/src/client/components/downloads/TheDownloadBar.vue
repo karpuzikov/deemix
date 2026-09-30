@@ -193,6 +193,7 @@ function updateQueue(update) {
 		uuid,
 		downloaded,
 		alreadyDownloaded,
+		alreadyDownloadedCount,
 		failed,
 		progress,
 		conversion,
@@ -208,6 +209,10 @@ function updateQueue(update) {
 	if (uuid && queue.value.includes(uuid)) {
 		if (downloaded || alreadyDownloaded) {
 			queueList.value[uuid].downloaded++;
+		}
+
+		if (alreadyDownloadedCount) {
+			queueList.value[uuid].downloaded += Number(alreadyDownloadedCount);
 		}
 
 		if (failed) {
