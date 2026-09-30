@@ -22,6 +22,7 @@ import {
 	shouldExpandArtistDiscography,
 } from "./releaseVariants.js";
 import type { Single } from "./Single.js";
+import { discoverMusicBrainzDeezerAlbums } from "./musicbrainzReleaseDiscovery.js";
 
 const { map_user_playlist, mapGwTrackToDeezer: map_track } = utils;
 
@@ -204,6 +205,23 @@ export async function generateArtistItem(
 			await collectArtistSearch(String(rootArtist.name ?? ""));
 		} catch (e) {
 			console.warn("Could not expand artist releases through album search", e);
+		}
+
+		// Deezer can have valid, available releases that it omits from both the
+		// artist discography and its search index. For full-discography downloads,
+		// use the artist's exact Deezer URL relation in MusicBrainz to enumerate
+		// official release barcodes, then resolve those barcodes directly in Deezer.
+		try {
+			const hiddenBarcodeAlbums = await discoverMusicBrainzDeezerAlbums(
+				dz,
+				rootArtist
+			);
+			hiddenBarcodeAlbums.forEach(addCandidate);
+		} catch (e) {
+			console.warn(
+				"Could not expand artist releases through MusicBrainz barcodes",
+				e
+			);
 		}
 
 		// Artist pages can still collapse several editions into one canonical
