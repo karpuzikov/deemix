@@ -117,6 +117,25 @@ export class Downloader {
 			const tracks = [];
 			let skipIncompleteRelease = false;
 
+			const existingRelease = this.findExistingCompleteRelease();
+			if (existingRelease.complete) {
+				this.downloadObject.downloaded = this.downloadObject.size;
+				this.downloadObject.extrasPath = existingRelease.folder;
+				if (this.listener) {
+					this.listener.send("updateQueue", {
+						uuid: this.downloadObject.uuid,
+						alreadyDownloadedCount: this.downloadObject.size,
+						downloadFolder: existingRelease.folder,
+						extrasPath: existingRelease.folder,
+					});
+				}
+				this.listener.send("finishDownload", {
+					uuid: this.downloadObject.uuid,
+					title: this.downloadObject.title,
+				});
+				return;
+			}
+
 			if (
 				this.settings.dontDownloadIncompleteReleases &&
 				this.downloadObject.type === "album"
@@ -549,6 +568,76 @@ export class Downloader {
 		returnData.path = String(writepath);
 		this.downloadObject.files.push(returnData);
 		return returnData;
+	}
+
+
+	findExistingCompleteRelease(): { complete: boolean; folder: string } {
+		const downloadObject = this.downloadObject;
+		if (
+			!(downloadObject instanceof Collection) ||
+			downloadObject.type !== "album" ||
+			[
+				OverwriteOption.OVERWRITE,
+				OverwriteOption.KEEP_BOTH,
+				OverwriteOption.ONLY_TAGS,
+			].includes(this.settings.overwriteFile)
+		) {
+			return { complete: false, folder: "" };
+		}
+
+		const albumAPI = downloadObject.collection.albumAPI;
+		const extension = extensions[this.bitrate];
+		if (!albumAPI || !extension || !downloadObject.collection.tracks.length) {
+			return { complete: false, folder: "" };
+		}
+
+		let releaseFolder = "";
+
+		try {
+			for (const trackAPI of downloadObject.collection.tracks as APITrack[]) {
+				const track = new Track();
+				track.parseEssentialData(trackAPI as any);
+				track.parseTrack(trackAPI);
+				track.album = new Album(
+					String(albumAPI.id ?? downloadObject.id),
+					albumAPI.title ?? downloadObject.title,
+					albumAPI.md5_image ?? ""
+				);
+				track.album.parseAlbum(albumAPI);
+				track.position = trackAPI.position;
+				track.generateMainFeatStrings();
+				track.bitrate = this.bitrate as any;
+				track.album.bitrate = this.bitrate;
+				track.applySettings(this.settings);
+
+				const { filename, filepath, extrasPath } = generatePath(
+					track,
+					downloadObject.type,
+					this.settings
+				);
+				if (!releaseFolder) releaseFolder = String(extrasPath || filepath);
+
+				const writepath = `${filepath}/${filename}${extension}`;
+				if (
+					checkShouldDownload(
+						filename,
+						filepath,
+						extension,
+						writepath,
+						this.settings.overwriteFile,
+						track
+					)
+				) {
+					return { complete: false, folder: releaseFolder };
+				}
+			}
+		} catch {
+			// If the local-only path calculation is uncertain, fall back to the
+			// normal downloader instead of incorrectly skipping a release.
+			return { complete: false, folder: releaseFolder };
+		}
+
+		return { complete: true, folder: releaseFolder };
 	}
 
 	async downloadWrapper(
