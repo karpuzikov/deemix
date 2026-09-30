@@ -93,3 +93,19 @@ jobs:
             $mbBarcode.releases | Select-Object id,title,barcode,date,status,country | ConvertTo-Json -Depth 6
             Write-Host "MUSICBRAINZ_BARCODE_MATCH_END"
           }
+
+          Start-Sleep -Milliseconds 1200
+          $deezerResource = [uri]::EscapeDataString('https://www.deezer.com/artist/288252')
+          $mbUrlSearch = Invoke-RestMethod "https://musicbrainz.org/ws/2/url/?query=resource:$deezerResource&fmt=json&limit=10" -Headers $mbHeaders
+          Write-Host "MUSICBRAINZ_URL_COUNT=$($mbUrlSearch.count)"
+          if ($mbUrlSearch.urls) {
+            Write-Host "MUSICBRAINZ_URL_SEARCH_START"
+            $mbUrlSearch.urls | ConvertTo-Json -Depth 10
+            Write-Host "MUSICBRAINZ_URL_SEARCH_END"
+            $urlId = $mbUrlSearch.urls[0].id
+            Start-Sleep -Milliseconds 1200
+            $mbUrlLookup = Invoke-RestMethod "https://musicbrainz.org/ws/2/url/$urlId?inc=artist-rels&fmt=json" -Headers $mbHeaders
+            Write-Host "MUSICBRAINZ_URL_LOOKUP_START"
+            $mbUrlLookup | ConvertTo-Json -Depth 12
+            Write-Host "MUSICBRAINZ_URL_LOOKUP_END"
+          }
