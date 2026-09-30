@@ -109,3 +109,15 @@ jobs:
             $mbUrlLookup | ConvertTo-Json -Depth 12
             Write-Host "MUSICBRAINZ_URL_LOOKUP_END"
           }
+
+          Start-Sleep -Milliseconds 1200
+          try {
+            $directResource = [uri]::EscapeDataString('https://www.deezer.com/artist/288252')
+            $directUrl = Invoke-RestMethod "https://musicbrainz.org/ws/2/url?resource=$directResource&inc=artist-rels&fmt=json" -Headers $mbHeaders
+            Write-Host "MUSICBRAINZ_DIRECT_URL_START"
+            $directUrl | ConvertTo-Json -Depth 12
+            Write-Host "MUSICBRAINZ_DIRECT_URL_END"
+          } catch {
+            Write-Host "MUSICBRAINZ_DIRECT_URL_ERROR=$($_.Exception.Message)"
+          }
+
