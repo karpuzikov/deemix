@@ -548,14 +548,15 @@ onUnmounted(() => {
 				'visible opacity-100': isExpanded,
 			}"
 		>
-			<i
+			<button
 				v-if="clientMode"
-				class="material-icons m-1 cursor-pointer text-2xl"
+				type="button"
+				class="btn btn-flat mr-1 px-2 py-1 text-xs"
 				:title="t('globals.save_as')"
 				@click="saveAsDownloadFolder"
 			>
-				save_alt
-			</i>
+				{{ t("globals.save_as") }}
+			</button>
 			<i
 				v-if="clientMode"
 				class="material-icons m-1 cursor-pointer text-2xl"
