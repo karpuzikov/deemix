@@ -12,6 +12,59 @@ import { generateTrackItem } from "./generateTrackItem.js";
 
 const { mapGwTrackToDeezer: map_track, map_album } = utils;
 
+const EXACT_RELEASE_FIELDS = [
+	"id",
+	"title",
+	"title_short",
+	"title_version",
+	"artist",
+	"upc",
+	"label",
+	"release_date",
+	"original_release_date",
+	"physical_release_date",
+	"digital_release_date",
+	"record_type",
+	"nb_tracks",
+	"nb_disk",
+	"copyright",
+	"md5_image",
+	"cover",
+	"cover_small",
+	"cover_medium",
+	"cover_big",
+	"cover_xl",
+	"explicit_lyrics",
+	"explicit_content_lyrics",
+	"explicit_content_cover",
+] as const;
+
+export function mergeExactReleaseMetadata(
+	baseAlbum: any,
+	exactAlbum: any,
+	requestedID: string
+) {
+	if (!exactAlbum || String(exactAlbum.id ?? "") !== String(requestedID)) {
+		return baseAlbum;
+	}
+
+	const merged = { ...baseAlbum };
+	for (const field of EXACT_RELEASE_FIELDS) {
+		const value = exactAlbum[field];
+		if (value === undefined || value === null || value === "") continue;
+		merged[field] = value;
+	}
+
+	if (
+		Array.isArray(exactAlbum.contributors) &&
+		exactAlbum.contributors.length
+	) {
+		merged.contributors = exactAlbum.contributors;
+	}
+
+	return merged;
+}
+
 export async function generateAlbumItem(
 	dz: Deezer,
 	id: string,
@@ -22,6 +75,7 @@ export async function generateAlbumItem(
 	// transparently resolve to another playable release; that fallback must never
 	// replace the requested album title, artist, barcode, or track listing.
 	let albumAPI: APIAlbum | EnrichedAPIAlbum;
+	let exactPageTracks: any[] = [];
 	if (String(id).startsWith("upc")) {
 		const upcs = [id.slice(4).toString()];
 		upcs.push(parseInt(upcs[0], 10).toString()); // Try UPC without leading zeros as well
@@ -53,13 +107,20 @@ export async function generateAlbumItem(
 					albumAPI_gw_page.DATA &&
 					String(albumAPI_gw_page.DATA.ALB_ID) === requestedID
 				) {
-					albumAPI = {
-						...(<any>map_album(albumAPI_gw_page.DATA)),
-						...publicAlbum,
-					};
+					const exactAlbum = <any>map_album(albumAPI_gw_page.DATA);
+					albumAPI = mergeExactReleaseMetadata(
+						publicAlbum,
+						exactAlbum,
+						requestedID
+					);
+
+					const pageTracks = albumAPI_gw_page?.SONGS?.data;
+					if (Array.isArray(pageTracks) && pageTracks.length) {
+						exactPageTracks = pageTracks;
+					}
 				}
 			} catch {
-				/* Public API metadata is sufficient when gateway metadata falls back. */
+				/* Fall back to the public API when exact page metadata is unavailable. */
 			}
 
 			id = requestedID;
@@ -76,20 +137,25 @@ export async function generateAlbumItem(
 	try {
 		let albumAPI_gw = await dz.gw.get_album(id);
 		albumAPI_gw = map_album(albumAPI_gw);
-		if (String(albumAPI_gw?.id ?? "") === String(id)) {
-			albumAPI = { ...albumAPI_gw, ...albumAPI };
-		}
+		albumAPI = mergeExactReleaseMetadata(
+			albumAPI,
+			albumAPI_gw,
+			String(id)
+		);
 	} catch {
-		/* Keep authoritative public album metadata. */
+		/* Keep the exact page/public metadata already collected. */
 	}
 	albumAPI.root_artist = rootArtist;
 
 	// If the album is a single download as a track
 	if (albumAPI.nb_tracks === 1) {
-		if (albumAPI.tracks.data.length) {
+		const exactTrackID = exactPageTracks[0]?.SNG_ID;
+		const publicTrackID = albumAPI.tracks?.data?.[0]?.id;
+		const trackID = exactTrackID ?? publicTrackID;
+		if (trackID) {
 			return generateTrackItem(
 				dz,
-				albumAPI.tracks.data[0].id,
+				trackID,
 				bitrate,
 				albumAPI
 			);
@@ -100,17 +166,17 @@ export async function generateAlbumItem(
 		);
 	}
 
-	let tracksArray: any[] = [];
+	let tracksArray: any[] = exactPageTracks.length ? exactPageTracks : [];
 	try {
-		const gwTracks = await dz.gw.get_album_tracks(id);
+		const gwTracks = tracksArray.length ? [] : await dz.gw.get_album_tracks(id);
 		const gwMatchesRequestedRelease =
 			Array.isArray(gwTracks) &&
-			(gwTracks.length === 0 ||
-				gwTracks.every(
-					(track: any) =>
-						track?.ALB_ID === undefined ||
-						String(track.ALB_ID) === String(id)
-				));
+			gwTracks.length > 0 &&
+			gwTracks.every(
+				(track: any) =>
+					track?.ALB_ID === undefined ||
+					String(track.ALB_ID) === String(id)
+			);
 		if (gwMatchesRequestedRelease) tracksArray = gwTracks;
 	} catch {
 		/* Fall through to the public release track list. */
