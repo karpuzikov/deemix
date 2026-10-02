@@ -18,7 +18,9 @@ export async function generateAlbumItem(
 	bitrate: number,
 	rootArtist?: { id: any; name: any; picture_small: any }
 ) {
-	// Get essential album info
+	// The requested Deezer release is the metadata authority. Gateway calls may
+	// transparently resolve to another playable release; that fallback must never
+	// replace the requested album title, artist, barcode, or track listing.
 	let albumAPI: APIAlbum | EnrichedAPIAlbum;
 	if (String(id).startsWith("upc")) {
 		const upcs = [id.slice(4).toString()];
@@ -41,18 +43,26 @@ export async function generateAlbumItem(
 		id = albumAPI.id;
 	} else {
 		try {
-			const albumAPI_gw_page = await dz.gw.get_album_page(id);
-			if (albumAPI_gw_page.DATA) {
-				albumAPI = <any>map_album(albumAPI_gw_page.DATA);
-				id = albumAPI_gw_page.DATA.ALB_ID;
-				const albumAPI_new = await dz.api.get_album(id);
-				albumAPI = { ...albumAPI, ...albumAPI_new };
-			} else {
-				throw new GenerationError(
-					`https://deezer.com/album/${id}`,
-					"Can't find the album"
-				);
+			const requestedID = String(id);
+			const publicAlbum = await dz.api.get_album(requestedID);
+			albumAPI = publicAlbum;
+
+			try {
+				const albumAPI_gw_page = await dz.gw.get_album_page(requestedID);
+				if (
+					albumAPI_gw_page.DATA &&
+					String(albumAPI_gw_page.DATA.ALB_ID) === requestedID
+				) {
+					albumAPI = {
+						...(<any>map_album(albumAPI_gw_page.DATA)),
+						...publicAlbum,
+					};
+				}
+			} catch {
+				/* Public API metadata is sufficient when gateway metadata falls back. */
 			}
+
+			id = requestedID;
 		} catch (e) {
 			throw new GenerationError(`https://deezer.com/album/${id}`, e.message);
 		}
@@ -60,11 +70,18 @@ export async function generateAlbumItem(
 	if (!/^\d+$/.test(String(id)))
 		throw new InvalidID(`https://deezer.com/album/${id}`);
 
-	// Get extra info about album
-	// This saves extra api calls when downloading
-	let albumAPI_gw = await dz.gw.get_album(id);
-	albumAPI_gw = map_album(albumAPI_gw);
-	albumAPI = { ...albumAPI_gw, ...albumAPI };
+	// Get extra gateway fields only when the gateway is still describing the
+	// exact requested release. A transparent fallback to another album must not
+	// contaminate release-level tags.
+	try {
+		let albumAPI_gw = await dz.gw.get_album(id);
+		albumAPI_gw = map_album(albumAPI_gw);
+		if (String(albumAPI_gw?.id ?? "") === String(id)) {
+			albumAPI = { ...albumAPI_gw, ...albumAPI };
+		}
+	} catch {
+		/* Keep authoritative public album metadata. */
+	}
 	albumAPI.root_artist = rootArtist;
 
 	// If the album is a single download as a track
@@ -83,7 +100,41 @@ export async function generateAlbumItem(
 		);
 	}
 
-	const tracksArray = await dz.gw.get_album_tracks(id);
+	let tracksArray: any[] = [];
+	try {
+		const gwTracks = await dz.gw.get_album_tracks(id);
+		const gwMatchesRequestedRelease =
+			Array.isArray(gwTracks) &&
+			(gwTracks.length === 0 ||
+				gwTracks.every(
+					(track: any) =>
+						track?.ALB_ID === undefined ||
+						String(track.ALB_ID) === String(id)
+				));
+		if (gwMatchesRequestedRelease) tracksArray = gwTracks;
+	} catch {
+		/* Fall through to the public release track list. */
+	}
+
+	let tracksAreGateway = tracksArray.length > 0;
+	if (!tracksArray.length) {
+		try {
+			const publicTracks: any = await dz.api.get_album_tracks(Number(id), {
+				limit: -1,
+			});
+			tracksArray = Array.isArray(publicTracks?.data)
+				? publicTracks.data
+				: Array.isArray(albumAPI.tracks?.data)
+					? albumAPI.tracks.data
+					: [];
+			tracksAreGateway = false;
+		} catch {
+			tracksArray = Array.isArray(albumAPI.tracks?.data)
+				? albumAPI.tracks.data
+				: [];
+			tracksAreGateway = false;
+		}
+	}
 
 	let cover: string;
 	if (albumAPI.cover_small) {
@@ -95,8 +146,8 @@ export async function generateAlbumItem(
 	const totalSize = tracksArray.length;
 	albumAPI.nb_tracks = totalSize;
 	const collection = [];
-	tracksArray.forEach((trackAPI: GWTrack, pos: number) => {
-		const mappedTrack = map_track(trackAPI);
+	tracksArray.forEach((trackAPI: GWTrack | any, pos: number) => {
+		const mappedTrack: any = tracksAreGateway ? map_track(trackAPI) : { ...trackAPI };
 		delete mappedTrack.track_token;
 		mappedTrack.position = pos + 1;
 		collection.push(mappedTrack);

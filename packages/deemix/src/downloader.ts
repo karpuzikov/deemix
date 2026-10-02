@@ -715,7 +715,16 @@ export class Downloader {
 						try {
 							const gwTrack =
 								await this.dz.gw.get_track_with_fallback(fallbackID);
-							failedTrack.parseEssentialData(map_track(gwTrack));
+							const mappedFallback = map_track(gwTrack);
+							const expectedISRC = normalizeISRC(failedTrack.ISRC);
+							const fallbackISRC = normalizeISRC(mappedFallback.isrc);
+							if (
+								expectedISRC &&
+								fallbackISRC !== expectedISRC
+							) {
+								return null;
+							}
+							failedTrack.parseEssentialData(mappedFallback);
 							if (!probeOnly) {
 								this.warn(itemData, e.errid, solution);
 							}
