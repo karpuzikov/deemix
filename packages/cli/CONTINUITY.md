@@ -9,3 +9,9 @@ Preserve existing functionality: Deezer downloading, FLAC/MP3, tagged tracks and
 Known pre-review risks: remote HTTP/WebSocket operations exposed without proper authentication, tokens persisted in plaintext, Electron external-link validation, TLS verification disabled in selected requests, retry recursion, UPC lookup races, metadata release mismatch, stale release asset and status/version mismatch. Previous source audit did not run tests. Local runtime does not have access to GitHub/node dependencies; do not claim tests pass without actual test runs.
 
 No project-specific RULES.md was found in the 2026-10-08 tree; root SOFTWARE_RULES.md applies. UXDT reference: https://www.uxdt.nic.in/guidelines/, specifically accessibility / forms / technical checklists. Releases are blocked until verified. Release action workflow is governed by GitHub Actions policy; do not modify .github/workflows without an explicit workflow change request.
+
+## Latest hardening checkpoint
+
+Current implementation: CLI package version unchanged, Under construction ⚠️. CLI code unchanged in this hardening branch; it shares Deemix core 3.14.1 and deezer-sdk. Keep existing saved ARL, -b bitrate, -p path, and non-interactive exit 1 contract. CI lint/test/type-check/build and Windows/Unix executable smoke tests pending; no new CLI artifact released.
+
+Next action: inspect PR #2 lint, type-check and build checks, fix all failures, then run Windows desktop/Docker manual smoke tests. Keep draft and do not merge until all release blockers in root SOFTWARE_RULES.md are met.

@@ -12,3 +12,9 @@ Preserve existing functionality: Deezer downloading, FLAC/MP3, tagged tracks and
 Known pre-review risks: remote HTTP/WebSocket operations exposed without proper authentication, tokens persisted in plaintext, Electron external-link validation, TLS verification disabled in selected requests, retry recursion, UPC lookup races, metadata release mismatch, stale release asset and status/version mismatch. Previous source audit did not run tests. Local runtime does not have access to GitHub/node dependencies; do not claim tests pass without actual test runs.
 
 No project-specific RULES.md was found in the 2026-10-08 tree; root SOFTWARE_RULES.md applies. UXDT reference: https://www.uxdt.nic.in/guidelines/, specifically accessibility / forms / technical checklists. Releases are blocked until verified. Release action workflow is governed by GitHub Actions policy; do not modify .github/workflows without an explicit workflow change request.
+
+## Latest hardening checkpoint
+
+Current implementation: v0.5.1 - Under construction ⚠️. Electron IPC validates sender; external navigation limited to HTTPS and the own localhost origin; sandbox/context isolation/nodeIntegration explicit, folder opening constrained to current downloads root, window picker preserved. OAuth localhost popup remains allowed. Source branch deemix-hardening-2026-10-08; draft PR #2. Existing Windows build workflow still publishes unversioned Deemix.exe and must not be edited without the user's explicit GitHub workflow instruction. No new Windows v0.5.1 installer has been released; Windows smoke and packaging tests pending.
+
+Next action: inspect PR #2 lint, type-check and build checks, fix all failures, then run Windows desktop/Docker manual smoke tests. Keep draft and do not merge until all release blockers in root SOFTWARE_RULES.md are met.

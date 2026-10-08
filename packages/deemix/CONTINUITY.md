@@ -12,3 +12,9 @@ Preserve existing functionality: Deezer downloading, FLAC/MP3, tagged tracks and
 Known pre-review risks: remote HTTP/WebSocket operations exposed without proper authentication, tokens persisted in plaintext, Electron external-link validation, TLS verification disabled in selected requests, retry recursion, UPC lookup races, metadata release mismatch, stale release asset and status/version mismatch. Previous source audit did not run tests. Local runtime does not have access to GitHub/node dependencies; do not claim tests pass without actual test runs.
 
 No project-specific RULES.md was found in the 2026-10-08 tree; root SOFTWARE_RULES.md applies. UXDT reference: https://www.uxdt.nic.in/guidelines/, specifically accessibility / forms / technical checklists. Releases are blocked until verified. Release action workflow is governed by GitHub Actions policy; do not modify .github/workflows without an explicit workflow change request.
+
+## Latest hardening checkpoint
+
+Current implementation: v3.14.1 - Under construction ⚠️. Deemix SDK TLS bypasses removed; bitrate probe timeouts and max three attempts; UPC lookup sequential to avoid concurrent overwrite; MusicBrainz transport shared 503 unlimited retry with 1100 ms throttling / Retry-After; strict release-title and artist match for fallback; main-artist discography restrictions; oauthState required; shell command hooks disabled except when DEEMIX_ALLOW_POST_DOWNLOAD_COMMANDS=true. Per-package tests exist for MB retry and baseline features. Credential file mode 0600 on POSIX; plaintext Windows/Browser storage remains an important hardening blocker. Do not claim all quality/fallback edge cases tested without reproducible Deezer account integration tests.
+
+Next action: inspect PR #2 lint, type-check and build checks, fix all failures, then run Windows desktop/Docker manual smoke tests. Keep draft and do not merge until all release blockers in root SOFTWARE_RULES.md are met.
