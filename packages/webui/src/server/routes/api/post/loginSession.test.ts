@@ -84,7 +84,7 @@ describe("login session persists through download requests", () => {
 		const download = await agent.post("/api/addToQueue").send(payload);
 		expect(download.status).toBe(200);
 		expect(download.body.result).toBe(true);
-		expect(download.body.obj).toEqual([{ uuid: "test-queue-item" }]);
+		expect(download.body.data.obj).toEqual([{ uuid: "test-queue-item" }]);
 
 		// The login remains isolated to the browser that received the cookie.
 		const anotherBrowser = await request(app).post("/api/addToQueue").send(payload);
