@@ -8,6 +8,13 @@ import { type ApiHandler } from "@/types.js";
 import { Deezer } from "deezer-sdk";
 import type { RequestHandler } from "express";
 
+declare module "express-session" {
+	interface SessionData {
+		deemixAuthenticated?: boolean;
+	}
+}
+
+
 export interface RawLoginArlBody {
 	arl: string;
 	child?: number;
@@ -97,6 +104,10 @@ const handler: RequestHandler<any, any, RawLoginArlBody, any> = async (
 		response !== LoginStatus.NOT_AVAILABLE &&
 		response !== LoginStatus.FAILED
 	) {
+		// express-session uses saveUninitialized: false. Without a change to
+		// req.session, no cookie is issued, so downloads use a different
+		// sessionDZ entry and incorrectly report "NotLoggedIn".
+		req.session.deemixAuthenticated = true;
 		deemix.startQueue(dz);
 		if (isSingleUser)
 			saveLoginCredentials({

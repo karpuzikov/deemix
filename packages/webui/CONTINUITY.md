@@ -26,3 +26,7 @@ The server rejects cross-origin requests except cross-site top-level GET to the 
 ## 2026-10-08 - Hardening merge checkpoint
 
 The Deemix v0.5.1 hardening PR #2 was squash-merged to `main` at a3e5def2284aa10cbb401594d65e8844b4080ad6. Previous `deemix-hardening-2026-10-08` is no longer the active development branch. The Windows release workflow verifies the DPAPI credentials test, starts the packaged GUI and checks localhost HTTP before publishing the physical `Deemix v0.5.1.exe` asset to the existing `windows-latest` prerelease. A verified Windows download and real interactive user test remain release acceptance conditions. Keep v0.5.1 - Under construction ⚠️ until user confirms Done; do not claim live Windows testing based only on CI. Source of truth: `main`. Global rule file remains unchanged and matches canonical userscripts rule.
+
+## v4.7.2 - Under construction ⚠️: session continuity
+
+Successful login must modify req.session.deemixAuthenticated=true so saveUninitialized=false generates the session cookie for subsequent API calls. Without it, each download POST gets an independent req.session.id and a new non-logged-in Deezer instance. Regression tests use the actual loginArl and addToQueue route handlers inside an Express app with express-session, mocked Deezer network login, and supertest.agent, verifying successful queueing after login, unauthenticated separate browser and no cookie for failed login. Do not revert session security; only persist successful logins. GUI v0.5.2 is Under construction ⚠️ until live user download succeeds.
