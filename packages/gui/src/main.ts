@@ -1,4 +1,3 @@
-import { deemixApp } from "deemix-webui";
 import {
 	app,
 	BrowserWindow,
@@ -29,7 +28,10 @@ import path from "node:path";
 
 const PORT = process.env.DEEMIX_SERVER_PORT || argv.port;
 process.env.DEEMIX_SERVER_PORT = PORT;
-process.env.DEEMIX_HOST = argv.host;
+process.env.DEEMIX_HOST = process.env.DEEMIX_HOST ?? argv.host;
+
+// The imported package starts Express as a side effect; configure it first.
+const { deemixApp } = await import("deemix-webui");
 
 let win: BrowserWindow | null = null;
 
