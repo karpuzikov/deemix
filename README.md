@@ -132,9 +132,9 @@ This repo uses [pnpm](https://pnpm.io/) for package management and [Turborepo](h
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/bambanah/deemix.git
+   git clone https://github.com/karpuzikov/deemix.git
    # - OR -
-   gh repo clone bambanah/deemix
+   gh repo clone karpuzikov/deemix
    ```
 2. Install dependencies
    ```bash

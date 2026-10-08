@@ -463,14 +463,28 @@ function canDownload(bitrate: number) {
 			</template>
 
 			<div class="flex items-center">
+				<button
+					v-if="clientMode"
+					type="button"
+					class="btn btn-primary btn-only-icon mr-2"
+					aria-label="Open download folder"
+					title="Open download folder"
+					@click="window.api.send('openDownloadsFolder')"
+				>
+					<i class="material-icons" aria-hidden="true">folder_open</i>
+				</button>
 				<input
 					v-model="settings.downloadLocation"
+					aria-label="Download folder path"
 					autocomplete="off"
 					type="text"
 				/>
 				<button
 					v-if="clientMode"
 					class="btn btn-primary btn-only-icon ml-2"
+					type="button"
+					aria-label="Choose download folder"
+					title="Choose download folder"
 					@click="selectDownloadFolder"
 				>
 					<i class="material-icons">folder</i>
