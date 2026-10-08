@@ -130,10 +130,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Could not prepare release." }
           gh release upload windows-latest "$assetPath#$assetName" --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw "Versioned upload failed." }
+          # GitHub normalizes spaces to periods in uploaded asset filenames.
+          $publishedAssetName = $assetName.Replace(" ", ".")
           $assets = @(gh release view windows-latest --repo $env:GITHUB_REPOSITORY --json assets --jq '.assets[].name')
-          if ($LASTEXITCODE -ne 0 -or $assetName -notin $assets) { throw "Versioned asset verification failed." }
+          if ($LASTEXITCODE -ne 0 -or $publishedAssetName -notin $assets) { throw "Versioned asset verification failed." }
           foreach ($oldAsset in $assets) {
-            if ($oldAsset -and $oldAsset -ne $assetName) {
+            if ($oldAsset -and $oldAsset -ne $publishedAssetName) {
               gh release delete-asset windows-latest "$oldAsset" --repo $env:GITHUB_REPOSITORY --yes
               if ($LASTEXITCODE -ne 0) { throw "Cannot remove outdated asset $oldAsset." }
             }

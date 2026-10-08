@@ -28,3 +28,7 @@ On the hardening branch, the Windows packaging workflow now executes the Windows
 ## 2026-10-08 - Hardening merge checkpoint
 
 The Deemix v0.5.1 hardening PR #2 was squash-merged to `main` at a3e5def2284aa10cbb401594d65e8844b4080ad6. Previous `deemix-hardening-2026-10-08` is no longer the active development branch. The Windows release workflow verifies the DPAPI credentials test, starts the packaged GUI and checks localhost HTTP before publishing the physical `Deemix v0.5.1.exe` asset to the existing `windows-latest` prerelease. A verified Windows download and real interactive user test remain release acceptance conditions. Keep v0.5.1 - Under construction ⚠️ until user confirms Done; do not claim live Windows testing based only on CI. Source of truth: `main`. Global rule file remains unchanged and matches canonical userscripts rule.
+
+## Release asset filename verification
+
+Windows GitHub Actions build and packaged-app smoke test passed for v0.5.1. GitHub release uploads normalize the local filename `Deemix v0.5.1.exe` to the published asset name `Deemix.v0.5.1.exe`. The release workflow now validates that normalized name before cleaning the outdated `Deemix.exe` file. Never claim a published asset is ready until release validation finishes successfully. Product and version remain explicit in the physical filename. User acceptance and login/download test still pending.

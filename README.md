@@ -167,3 +167,5 @@ pnpm make
 ```
 
 **Windows release status:** GUI v0.5.1 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's prerelease page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
+
+**Windows executable:** [Deemix.v0.5.1.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.1.exe) - v0.5.1 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
