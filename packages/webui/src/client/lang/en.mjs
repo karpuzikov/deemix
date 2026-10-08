@@ -314,7 +314,7 @@ const en = {
 			fallbackBitrate: "Bitrate fallback",
 			fallbackSearch: "Search fallback",
 			fallbackISRC: "Fallback with ISRC search",
-			dontDownloadIncompleteReleases: "Don\'t download incomplete releases",
+			dontDownloadIncompleteReleases: "Don't download incomplete releases",
 			musicBrainzMetadataFallback: "Fill missing genre/label from MusicBrainz",
 			feelingLucky: "Gamble with CDNs and caches",
 			logErrors: "Create log files for errors",

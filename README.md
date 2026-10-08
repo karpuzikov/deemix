@@ -17,7 +17,7 @@ The docker image was heavily inspired by the fantastic work of [Bockiii](https:/
 
 ### Standalone Electron App
 
-[https://github.com/bambanah/deemix/releases](https://github.com/bambanah/deemix/releases)
+[Fork release page](https://github.com/karpuzikov/deemix/releases) - v0.5.1 is **Under construction ⚠️**. Do not use the old unversioned Windows release asset as a v0.5.1 build.
 
 Note: The app is not signed (because it's crazy expensive), so you'll need to disable the security warnings when running it.
 
@@ -29,23 +29,31 @@ xattr -d com.apple.quarantine /Applications/deemix.app
 
 Modify path if installed to a different locaiton
 
+### Network access and post-download commands
+
+Deemix now binds to `127.0.0.1:6595` by default. For LAN/Docker access, explicitly set `DEEMIX_HOST=0.0.0.0` and set a random `DEEMIX_ACCESS_TOKEN` of at least 24 characters. The browser asks for username `deemix` and that token as its password; HTTP and WebSocket traffic require authentication. Use an HTTPS reverse proxy for remote access and set `DEEMIX_COOKIE_SECURE=true` when serving over HTTPS. Do not expose unauthenticated ports publicly.
+
+Optional post-download shell commands are disabled unless `DEEMIX_ALLOW_POST_DOWNLOAD_COMMANDS=true` is set by the operator. Do not enable this for untrusted users. The Docker compose configuration requires the access token environment variable.
+
 ### Docker Image
 
-Deemix is also available as a [docker image](https://github.com/bambanah/deemix/pkgs/container/deemix).
+To run this fork's patched server, **build the image from this repository**. The upstream `bambanah/deemix` image does not contain these fixes.
 
 #### Example Usage
 
 ```bash
+docker build -t deemix-karpuzikov .
 docker run -d --name Deemix \
   -v /path/to/music:/downloads \
   -v /path/to/config:/config \
-  -p 6595:6595 \
-  ghcr.io/bambanah/deemix:latest
+  -p 127.0.0.1:6595:6595 \
+  -e DEEMIX_ACCESS_TOKEN="<24+-character-random-secret>" \
+  deemix-karpuzikov
 ```
 
 #### Parameters
 
-All paremeters are optional - if not specified, the default value will be used.
+Most parameters are optional; `DEEMIX_ACCESS_TOKEN` is required when the server is bound to a non-loopback host, including inside Docker.
 
 You'll probably want to at least map the download and config folders, as well as the port.
 
@@ -53,11 +61,12 @@ You'll probably want to at least map the download and config folders, as well as
 | --------------------------------------- | --------------------------------------------------------- | ------------ |
 | `-v /path/to/music:/downloads`          | Path to the music folder                                  |              |
 | `-v /path/to/config:/config`            | Path to the config folder                                 |              |
-| `-p 6595:6595`                          | Port mapped to the host                                   |              |
+| `-p 127.0.0.1:6595:6595`                          | Port mapped to the host                                   |              |
 | `-e DEEMIX_SERVER_PORT=6595`            | Port to expose the server on                              | `6595`       |
 | `-e DEEMIX_DATA_DIR=/config`            | Path to the config folder                                 | `/config`    |
 | `-e DEEMIX_MUSIC_DIR=/downloads`        | Path to the music folder                                  | `/downloads` |
-| `-e DEEMIX_HOST=0.0.0.0`                | Host to bind the server to                                | `0.0.0.0`    |
+| `-e DEEMIX_HOST=0.0.0.0`                | Host to bind the server to (Docker only)                  | `0.0.0.0`    |
+| `-e DEEMIX_ACCESS_TOKEN=...`            | Required 24+-character secret when bound beyond loopback  | *required*   |
 | `-e DEEMIX_SINGLE_USER=true`            | Enables single user mode                                  | `true`       |
 | `-e PUID=1000`                          | User ID to use for downloaded files                       | `1000`       |
 | `-e PGID=1000`                          | Group ID to use for downloaded files                      | `1000`       |
@@ -124,9 +133,9 @@ This repo uses [pnpm](https://pnpm.io/) for package management and [Turborepo](h
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/bambanah/deemix.git
+   git clone https://github.com/karpuzikov/deemix.git
    # - OR -
-   gh repo clone bambanah/deemix
+   gh repo clone karpuzikov/deemix
    ```
 2. Install dependencies
    ```bash
@@ -156,3 +165,5 @@ A distributable GUI app can be built with the following command:
 ```bash
 pnpm make
 ```
+
+**Windows release status:** GUI v0.5.1 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's prerelease page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.

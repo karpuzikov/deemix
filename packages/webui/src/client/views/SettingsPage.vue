@@ -53,9 +53,8 @@ const spotifyOAuthConnected = ref(false);
 const lastUser = ref("");
 const spotifyUser = ref(localStorage.getItem("spotifyUser") || "");
 const storedAccountNum = localStorage.getItem("accountNum");
-const accountNum = ref(
-	isNaN(parseInt(storedAccountNum)) ? parseInt(storedAccountNum) : 0
-);
+const parsedAccountNum = Number.parseInt(storedAccountNum ?? "", 10);
+const accountNum = ref(Number.isFinite(parsedAccountNum) ? parsedAccountNum : 0);
 const accounts = ref([]);
 
 const arl = computed(() => loginStore.arl);
@@ -73,7 +72,7 @@ const userLicense = computed(() => {
 });
 
 function handleSpotifyOAuthMessage(event: MessageEvent) {
-	if (event.data === "spotifyOAuthSuccess") {
+	if (event.origin === window.location.origin && event.data === "spotifyOAuthSuccess") {
 		spotifyOAuthConnected.value = true;
 		toast("Spotify connected!", "done");
 	}
@@ -184,6 +183,9 @@ function saveSettings() {
 	});
 
 	// this.refreshSpotifyStatus()
+}
+function openDownloadFolder() {
+	window.api?.send("openDownloadsFolder");
 }
 function selectDownloadFolder() {
 	window.api.send("selectDownloadFolder", settings.value.downloadLocation);
@@ -463,14 +465,28 @@ function canDownload(bitrate: number) {
 			</template>
 
 			<div class="flex items-center">
+				<button
+					v-if="clientMode"
+					type="button"
+					class="btn btn-primary btn-only-icon mr-2"
+					aria-label="Open download folder"
+					title="Open download folder"
+					@click="openDownloadFolder"
+				>
+					<i class="material-icons" aria-hidden="true">folder_open</i>
+				</button>
 				<input
 					v-model="settings.downloadLocation"
+					aria-label="Download folder path"
 					autocomplete="off"
 					type="text"
 				/>
 				<button
 					v-if="clientMode"
 					class="btn btn-primary btn-only-icon ml-2"
+					type="button"
+					aria-label="Choose download folder"
+					title="Choose download folder"
 					@click="selectDownloadFolder"
 				>
 					<i class="material-icons">folder</i>

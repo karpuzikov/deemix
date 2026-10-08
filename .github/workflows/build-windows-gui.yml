@@ -51,19 +51,53 @@ jobs:
       - name: Rebuild Electron native dependencies
         run: pnpm --filter=deemix-gui exec pnpm electron-rebuild
 
+      - name: Test Windows credential protection
+        shell: pwsh
+        run: pnpm --filter=deemix exec vitest run src/credentials.test.ts
+
       - name: Build Windows GUI
         run: pnpm make
 
-      - name: Prepare single EXE
+      - name: Smoke-test packaged Windows GUI
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $installer = Get-ChildItem "packages/gui/out" -Recurse -File | Where-Object { $_.Name -match "Setup\.exe$" } | Select-Object -First 1
-          if (-not $installer) { throw "Windows installer EXE was not produced." }
-          New-Item -ItemType Directory -Force -Path "dist" | Out-Null
-          Copy-Item $installer.FullName "dist/Deemix.exe" -Force
+          $exe = Get-ChildItem "packages/gui/out" -Recurse -File |
+            Where-Object { $_.Name -eq "deemix-gui.exe" -and $_.FullName -match "win32" } |
+            Select-Object -First 1
+          if (-not $exe) { throw "Packaged GUI executable was not produced." }
+          $appProcess = Start-Process -FilePath $exe.FullName -PassThru
+          $healthy = $false
+          try {
+            for ($attempt = 0; $attempt -lt 30; $attempt++) {
+              if ($appProcess.HasExited) { throw "Deemix GUI exited during startup." }
+              try {
+                $response = Invoke-WebRequest -Uri "http://127.0.0.1:6595/" -UseBasicParsing -TimeoutSec 2
+                if ($response.StatusCode -eq 200) { $healthy = $true; break }
+              } catch { Start-Sleep -Seconds 1 }
+            }
+            if (-not $healthy) { throw "Packaged GUI did not start its localhost server." }
+          } finally {
+            if (-not $appProcess.HasExited) { Stop-Process -Id $appProcess.Id -Force -ErrorAction SilentlyContinue }
+          }
 
-      - name: Publish single-file Windows build
+      - name: Prepare versioned Windows EXE
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installer = Get-ChildItem "packages/gui/out" -Recurse -File |
+            Where-Object { $_.Name -match "Setup\.exe$" } | Select-Object -First 1
+          if (-not $installer) { throw "Windows installer EXE was not produced." }
+          $version = (Get-Content "packages/gui/package.json" -Raw | ConvertFrom-Json).version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid GUI version: $version" }
+          $assetName = "Deemix v$version.exe"
+          New-Item -ItemType Directory -Force -Path "dist" | Out-Null
+          Copy-Item $installer.FullName (Join-Path "dist" $assetName) -Force
+          if ((Get-Item -LiteralPath (Join-Path "dist" $assetName)).Length -lt 1000000) {
+            throw "GUI installer is unexpectedly small."
+          }
+
+      - name: Publish versioned Windows release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -71,15 +105,31 @@ jobs:
           $ErrorActionPreference = "Stop"
           $mainSha = gh api "repos/$env:GITHUB_REPOSITORY/commits/main" --jq ".sha"
           if ($mainSha -ne $env:GITHUB_SHA) {
-            Write-Host "A newer main commit exists; skipping outdated publish."
+            Write-Host "Newer main exists; skipping outdated publish."
             exit 0
           }
+          $version = (Get-Content "packages/gui/package.json" -Raw | ConvertFrom-Json).version
+          $assetName = "Deemix v$version.exe"
+          $assetPath = Join-Path "dist" $assetName
+          if (-not (Test-Path -LiteralPath $assetPath)) { throw "Versioned installer missing." }
+          $releaseTitle = "Deemix v$version - Under construction ⚠️"
+          $releaseNotes = "Deemix v$version - Under construction ⚠️. Windows installer. Verify startup and login before marking stable."
           git tag -f windows-latest $env:GITHUB_SHA
           git push origin refs/tags/windows-latest --force
           gh release view windows-latest --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create windows-latest --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Deemix Windows GUI" --notes "Under construction ⚠️ - Download Deemix.exe and double-click it." --prerelease
+            gh release create windows-latest --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title $releaseTitle --notes $releaseNotes --prerelease
           } else {
-            gh release edit windows-latest --repo $env:GITHUB_REPOSITORY --title "Deemix Windows GUI" --notes "Under construction ⚠️ - Download Deemix.exe and double-click it." --prerelease
+            gh release edit windows-latest --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title $releaseTitle --notes $releaseNotes --prerelease
           }
-          gh release upload windows-latest "dist/Deemix.exe#Deemix.exe" --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Could not prepare release." }
+          gh release upload windows-latest "$assetPath#$assetName" --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Versioned upload failed." }
+          $assets = @(gh release view windows-latest --repo $env:GITHUB_REPOSITORY --json assets --jq '.assets[].name')
+          if ($LASTEXITCODE -ne 0 -or $assetName -notin $assets) { throw "Versioned asset verification failed." }
+          foreach ($oldAsset in $assets) {
+            if ($oldAsset -and $oldAsset -ne $assetName) {
+              gh release delete-asset windows-latest "$oldAsset" --repo $env:GITHUB_REPOSITORY --yes
+              if ($LASTEXITCODE -ne 0) { throw "Cannot remove outdated asset $oldAsset." }
+            }
+          }

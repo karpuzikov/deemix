@@ -1,7 +1,7 @@
 import { eachLimit } from "async";
-import got from "got";
+import { musicBrainzJSON } from "../utils/musicbrainzHttp.js";
 import type { Deezer } from "deezer-sdk";
-import { isSameReleaseArtist } from "./releaseVariants.js";
+import { isMainArtistRelease } from "./releaseVariants.js";
 
 type RootArtist = {
 	id?: string | number;
@@ -31,15 +31,9 @@ type MusicBrainzReleaseBrowse = {
 	releases?: MusicBrainzRelease[];
 };
 
-const MUSICBRAINZ_BASE = "https://musicbrainz.org/ws/2";
-const MUSICBRAINZ_USER_AGENT =
-	"deemix-karpuzikov/3.14.0 (https://github.com/karpuzikov/deemix)";
-const MUSICBRAINZ_MIN_INTERVAL_MS = 1100;
 const MAX_MUSICBRAINZ_RELEASES = 10000;
 const DEEZER_UPC_CONCURRENCY = 4;
 
-let nextMusicBrainzRequestAt = 0;
-let musicBrainzRequestChain: Promise<void> = Promise.resolve();
 
 function normalizeBarcode(value: unknown): string {
 	const barcode = String(value ?? "").replace(/\D/g, "");
@@ -77,60 +71,8 @@ export function collectMusicBrainzBarcodes(
 	return Array.from(result);
 }
 
-async function musicBrainzJSON<T>(
-	endpoint: string,
-	searchParams: Record<string, string | number>
-): Promise<T> {
-	let result!: T;
-	let failure: unknown;
-
-	const task = musicBrainzRequestChain.then(async () => {
-		const delay = Math.max(0, nextMusicBrainzRequestAt - Date.now());
-		if (delay > 0) {
-			await new Promise((resolve) => setTimeout(resolve, delay));
-		}
-		nextMusicBrainzRequestAt = Date.now() + MUSICBRAINZ_MIN_INTERVAL_MS;
-
-		try {
-			result = await got
-				.get(`${MUSICBRAINZ_BASE}/${endpoint}`, {
-					searchParams,
-					headers: {
-						"User-Agent": MUSICBRAINZ_USER_AGENT,
-					},
-					timeout: {
-						request: 20000,
-					},
-					retry: {
-						limit: 2,
-					},
-				})
-				.json<T>();
-		} catch (error) {
-			failure = error;
-		}
-	});
-
-	musicBrainzRequestChain = task.then(
-		() => undefined,
-		() => undefined
-	);
-	await task;
-
-	if (failure) throw failure;
-	return result;
-}
-
 function albumBelongsToArtist(album: any, rootArtist: RootArtist): boolean {
-	if (isSameReleaseArtist(rootArtist, album?.artist)) return true;
-
-	const contributors = Array.isArray(album?.contributors)
-		? album.contributors
-		: [];
-
-	return contributors.some((artist: any) =>
-		isSameReleaseArtist(rootArtist, artist)
-	);
+	return isMainArtistRelease(rootArtist, album);
 }
 
 async function resolveMusicBrainzArtistId(

@@ -1,4 +1,3 @@
-import { deemixApp } from "deemix-webui";
 import {
 	app,
 	BrowserWindow,
@@ -29,10 +28,25 @@ import path from "node:path";
 
 const PORT = process.env.DEEMIX_SERVER_PORT || argv.port;
 process.env.DEEMIX_SERVER_PORT = PORT;
-process.env.DEEMIX_HOST = argv.host;
+process.env.DEEMIX_HOST = process.env.DEEMIX_HOST ?? argv.host;
+
+// The imported package starts Express as a side effect; configure it first.
+const { deemixApp } = await import("deemix-webui");
 
 let win: BrowserWindow | null = null;
 
+// Keep Electron profile, cookies, window geometry, cache and logs inside the
+// same per-product Windows Documents folder as the download engine. Copy the
+// previous profile once so browser state and login settings are retained.
+if (process.platform === "win32") {
+	const oldUserData = app.getPath("userData");
+	const newUserData = join(app.getPath("documents"), "Karpuzikov Tools", "Deemix", "Electron");
+	if (!fs.existsSync(newUserData) && fs.existsSync(oldUserData)) {
+		fs.cpSync(oldUserData, newUserData, { recursive: true });
+	}
+	fs.mkdirSync(newUserData, { recursive: true });
+	app.setPath("userData", newUserData);
+}
 const windowStatePath = join(app.getPath("userData"), "window-state.json");
 
 function getWindowState() {
@@ -65,6 +79,9 @@ async function main() {
 			platform() === "win32" ? "build/icon.ico" : "build/64x64.png"
 		),
 		webPreferences: {
+			nodeIntegration: false,
+			contextIsolation: true,
+			sandbox: true,
 			preload: join(path.dirname(fileURLToPath(import.meta.url)), "preload.js"),
 		},
 	});
@@ -101,10 +118,23 @@ async function main() {
 		Menu.setApplicationMenu(menu);
 	}
 
-	// Open links in external browser
+	const origin = `http://127.0.0.1:${PORT}`;
+	const openSafeExternal = (url: string) => {
+		try {
+			const parsed = new URL(url);
+			if (parsed.protocol === "https:" ||
+				(parsed.protocol === "http:" && parsed.origin === origin)) void shell.openExternal(parsed.href);
+		} catch { /* Block malformed URLs. */ }
+	};
 	win.webContents.setWindowOpenHandler(({ url }) => {
-		shell.openExternal(url);
+		openSafeExternal(url);
 		return { action: "deny" };
+	});
+	win.webContents.on("will-navigate", (event, url) => {
+		try { if (new URL(url).origin === origin) return; }
+		catch { /* Block malformed navigation. */ }
+		event.preventDefault();
+		openSafeExternal(url);
 	});
 
 	win.loadURL(`http://127.0.0.1:${PORT}`);
@@ -140,18 +170,27 @@ app.on("window-all-closed", () => {
 	}
 });
 
-ipcMain.on("openDownloadsFolder", () => {
+ipcMain.on("openDownloadsFolder", (event) => {
+	if (!isTrustedSender(event)) return;
 	shell.openPath(deemixApp.getDownloadLocation());
 });
 
-ipcMain.on("openFolder", (_event, folderPath) => {
-	if (typeof folderPath !== "string" || !folderPath.trim()) return;
+const isTrustedSender = (event: { sender: { getURL(): string } }) => {
+	try { return new URL(event.sender.getURL()).origin === `http://127.0.0.1:${PORT}`; }
+	catch { return false; }
+};
+ipcMain.on("openFolder", (event, folderPath) => {
+	if (!isTrustedSender(event) || typeof folderPath !== "string" || !folderPath.trim()) return;
 	const resolvedPath = path.resolve(folderPath);
-	if (!fs.existsSync(resolvedPath)) return;
-	shell.openPath(resolvedPath);
+	const root = path.resolve(deemixApp.getDownloadLocation());
+	const relative = path.relative(root, resolvedPath);
+	if (relative.startsWith("..") || path.isAbsolute(relative) || !fs.existsSync(resolvedPath)) return;
+	if (fs.statSync(resolvedPath).isDirectory()) void shell.openPath(resolvedPath);
+	else shell.showItemInFolder(resolvedPath);
 });
 
-ipcMain.handle("selectSessionDownloadFolder", async () => {
+ipcMain.handle("selectSessionDownloadFolder", async (event) => {
+	if (!isTrustedSender(event)) return null;
 	if (!win) return null;
 	const result = await dialog.showOpenDialog(win, {
 		defaultPath: deemixApp.getDownloadLocation(),
@@ -164,6 +203,7 @@ ipcMain.handle("selectSessionDownloadFolder", async () => {
 });
 
 ipcMain.on("selectDownloadFolder", async (event, downloadLocation) => {
+	if (!isTrustedSender(event) || !win) return;
 	const path = await dialog.showOpenDialog(win, {
 		defaultPath: downloadLocation,
 		properties: ["openDirectory", "createDirectory"],

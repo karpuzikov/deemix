@@ -40,14 +40,14 @@ export async function getPreferredBitrate(
 	let isGeolocked = false;
 	let wrongLicense = false;
 
-	async function testURL(track: Track, url: string, formatName: string) {
+	async function testURL(track: Track, url: string, formatName: string, attempt = 0) {
 		if (!url) return false;
 		let request: CancelableRequest<GotResponse<string>>;
 		try {
 			request = got
 				.get(url, {
 					headers: { "User-Agent": USER_AGENT_HEADER },
-					https: { rejectUnauthorized: false },
+					timeout: { request: 15000 },
 				})
 				.on("response", (response) => {
 					track.filesizes[`${formatName.toLowerCase()}`] =
@@ -64,7 +64,7 @@ export async function getPreferredBitrate(
 				return true;
 			}
 			if (e instanceof ReadError || e instanceof TimeoutError) {
-				return await testURL(track, url, formatName);
+				return attempt < 2 ? await testURL(track, url, formatName, attempt + 1) : false;
 			}
 			if (e instanceof HTTPError) return false;
 			console.trace(e);

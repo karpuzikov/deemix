@@ -1083,7 +1083,7 @@ export class Downloader {
 
 		// Execute command after download
 		try {
-			if (this.settings.executeCommand !== "") {
+			if (process.env.DEEMIX_ALLOW_POST_DOWNLOAD_COMMANDS === "true" && this.settings.executeCommand !== "") {
 				const child = exec(
 					this.settings.executeCommand
 						.replaceAll("%folder%", shellEscape(this.downloadObject.extrasPath))
@@ -1224,7 +1224,7 @@ export class Downloader {
 
 		// Execute command after download
 		try {
-			if (this.settings.executeCommand !== "") {
+			if (process.env.DEEMIX_ALLOW_POST_DOWNLOAD_COMMANDS === "true" && this.settings.executeCommand !== "") {
 				const child = exec(
 					this.settings.executeCommand
 						.replaceAll("%folder%", shellEscape(this.downloadObject.extrasPath))

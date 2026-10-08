@@ -1,5 +1,5 @@
 import fs from "fs";
-import got from "got";
+import { musicBrainzJSON } from "./musicbrainzHttp.js";
 import path from "path";
 import Track from "../types/Track.js";
 import { getConfigFolder } from "./localpaths.js";
@@ -13,7 +13,7 @@ type CachedMetadata = {
 type CacheFile = Record<string, CachedMetadata>;
 
 type RecordingSearchResponse = {
-	recordings?: Array<{ id?: string }>;
+	recordings?: Array<{ id?: string; title?: string; "artist-credit"?: Array<{ name?: string; artist?: { name?: string } }> }>;
 };
 
 type RecordingResponse = {
@@ -26,12 +26,9 @@ type ReleaseResponse = {
 };
 
 const CACHE_TTL_MS = 180 * 24 * 60 * 60 * 1000;
-const USER_AGENT = "Deemix/0.5.0 (https://github.com/karpuzikov/deemix)";
 const inflight = new Map<string, Promise<CachedMetadata>>();
 let cacheLoaded = false;
 let cache: CacheFile = {};
-let requestChain: Promise<void> = Promise.resolve();
-let nextRequestAt = 0;
 
 export function normalizeMusicBrainzText(value: unknown): string {
 	return String(value ?? "")
@@ -69,49 +66,11 @@ function persistCache(): void {
 
 function albumKey(track: Track): string {
 	const barcode = String(track.album?.barcode ?? "").replace(/\D/g, "");
-	if (barcode && barcode !== "0") return `upc:${barcode.replace(/^0+(?=\d)/, "")}`;
+	if (barcode && barcode !== "0") return `upc:${barcode.replace(/^0+(?=\d)/, "")}|isrc:${String(track.ISRC ?? "").toUpperCase()}`;
 
 	return `album:${normalizeMusicBrainzText(track.mainArtist?.name)}|${normalizeMusicBrainzText(
 		track.album?.title
 	)}`;
-}
-
-async function musicBrainzJSON<T>(
-	endpoint: string,
-	searchParams: Record<string, string | number>
-): Promise<T> {
-	let result!: T;
-	let failure: unknown;
-
-	const task = requestChain.then(async () => {
-		const delay = Math.max(0, nextRequestAt - Date.now());
-		if (delay > 0) {
-			await new Promise((resolve) => setTimeout(resolve, delay));
-		}
-		nextRequestAt = Date.now() + 1100;
-
-		try {
-			result = await got
-				.get(`https://musicbrainz.org/ws/2/${endpoint}`, {
-					searchParams,
-					headers: { "User-Agent": USER_AGENT },
-					timeout: { request: 15000 },
-					retry: { limit: 2 },
-				})
-				.json<T>();
-		} catch (error) {
-			failure = error;
-		}
-	});
-
-	requestChain = task.then(
-		() => undefined,
-		() => undefined
-	);
-	await task;
-
-	if (failure) throw failure;
-	return result;
 }
 
 async function resolveMetadata(track: Track): Promise<CachedMetadata> {
@@ -132,7 +91,15 @@ async function resolveMetadata(track: Track): Promise<CachedMetadata> {
 			fmt: "json",
 			limit: 5,
 		});
-		const recordingID = search.recordings?.find((item) => item.id)?.id;
+		const expectedTitle = normalizeMusicBrainzText(track.title);
+		const expectedArtist = normalizeMusicBrainzText(track.mainArtist?.name);
+		const recordingID = search.recordings?.find((item) =>
+			item.id && expectedTitle && expectedArtist &&
+			normalizeMusicBrainzText(item.title) === expectedTitle &&
+			item["artist-credit"]?.some((credit) =>
+				normalizeMusicBrainzText(credit.artist?.name ?? credit.name) === expectedArtist
+			)
+		)?.id;
 		if (!recordingID) return result;
 
 		const recording = await musicBrainzJSON<RecordingResponse>(
@@ -150,8 +117,9 @@ async function resolveMetadata(track: Track): Promise<CachedMetadata> {
 		const release =
 			recording.releases?.find(
 				(candidate) =>
+					candidate.id && targetAlbum &&
 					normalizeMusicBrainzText(candidate.title) === targetAlbum
-			) ?? recording.releases?.find((candidate) => candidate.id);
+			);
 
 		if (release?.id) {
 			try {

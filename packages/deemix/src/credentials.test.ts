@@ -44,3 +44,11 @@ test("works with a config folder that has no trailing separator", () => {
 	expect(readLoginCredentials(noTrailingSep)).toEqual({ arl: "abc" });
 	expect(fs.existsSync(loginJson())).toBe(true);
 });
+
+if (process.platform === "win32") {
+	test("Windows DPAPI does not store plaintext ARLs", () => {
+		writeLoginCredentials(configFolder, { arl: "abc" });
+		expect(fs.readFileSync(loginJson(), "utf8")).not.toContain('"abc"');
+		expect(readLoginCredentials(configFolder)).toEqual({ arl: "abc" });
+	});
+}

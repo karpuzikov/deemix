@@ -61,11 +61,11 @@ export default class ListenBrainzPlugin extends BasePlugin {
 
 		switch (link_type) {
 			case "playlist":
-				return this.generatePlaylistItem(dz, link_id, bitrate, link);
+				return this.generatePlaylistItem(dz, link_id, bitrate);
 		}
 	}
 
-	async generatePlaylistItem(dz: Deezer, link_id: string, bitrate: number, link: string) {
+	async generatePlaylistItem(dz: Deezer, link_id: string, bitrate: number) {
 		if (!this.enabled) throw new PluginNotEnabledError("ListenBrainz");
 
 		const response = await got

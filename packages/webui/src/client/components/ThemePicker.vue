@@ -15,12 +15,14 @@ const hasSlimSidebar = computed(() => appInfoStore.hasSlimSidebar);
 		class="flex items-center justify-center gap-3 pb-6"
 		:class="{ 'h-auto flex-col pb-6': hasSlimSidebar }"
 		aria-label="theme selector"
-		role="link"
 	>
-		<div
+		<button
 			v-for="theme of THEMES"
 			:key="theme"
-			class="size-6 cursor-pointer rounded-full border-0 border-neutral-500 transition-[border-width]"
+			type="button"
+			:aria-label="`Select ${theme} theme`"
+			:aria-pressed="currentTheme === theme"
+			class="size-8 cursor-pointer rounded-full border border-neutral-500 transition-[border-width] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
 			:class="{
 				'border-[3px]': currentTheme === theme,
 				'bg-white': theme === 'light',
