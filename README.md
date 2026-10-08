@@ -37,22 +37,23 @@ Optional post-download shell commands are disabled unless `DEEMIX_ALLOW_POST_DOW
 
 ### Docker Image
 
-Deemix is also available as a [docker image](https://github.com/bambanah/deemix/pkgs/container/deemix).
+To run this fork's patched server, **build the image from this repository**. The upstream `bambanah/deemix` image does not contain these fixes.
 
 #### Example Usage
 
 ```bash
+docker build -t deemix-karpuzikov .
 docker run -d --name Deemix \
   -v /path/to/music:/downloads \
   -v /path/to/config:/config \
   -p 127.0.0.1:6595:6595 \
   -e DEEMIX_ACCESS_TOKEN="<24+-character-random-secret>" \
-  ghcr.io/bambanah/deemix:latest
+  deemix-karpuzikov
 ```
 
 #### Parameters
 
-All paremeters are optional - if not specified, the default value will be used.
+Most parameters are optional; `DEEMIX_ACCESS_TOKEN` is required when the server is bound to a non-loopback host, including inside Docker.
 
 You'll probably want to at least map the download and config folders, as well as the port.
 
@@ -60,7 +61,7 @@ You'll probably want to at least map the download and config folders, as well as
 | --------------------------------------- | --------------------------------------------------------- | ------------ |
 | `-v /path/to/music:/downloads`          | Path to the music folder                                  |              |
 | `-v /path/to/config:/config`            | Path to the config folder                                 |              |
-| `-p 6595:6595`                          | Port mapped to the host                                   |              |
+| `-p 127.0.0.1:6595:6595`                          | Port mapped to the host                                   |              |
 | `-e DEEMIX_SERVER_PORT=6595`            | Port to expose the server on                              | `6595`       |
 | `-e DEEMIX_DATA_DIR=/config`            | Path to the config folder                                 | `/config`    |
 | `-e DEEMIX_MUSIC_DIR=/downloads`        | Path to the music folder                                  | `/downloads` |

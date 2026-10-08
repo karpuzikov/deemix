@@ -2,7 +2,7 @@
 	"name": "deemix",
 	"private": true,
 	"description": "A hybrid monorepo that wraps deemix-webui and lets you use the deemix-js library",
-	"repository": "https://github.com/bambanah/deemix.git",
+	"repository": "https://github.com/karpuzikov/deemix.git",
 	"author": "Bambanah",
 	"license": "GPL-3.0-only",
 	"engines": {
