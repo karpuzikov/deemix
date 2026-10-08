@@ -20,3 +20,7 @@ Current implementation: v0.5.1 - Under construction ⚠️. Electron IPC validat
 Next action: inspect PR #2 lint, type-check and build checks, fix all failures, then run Windows desktop/Docker manual smoke tests. Keep draft and do not merge until all release blockers in root SOFTWARE_RULES.md are met.
 
 Windows GUI profile isolation: Electron userData is now dynamically relocated to Documents/Karpuzikov Tools/Deemix/Electron (including cookies, settings, logs and window-state.json), with one-time full legacy profile migration before app initialization. Runtime Windows startup/migration validation remains outstanding.
+
+## Release process and latest checkpoint
+
+On the hardening branch, the Windows packaging workflow now executes the Windows DPAPI credentials test and launches the packaged GUI as a smoke test. When pushed to main and all checks pass, it publishes the asset `Deemix v0.5.1.exe` to the existing `windows-latest` prerelease, with the title `Deemix v0.5.1 - Under construction ⚠️`, verifies the asset, and removes old unversioned assets. `pnpm make` builds the Electron Forge installer. Release status must remain under construction until user testing confirms success. GUI startup uses delayed dynamic import of deemix-webui after setting host/port to prevent accidental default-port startup. Manual Windows validation of login/download/Spotify and paths is still required.
