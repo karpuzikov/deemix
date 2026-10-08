@@ -128,10 +128,14 @@ jobs:
             gh release edit windows-latest --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title $releaseTitle --notes $releaseNotes --prerelease
           }
           if ($LASTEXITCODE -ne 0) { throw "Could not prepare release." }
-          gh release upload windows-latest "$assetPath#$assetName" --repo $env:GITHUB_REPOSITORY --clobber
-          if ($LASTEXITCODE -ne 0) { throw "Versioned upload failed." }
-          # GitHub normalizes spaces to periods in uploaded asset filenames.
+          # GitHub normalizes spaces to periods; avoid a duplicate asset 422 on retries.
           $publishedAssetName = $assetName.Replace(" ", ".")
+          $existing = @(gh release view windows-latest --repo $env:GITHUB_REPOSITORY --json assets --jq '.assets[].name')
+          if ($LASTEXITCODE -ne 0) { throw "Cannot enumerate release assets." }
+          if ($publishedAssetName -notin $existing) {
+            gh release upload windows-latest "$assetPath#$assetName" --repo $env:GITHUB_REPOSITORY --clobber
+            if ($LASTEXITCODE -ne 0) { throw "Versioned upload failed." }
+          }
           $assets = @(gh release view windows-latest --repo $env:GITHUB_REPOSITORY --json assets --jq '.assets[].name')
           if ($LASTEXITCODE -ne 0 -or $publishedAssetName -notin $assets) { throw "Versioned asset verification failed." }
           foreach ($oldAsset in $assets) {
