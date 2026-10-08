@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createRemoteAccess, isAllowedLocalHost, isAllowedOrigin, isLoopbackHost } from "./security.js";
+import { createRemoteAccess, isAllowedHttpRequest, isAllowedLocalHost, isAllowedOrigin, isLoopbackHost } from "./security.js";
 
 describe("remote access boundary", () => {
 	it("defaults to loopback host and rejects DNS rebinding host values", () => {
@@ -12,6 +12,13 @@ describe("remote access boundary", () => {
 		expect(isAllowedOrigin({ host: "127.0.0.1:6595", origin: "https://evil.test" })).toBe(false);
 		expect(isAllowedOrigin({ host: "127.0.0.1:6595", origin: "http://127.0.0.1:6595" })).toBe(true);
 		expect(isAllowedOrigin({ host: "127.0.0.1:6595", "sec-fetch-site": "cross-site" })).toBe(false);
+	});
+	it("allows only the OAuth callback to return from an external authorization site", () => {
+		const headers = { host: "127.0.0.1:6595", "sec-fetch-site": "cross-site" };
+		expect(isAllowedHttpRequest(headers, "GET", "/api/spotifyCallback")).toBe(true);
+		expect(isAllowedHttpRequest(headers, "POST", "/api/spotifyCallback")).toBe(false);
+		expect(isAllowedHttpRequest(headers, "GET", "/api/getSettings")).toBe(false);
+		expect(isAllowedHttpRequest({ ...headers, origin: "https://evil.example" }, "GET", "/api/spotifyCallback")).toBe(false);
 	});
 	it("requires a long token and accepts Basic or an issued browser cookie", () => {
 		expect(() => createRemoteAccess("weak")).toThrow();

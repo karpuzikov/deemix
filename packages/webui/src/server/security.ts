@@ -23,6 +23,15 @@ export function isAllowedOrigin(headers: IncomingHttpHeaders): boolean {
 	}
 }
 
+// Spotify's authorization server redirects the browser across origins to
+// this read-only OAuth callback. The OAuth state is checked by the handler.
+export function isAllowedHttpRequest(headers: IncomingHttpHeaders, method: string, pathname: string): boolean {
+	if (isAllowedOrigin(headers)) return true;
+	return method === "GET" &&
+		/(?:^|\/)api\/spotifyCallback$/.test(pathname) &&
+		!headers.origin;
+}
+
 export function isAllowedLocalHost(headers: IncomingHttpHeaders): boolean {
 	const host = String(headers.host ?? "").toLowerCase();
 	return /^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/.test(host);

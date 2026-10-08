@@ -3,7 +3,7 @@ import { logger, removeOldLogs } from "@/helpers/logger.js";
 import { loadLoginCredentials } from "@/helpers/loginStorage.js";
 import cookieParser from "cookie-parser";
 import { randomBytes } from "crypto";
-import { createRemoteAccess, isAllowedLocalHost, isAllowedOrigin, isLoopbackHost } from "./security.js";
+import { createRemoteAccess, isAllowedHttpRequest, isAllowedLocalHost, isAllowedOrigin, isLoopbackHost } from "./security.js";
 import { utils, type Listener } from "deemix";
 import express, { type Express } from "express";
 import session from "express-session";
@@ -46,7 +46,7 @@ const app: Express = express();
 // Default to loopback. On LAN/public binds every HTTP/WS request must be
 // authenticated; a short-lived HttpOnly cookie lets browsers open WebSockets.
 app.use((req, res, next) => {
-	if (!isAllowedOrigin(req.headers) || (!remoteMode && !isAllowedLocalHost(req.headers))) {
+	if (!isAllowedHttpRequest(req.headers, req.method, req.path) || (!remoteMode && !isAllowedLocalHost(req.headers))) {
 		res.status(403).send("Request origin or host is not permitted.");
 		return;
 	}

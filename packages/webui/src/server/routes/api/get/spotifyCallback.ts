@@ -1,4 +1,5 @@
 import { type ApiHandler } from "../../../types.js";
+import { spotifyRedirectUri } from "../../../helpers/spotifyRedirectUri.js";
 const path: ApiHandler["path"] = "/spotifyCallback";
 function escapeHtml(value: unknown): string {
 	const table: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -16,9 +17,7 @@ const handler: ApiHandler["handler"] = async (req, res) => {
 		res.status(400).send("<html><body><h2>Missing parameters</h2><script>setTimeout(()=>window.close(),3000)</script></body></html>");
 		return;
 	}
-	const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
-	const host = req.headers["x-forwarded-host"] || req.headers.host;
-	const redirectUri = `${protocol}://${host}/api/spotifyCallback`;
+	const redirectUri = spotifyRedirectUri(req);
 	try {
 		await spotify.handleAuthCallback(code, redirectUri, state);
 		res.send("<html><body><h2>Spotify Connected!</h2><p>You can close this window.</p><script>if(window.opener){window.opener.postMessage('spotifyOAuthSuccess',window.location.origin);setTimeout(()=>window.close(),1500)}else{setTimeout(()=>{window.location.href='/'},1500)}</script></body></html>");
