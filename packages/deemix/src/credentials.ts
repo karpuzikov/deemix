@@ -10,7 +10,8 @@ const loginFile = (configFolder: string) =>
 export function writeLoginCredentials(configFolder: string, login: LoginFile) {
 	fs.mkdirSync(configFolder, { recursive: true });
 
-	fs.writeFileSync(loginFile(configFolder), JSON.stringify(login, null, 2));
+	fs.writeFileSync(loginFile(configFolder), JSON.stringify(login, null, 2), { mode: 0o600 });
+	if (process.platform !== "win32") fs.chmodSync(loginFile(configFolder), 0o600);
 }
 
 export function readLoginCredentials(configFolder: string): LoginFile {

@@ -58,10 +58,10 @@ export function getMusicFolder() {
 		const userDirs = fs
 			.readFileSync(`${homedata}${sep}.config${sep}user-dirs.dirs`)
 			.toString();
-		musicdata = userDirs.match(/XDG_MUSIC_DIR="(.*)"/)[1];
-		musicdata = musicdata.replace(
+		musicdata = userDirs.match(/XDG_MUSIC_DIR="(.*)"/)?.[1] ?? "";
+		if (musicdata) musicdata = musicdata.replace(
 			/\$([A-Z_]+[A-Z0-9_]*)/gi,
-			(_, envName) => process.env[envName]
+			(_, envName) => process.env[envName] ?? ""
 		);
 		musicdata += sep;
 		musicdata = checkPath(musicdata);

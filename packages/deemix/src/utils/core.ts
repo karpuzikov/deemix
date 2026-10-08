@@ -139,7 +139,7 @@ export function formatListener(key: string, data) {
 			return `Finished gathering ${data.name}'s albums (${data.id})`;
 		case "updateQueue":
 			if (data.failed)
-				message += `${data.data.artist} - ${data.data.title} :: ${data.error}`;
+				message += `${data.data?.artist ?? "Download"} - ${data.data?.title ?? data.uuid} :: ${data.error}`;
 			if (data.progress) message += `Downloading: ${data.progress}%`;
 			if (data.conversion) message += `Converting: ${data.conversion}%`;
 

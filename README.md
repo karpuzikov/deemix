@@ -17,7 +17,7 @@ The docker image was heavily inspired by the fantastic work of [Bockiii](https:/
 
 ### Standalone Electron App
 
-[https://github.com/bambanah/deemix/releases](https://github.com/bambanah/deemix/releases)
+[Fork release page](https://github.com/karpuzikov/deemix/releases) - v0.5.1 is **Under construction ⚠️**. Do not use the old unversioned Windows release asset as a v0.5.1 build.
 
 Note: The app is not signed (because it's crazy expensive), so you'll need to disable the security warnings when running it.
 
@@ -29,6 +29,12 @@ xattr -d com.apple.quarantine /Applications/deemix.app
 
 Modify path if installed to a different locaiton
 
+### Network access and post-download commands
+
+Deemix now binds to `127.0.0.1:6595` by default. For LAN/Docker access, explicitly set `DEEMIX_HOST=0.0.0.0` and set a random `DEEMIX_ACCESS_TOKEN` of at least 24 characters. The browser asks for username `deemix` and that token as its password; HTTP and WebSocket traffic require authentication. Use an HTTPS reverse proxy for remote access and set `DEEMIX_COOKIE_SECURE=true` when serving over HTTPS. Do not expose unauthenticated ports publicly.
+
+Optional post-download shell commands are disabled unless `DEEMIX_ALLOW_POST_DOWNLOAD_COMMANDS=true` is set by the operator. Do not enable this for untrusted users. The Docker compose configuration requires the access token environment variable.
+
 ### Docker Image
 
 Deemix is also available as a [docker image](https://github.com/bambanah/deemix/pkgs/container/deemix).
@@ -39,7 +45,8 @@ Deemix is also available as a [docker image](https://github.com/bambanah/deemix/
 docker run -d --name Deemix \
   -v /path/to/music:/downloads \
   -v /path/to/config:/config \
-  -p 6595:6595 \
+  -p 127.0.0.1:6595:6595 \
+  -e DEEMIX_ACCESS_TOKEN="<24+-character-random-secret>" \
   ghcr.io/bambanah/deemix:latest
 ```
 
@@ -57,7 +64,8 @@ You'll probably want to at least map the download and config folders, as well as
 | `-e DEEMIX_SERVER_PORT=6595`            | Port to expose the server on                              | `6595`       |
 | `-e DEEMIX_DATA_DIR=/config`            | Path to the config folder                                 | `/config`    |
 | `-e DEEMIX_MUSIC_DIR=/downloads`        | Path to the music folder                                  | `/downloads` |
-| `-e DEEMIX_HOST=0.0.0.0`                | Host to bind the server to                                | `0.0.0.0`    |
+| `-e DEEMIX_HOST=0.0.0.0`                | Host to bind the server to (Docker only)                  | `0.0.0.0`    |
+| `-e DEEMIX_ACCESS_TOKEN=...`            | Required 24+-character secret when bound beyond loopback  | *required*   |
 | `-e DEEMIX_SINGLE_USER=true`            | Enables single user mode                                  | `true`       |
 | `-e PUID=1000`                          | User ID to use for downloaded files                       | `1000`       |
 | `-e PGID=1000`                          | Group ID to use for downloaded files                      | `1000`       |
