@@ -31,8 +31,6 @@ type MusicBrainzReleaseBrowse = {
 	releases?: MusicBrainzRelease[];
 };
 
-const MUSICBRAINZ_USER_AGENT =
-	"deemix-karpuzikov/3.14.0 (https://github.com/karpuzikov/deemix)";
 const MAX_MUSICBRAINZ_RELEASES = 10000;
 const DEEZER_UPC_CONCURRENCY = 4;
 

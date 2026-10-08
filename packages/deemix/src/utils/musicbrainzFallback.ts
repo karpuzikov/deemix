@@ -26,7 +26,6 @@ type ReleaseResponse = {
 };
 
 const CACHE_TTL_MS = 180 * 24 * 60 * 60 * 1000;
-const USER_AGENT = "Deemix/0.5.0 (https://github.com/karpuzikov/deemix)";
 const inflight = new Map<string, Promise<CachedMetadata>>();
 let cacheLoaded = false;
 let cache: CacheFile = {};
