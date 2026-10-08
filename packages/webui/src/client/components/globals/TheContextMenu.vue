@@ -262,7 +262,7 @@ onMounted(() => {
 		>
 			<span
 				class="menu-option__text"
-				:class="{ 'preserve-case': option.preserveCase }"
+				:class="{ 'preserve-case': 'preserveCase' in option && option.preserveCase === true }"
 			>
 				{{ option.label }}
 			</span>
