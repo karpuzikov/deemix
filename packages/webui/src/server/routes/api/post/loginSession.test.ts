@@ -39,7 +39,9 @@ describe("login session persists through download requests", () => {
 	function createApp() {
 		const app = express();
 		app.use(express.json());
-		app.use(session({
+		app.use(
+			// @ts-expect-error express-session provides a callable CommonJS export at runtime.
+			session({
 			secret: "test-session-cookie-secret",
 			resave: false,
 			saveUninitialized: false,
