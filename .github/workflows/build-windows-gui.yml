@@ -5,7 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "packages/**"
+      - "packages/gui/**"
+      - "packages/webui/**"
+      - "packages/deemix/**"
+      - "packages/deezer-sdk/**"
+      - "!packages/**/CONTINUITY.md"
+      - "!packages/**/README.md"
       - "pnpm-lock.yaml"
       - "package.json"
       - ".github/workflows/build-windows-gui.yml"

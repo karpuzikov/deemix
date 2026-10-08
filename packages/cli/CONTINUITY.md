@@ -15,3 +15,7 @@ No project-specific RULES.md was found in the 2026-10-08 tree; root SOFTWARE_RUL
 Current implementation: CLI package version unchanged, Under construction ⚠️. CLI code unchanged in this hardening branch; it shares Deemix core 3.14.1 and deezer-sdk. Keep existing saved ARL, -b bitrate, -p path, and non-interactive exit 1 contract. CI lint/test/type-check/build and Windows/Unix executable smoke tests pending; no new CLI artifact released.
 
 Next action: inspect PR #2 lint, type-check and build checks, fix all failures, then run Windows desktop/Docker manual smoke tests. Keep draft and do not merge until all release blockers in root SOFTWARE_RULES.md are met.
+
+## 2026-10-08 - Hardening merge checkpoint
+
+The Deemix v0.5.1 hardening PR #2 was squash-merged to `main` at a3e5def2284aa10cbb401594d65e8844b4080ad6. Previous `deemix-hardening-2026-10-08` is no longer the active development branch. The Windows release workflow verifies the DPAPI credentials test, starts the packaged GUI and checks localhost HTTP before publishing the physical `Deemix v0.5.1.exe` asset to the existing `windows-latest` prerelease. A verified Windows download and real interactive user test remain release acceptance conditions. Keep v0.5.1 - Under construction ⚠️ until user confirms Done; do not claim live Windows testing based only on CI. Source of truth: `main`. Global rule file remains unchanged and matches canonical userscripts rule.

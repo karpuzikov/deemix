@@ -22,3 +22,7 @@ Next action: inspect PR #2 lint, type-check and build checks, fix all failures, 
 ## Windows credential checkpoint
 
 CI Windows workflow explicitly executes the credentials test to exercise DPAPI CurrentUser. Existing legacy JSON ARLs and Spotify tokens migrate to protected form on read, under the redirected Documents/Karpuzikov Tools/Deemix folder unless `DEEMIX_DATA_DIR` overrides it. Confirm real Windows user migration and download behavior during manual acceptance; automated CI is not a substitute for human test approval.
+
+## 2026-10-08 - Hardening merge checkpoint
+
+The Deemix v0.5.1 hardening PR #2 was squash-merged to `main` at a3e5def2284aa10cbb401594d65e8844b4080ad6. Previous `deemix-hardening-2026-10-08` is no longer the active development branch. The Windows release workflow verifies the DPAPI credentials test, starts the packaged GUI and checks localhost HTTP before publishing the physical `Deemix v0.5.1.exe` asset to the existing `windows-latest` prerelease. A verified Windows download and real interactive user test remain release acceptance conditions. Keep v0.5.1 - Under construction ⚠️ until user confirms Done; do not claim live Windows testing based only on CI. Source of truth: `main`. Global rule file remains unchanged and matches canonical userscripts rule.

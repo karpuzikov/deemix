@@ -22,3 +22,7 @@ Next action: inspect PR #2 lint, type-check and build checks, fix all failures, 
 ## OAuth return and reverse proxy
 
 The server rejects cross-origin requests except cross-site top-level GET to the exact Spotify OAuth callback endpoint; CSRF state is verified by SpotifyPlugin. OAuth redirect URI is constructed from the trusted request host or `DEEMIX_PUBLIC_URL` environment variable, never directly from untrusted X-Forwarded headers. Remote reverse-proxy deployments must configure `DEEMIX_PUBLIC_URL=https://PUBLIC-HOST`, `DEEMIX_COOKIE_SECURE=true`, DEEMIX_ACCESS_TOKEN (24+ characters), and HTTPS; tests cover denied arbitrary cross-site requests and allowed Spotify callbacks.
+
+## 2026-10-08 - Hardening merge checkpoint
+
+The Deemix v0.5.1 hardening PR #2 was squash-merged to `main` at a3e5def2284aa10cbb401594d65e8844b4080ad6. Previous `deemix-hardening-2026-10-08` is no longer the active development branch. The Windows release workflow verifies the DPAPI credentials test, starts the packaged GUI and checks localhost HTTP before publishing the physical `Deemix v0.5.1.exe` asset to the existing `windows-latest` prerelease. A verified Windows download and real interactive user test remain release acceptance conditions. Keep v0.5.1 - Under construction ⚠️ until user confirms Done; do not claim live Windows testing based only on CI. Source of truth: `main`. Global rule file remains unchanged and matches canonical userscripts rule.
