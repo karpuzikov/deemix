@@ -1,7 +1,7 @@
 import { eachLimit } from "async";
 import got from "got";
 import type { Deezer } from "deezer-sdk";
-import { isSameReleaseArtist } from "./releaseVariants.js";
+import { isMainArtistRelease } from "./releaseVariants.js";
 
 type RootArtist = {
 	id?: string | number;
@@ -122,15 +122,7 @@ async function musicBrainzJSON<T>(
 }
 
 function albumBelongsToArtist(album: any, rootArtist: RootArtist): boolean {
-	if (isSameReleaseArtist(rootArtist, album?.artist)) return true;
-
-	const contributors = Array.isArray(album?.contributors)
-		? album.contributors
-		: [];
-
-	return contributors.some((artist: any) =>
-		isSameReleaseArtist(rootArtist, artist)
-	);
+	return isMainArtistRelease(rootArtist, album);
 }
 
 async function resolveMusicBrainzArtistId(

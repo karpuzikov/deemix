@@ -1,4 +1,4 @@
-import { each } from "async";
+
 import {
 	Deezer,
 	utils,
@@ -77,21 +77,21 @@ export async function generateAlbumItem(
 	let albumAPI: APIAlbum | EnrichedAPIAlbum;
 	let exactPageTracks: any[] = [];
 	if (String(id).startsWith("upc")) {
-		const upcs = [id.slice(4).toString()];
-		upcs.push(parseInt(upcs[0], 10).toString()); // Try UPC without leading zeros as well
-		let lastError: { message: string };
-		await each(upcs, async (upc) => {
+		const rawUpc = id.slice(4);
+		const upcs = Array.from(new Set([rawUpc, rawUpc.replace(/^0+(?=\d)/, "")]));
+		let lastError: unknown;
+		for (const upc of upcs) {
 			try {
 				albumAPI = await dz.api.get_album(`upc:${upc}`);
-			} catch (e) {
-				lastError = e;
-				albumAPI = null;
+				if (albumAPI?.id) break;
+			} catch (error) {
+				lastError = error;
 			}
-		});
-		if (!albumAPI) {
+		}
+		if (!albumAPI?.id) {
 			throw new GenerationError(
 				`https://deezer.com/album/${id}`,
-				lastError.message
+				lastError instanceof Error ? lastError.message : "UPC not found"
 			);
 		}
 		id = albumAPI.id;

@@ -69,7 +69,7 @@ function persistCache(): void {
 
 function albumKey(track: Track): string {
 	const barcode = String(track.album?.barcode ?? "").replace(/\D/g, "");
-	if (barcode && barcode !== "0") return `upc:${barcode.replace(/^0+(?=\d)/, "")}`;
+	if (barcode && barcode !== "0") return `upc:${barcode.replace(/^0+(?\d)/, "")}|isrc:${String(track.ISRC ?? "").toUpperCase()}`;
 
 	return `album:${normalizeMusicBrainzText(track.mainArtist?.name)}|${normalizeMusicBrainzText(
 		track.album?.title
@@ -150,8 +150,9 @@ async function resolveMetadata(track: Track): Promise<CachedMetadata> {
 		const release =
 			recording.releases?.find(
 				(candidate) =>
+					candidate.id && targetAlbum &&
 					normalizeMusicBrainzText(candidate.title) === targetAlbum
-			) ?? recording.releases?.find((candidate) => candidate.id);
+			);
 
 		if (release?.id) {
 			try {

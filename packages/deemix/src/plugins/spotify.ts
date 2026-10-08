@@ -75,7 +75,7 @@ export default class SpotifyPlugin extends BasePlugin {
 	override async parseLink(link: string) {
 		if (link.includes("link.tospotify.com")) {
 			const response = await got.get(link, {
-				https: { rejectUnauthorized: false },
+				
 			}); // Resolve URL shortner
 			link = response.url;
 		}
@@ -337,7 +337,7 @@ export default class SpotifyPlugin extends BasePlugin {
 	) {
 		const playlistUrl = `https://open.spotify.com/playlist/${link_id}`;
 		const page = await got.get(playlistUrl, {
-			https: { rejectUnauthorized: false },
+			
 		});
 		const html = page.body;
 
@@ -391,7 +391,7 @@ export default class SpotifyPlugin extends BasePlugin {
 				const embedPage = await got.get(
 					`https://open.spotify.com/embed/playlist/${link_id}`,
 					{
-						https: { rejectUnauthorized: false },
+						
 					}
 				);
 				const embedTrackIds = this.extractTrackIdsFromHtml(embedPage.body);
@@ -475,7 +475,7 @@ export default class SpotifyPlugin extends BasePlugin {
 				.get(
 					"https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
 					{
-						https: { rejectUnauthorized: false },
+						
 						responseType: "json",
 					}
 				)
@@ -505,7 +505,7 @@ export default class SpotifyPlugin extends BasePlugin {
 			const playlist: any = await got
 				.get(`https://api.spotify.com/v1/playlists/${link_id}?market=US`, {
 					headers,
-					https: { rejectUnauthorized: false },
+					
 					responseType: "json",
 				})
 				.json();
@@ -520,7 +520,7 @@ export default class SpotifyPlugin extends BasePlugin {
 				const page: any = await got
 					.get(nextUrl, {
 						headers,
-						https: { rejectUnauthorized: false },
+						
 						responseType: "json",
 					})
 					.json();
@@ -1042,7 +1042,7 @@ export default class SpotifyPlugin extends BasePlugin {
 
 	async handleAuthCallback(code: string, redirectUri: string, state: string): Promise<boolean> {
 		// Verify CSRF state
-		if (this.oauthState && state !== this.oauthState) {
+		if (!this.oauthState || state !== this.oauthState) {
 			throw new Error("OAuth state mismatch — possible CSRF attack");
 		}
 		this.oauthState = null;
