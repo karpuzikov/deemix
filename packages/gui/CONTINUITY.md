@@ -32,3 +32,7 @@ The Deemix v0.5.1 hardening PR #2 was squash-merged to `main` at a3e5def2284aa10
 ## Release asset filename verification
 
 Windows GitHub Actions build and packaged-app smoke test passed for v0.5.1. GitHub release uploads normalize the local filename `Deemix v0.5.1.exe` to the published asset name `Deemix.v0.5.1.exe`. The release workflow now validates that normalized name before cleaning the outdated `Deemix.exe` file. Never claim a published asset is ready until release validation finishes successfully. Product and version remain explicit in the physical filename. User acceptance and login/download test still pending.
+
+## Verified Windows distribution checkpoint - 2026-10-08
+
+GitHub Actions Windows run 37842412254 completed successfully on source commit 8b3ea20945d02ed2937795ad2ee9a50d396a364f. Windows DPAPI credential regression test, Electron Forge build, packaged GUI localhost startup smoke test, release asset preparation and publishing all passed. The GitHub prerelease `windows-latest` targets that commit and contains one downloadable asset, `Deemix.v0.5.1.exe`, 112,990,720 bytes. The prior unversioned `Deemix.exe` release asset has been retired. The source installer uses a space, but GitHub normalizes it to a period in the public filename. No actual-user Deezer login/download/Spotify verification has been conducted: **v0.5.1 - Under construction ⚠️** remains the correct status until the user confirms tests complete. The Windows build workflow excludes documentation-only changes.
