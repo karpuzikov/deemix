@@ -13,6 +13,6 @@ export function spotifyRedirectUri(req: Request): string {
 		return new URL("/api/spotifyCallback", base.origin).href;
 	}
 	const host = req.headers.host;
-	if (!host || /[\\\s\/]/.test(host)) throw new Error("Missing or invalid HTTP host.");
+	if (!host || /[\\\s/]/.test(host)) throw new Error("Missing or invalid HTTP host.");
 	return new URL("/api/spotifyCallback", `${req.protocol}://${host}`).href;
 }
