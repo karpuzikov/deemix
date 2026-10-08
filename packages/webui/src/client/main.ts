@@ -51,7 +51,7 @@ async function startApp() {
 	appInfoStore.setAppInfo(connectResponse.update);
 	loginStore.setSpotifyStatus(spotifyStatus);
 
-	let arl = localStorage.getItem("arl");
+	let arl = sessionStorage.getItem("arl");
 
 	if (connectResponse.singleUser) {
 		if (connectResponse.singleUser.arl) arl = connectResponse.singleUser.arl;

@@ -9,6 +9,7 @@ import {
 	TrackNotOnDeezer,
 } from "@/errors.js";
 import { type Settings } from "@/types/Settings.js";
+import { protectWindowsSecret, unprotectWindowsSecret } from "@/utils/protectedStorage.js";
 import { getConfigFolder } from "@/utils/localpaths.js";
 import {
 	type Market,
@@ -893,6 +894,15 @@ export default class SpotifyPlugin extends BasePlugin {
 				})
 			);
 		}
+		if (process.platform === "win32") {
+			if (typeof settings.protectedClientSecret === "string")
+				settings.clientSecret = unprotectWindowsSecret(settings.protectedClientSecret);
+			if (typeof settings.protectedOauthTokens === "string")
+				settings.oauthTokens = JSON.parse(unprotectWindowsSecret(settings.protectedOauthTokens));
+		}
+		const legacyPlaintext = process.platform === "win32" &&
+			(Boolean(settings.clientSecret && !settings.protectedClientSecret) ||
+				Boolean(settings.oauthTokens && !settings.protectedOauthTokens));
 		this.setSettings(settings);
 
 		// Load OAuth tokens if present
@@ -901,6 +911,7 @@ export default class SpotifyPlugin extends BasePlugin {
 		}
 
 		this.checkCredentials();
+		if (legacyPlaintext) this.saveSettings();
 	}
 
 	saveSettings(newSettings?: any) {
@@ -911,13 +922,22 @@ export default class SpotifyPlugin extends BasePlugin {
 			...this.settings,
 		};
 		// Persist OAuth tokens if present
-		if (this.oauthTokens) {
-			configData.oauthTokens = this.oauthTokens;
+		if (this.oauthTokens) configData.oauthTokens = this.oauthTokens;
+		if (process.platform === "win32") {
+			if (configData.clientSecret)
+				configData.protectedClientSecret = protectWindowsSecret(configData.clientSecret);
+			delete configData.clientSecret;
+			if (configData.oauthTokens)
+				configData.protectedOauthTokens = protectWindowsSecret(JSON.stringify(configData.oauthTokens));
+			delete configData.oauthTokens;
 		}
 		fs.writeFileSync(
 			this.configFolder + "config.json",
-			JSON.stringify(configData, null, 2)
+			JSON.stringify(configData, null, 2),
+			{ mode: 0o600 }
 		);
+		if (process.platform !== "win32")
+			fs.chmodSync(this.configFolder + "config.json", 0o600);
 	}
 
 	getSettings() {
@@ -937,6 +957,8 @@ export default class SpotifyPlugin extends BasePlugin {
 		delete settings.clientId;
 		delete settings.clientSecret;
 		delete settings.oauthTokens;
+		delete settings.protectedClientSecret;
+		delete settings.protectedOauthTokens;
 		delete settings.oauthAuthenticated;
 		this.settings = settings;
 	}

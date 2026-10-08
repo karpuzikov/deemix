@@ -23,7 +23,12 @@ interface LoginState {
 
 export const useLoginStore = defineStore("login", {
 	state: (): LoginState => ({
-		arl: localStorage.getItem("arl") || "",
+		arl: (() => {
+			const legacy = localStorage.getItem("arl");
+			if (legacy && !sessionStorage.getItem("arl")) sessionStorage.setItem("arl", legacy);
+			localStorage.removeItem("arl");
+			return sessionStorage.getItem("arl") || "";
+		})(),
 		status: null,
 		user: {
 			id: null,
@@ -54,7 +59,7 @@ export const useLoginStore = defineStore("login", {
 			this.setARL(arl);
 		},
 		logout() {
-			localStorage.removeItem("arl");
+			sessionStorage.removeItem("arl");
 
 			this.$reset();
 		},
@@ -62,12 +67,12 @@ export const useLoginStore = defineStore("login", {
 			this.arl = arl;
 
 			if (saveOnLocalStorage) {
-				localStorage.setItem("arl", arl);
+				sessionStorage.setItem("arl", arl);
 			}
 		},
 		removeARL() {
 			this.arl = "";
-			localStorage.removeItem("arl");
+			sessionStorage.removeItem("arl");
 		},
 		setUser(user: LoginState["user"]) {
 			this.user = user;
