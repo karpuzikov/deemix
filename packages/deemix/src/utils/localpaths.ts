@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import fs from "fs";
 import { homedir } from "os";
-import { sep } from "path";
+import { join, sep } from "path";
 
 
 const homedata = homedir();
@@ -29,6 +29,32 @@ export function getConfigFolder() {
 
 	if (process.env.DEEMIX_DATA_DIR)
 		return process.env.DEEMIX_DATA_DIR.replace(/\/*$/, "") + "/";
+
+	// Use the user's actual Documents known folder, including redirected folders
+	// (e.g. OneDrive), and migrate legacy AppData without losing settings.
+	if (process.platform === "win32") {
+		try {
+			const script = "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; [Environment]::GetFolderPath('MyDocuments')";
+			const documents = execSync("powershell.exe -NoLogo -NoProfile -NonInteractive -Command \"" + script + "\"", {
+				encoding: "utf8",
+				windowsHide: true,
+				timeout: 15000,
+			}).trim();
+			if (documents) {
+				const target = join(documents, "Karpuzikov Tools", "Deemix");
+				const legacy = process.env.APPDATA ? join(process.env.APPDATA, "deemix") : "";
+				if (!fs.existsSync(target) && legacy && fs.existsSync(legacy))
+					fs.cpSync(legacy, target, { recursive: true });
+				fs.mkdirSync(target, { recursive: true });
+				userdata = target + sep;
+				return userdata;
+			}
+		} catch {
+			// Preserve the former AppData behavior when the known folder cannot
+			// be resolved, rather than preventing the application from starting.
+		}
+	}
+
 
 	if (process.env.XDG_CONFIG_HOME && userdata === "") {
 		userdata = `${process.env.XDG_CONFIG_HOME}${sep}`;
