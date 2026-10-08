@@ -2,16 +2,25 @@ import { execSync } from "child_process";
 import fs from "fs";
 import { homedir } from "os";
 import { sep } from "path";
-import { canWrite } from "../utils/core.js";
+
 
 const homedata = homedir();
 let userdata = "";
 let musicdata = "";
 
+function canWriteLocally(folder: string): boolean {
+	try {
+		fs.accessSync(folder, fs.constants.R_OK | fs.constants.W_OK);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 function checkPath(path: string) {
 	if (path === "") return "";
 	if (!fs.existsSync(path)) return "";
-	if (!canWrite(path)) return "";
+	if (!canWriteLocally(path)) return "";
 	return path;
 }
 
