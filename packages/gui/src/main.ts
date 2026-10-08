@@ -108,7 +108,8 @@ async function main() {
 	const openSafeExternal = (url: string) => {
 		try {
 			const parsed = new URL(url);
-			if (parsed.protocol === "https:") void shell.openExternal(parsed.href);
+			if (parsed.protocol === "https:" ||
+				(parsed.protocol === "http:" && parsed.origin === origin)) void shell.openExternal(parsed.href);
 		} catch { /* Block malformed URLs. */ }
 	};
 	win.webContents.setWindowOpenHandler(({ url }) => {
