@@ -17,7 +17,7 @@ The docker image was heavily inspired by the fantastic work of [Bockiii](https:/
 
 ### Standalone Electron App
 
-[Fork release page](https://github.com/karpuzikov/deemix/releases) - v0.5.1 is **Under construction ⚠️**. Do not use the old unversioned Windows release asset as a v0.5.1 build.
+[Fork release page](https://github.com/karpuzikov/deemix/releases) - v0.5.2 is **Under construction ⚠️**. Do not use the old unversioned Windows release asset as a v0.5.2 build.
 
 Note: The app is not signed (because it's crazy expensive), so you'll need to disable the security warnings when running it.
 
@@ -166,6 +166,6 @@ A distributable GUI app can be built with the following command:
 pnpm make
 ```
 
-**Windows release status:** GUI v0.5.1 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's prerelease page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
+**Windows release status:** GUI v0.5.2 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's prerelease page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
 
-**Windows executable:** [Deemix.v0.5.1.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.1.exe) - v0.5.1 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
+**Windows executable:** [Deemix.v0.5.2.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.2.exe) - v0.5.2 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
