@@ -1,5 +1,5 @@
 import fs from "fs";
-import got from "got";
+import { musicBrainzJSON } from "./musicbrainzHttp.js";
 import path from "path";
 import Track from "../types/Track.js";
 import { getConfigFolder } from "./localpaths.js";
@@ -30,8 +30,6 @@ const USER_AGENT = "Deemix/0.5.0 (https://github.com/karpuzikov/deemix)";
 const inflight = new Map<string, Promise<CachedMetadata>>();
 let cacheLoaded = false;
 let cache: CacheFile = {};
-let requestChain: Promise<void> = Promise.resolve();
-let nextRequestAt = 0;
 
 export function normalizeMusicBrainzText(value: unknown): string {
 	return String(value ?? "")
@@ -69,49 +67,11 @@ function persistCache(): void {
 
 function albumKey(track: Track): string {
 	const barcode = String(track.album?.barcode ?? "").replace(/\D/g, "");
-	if (barcode && barcode !== "0") return `upc:${barcode.replace(/^0+(?\d)/, "")}|isrc:${String(track.ISRC ?? "").toUpperCase()}`;
+	if (barcode && barcode !== "0") return `upc:${barcode.replace(/^0+(?=\d)/, "")}|isrc:${String(track.ISRC ?? "").toUpperCase()}`;
 
 	return `album:${normalizeMusicBrainzText(track.mainArtist?.name)}|${normalizeMusicBrainzText(
 		track.album?.title
 	)}`;
-}
-
-async function musicBrainzJSON<T>(
-	endpoint: string,
-	searchParams: Record<string, string | number>
-): Promise<T> {
-	let result!: T;
-	let failure: unknown;
-
-	const task = requestChain.then(async () => {
-		const delay = Math.max(0, nextRequestAt - Date.now());
-		if (delay > 0) {
-			await new Promise((resolve) => setTimeout(resolve, delay));
-		}
-		nextRequestAt = Date.now() + 1100;
-
-		try {
-			result = await got
-				.get(`https://musicbrainz.org/ws/2/${endpoint}`, {
-					searchParams,
-					headers: { "User-Agent": USER_AGENT },
-					timeout: { request: 15000 },
-					retry: { limit: 2 },
-				})
-				.json<T>();
-		} catch (error) {
-			failure = error;
-		}
-	});
-
-	requestChain = task.then(
-		() => undefined,
-		() => undefined
-	);
-	await task;
-
-	if (failure) throw failure;
-	return result;
 }
 
 async function resolveMetadata(track: Track): Promise<CachedMetadata> {
