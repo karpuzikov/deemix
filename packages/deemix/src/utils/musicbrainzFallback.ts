@@ -13,7 +13,7 @@ type CachedMetadata = {
 type CacheFile = Record<string, CachedMetadata>;
 
 type RecordingSearchResponse = {
-	recordings?: Array<{ id?: string }>;
+	recordings?: Array<{ id?: string; title?: string; "artist-credit"?: Array<{ name?: string; artist?: { name?: string } }> }>;
 };
 
 type RecordingResponse = {
@@ -91,7 +91,15 @@ async function resolveMetadata(track: Track): Promise<CachedMetadata> {
 			fmt: "json",
 			limit: 5,
 		});
-		const recordingID = search.recordings?.find((item) => item.id)?.id;
+		const expectedTitle = normalizeMusicBrainzText(track.title);
+		const expectedArtist = normalizeMusicBrainzText(track.mainArtist?.name);
+		const recordingID = search.recordings?.find((item) =>
+			item.id && expectedTitle && expectedArtist &&
+			normalizeMusicBrainzText(item.title) === expectedTitle &&
+			item["artist-credit"]?.some((credit) =>
+				normalizeMusicBrainzText(credit.artist?.name ?? credit.name) === expectedArtist
+			)
+		)?.id;
 		if (!recordingID) return result;
 
 		const recording = await musicBrainzJSON<RecordingResponse>(

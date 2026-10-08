@@ -1,9 +1,8 @@
 import { type ApiHandler } from "../../../types.js";
 const path: ApiHandler["path"] = "/spotifyCallback";
 function escapeHtml(value: unknown): string {
-	return String(value ?? "").replace(/[&<>"']/g, (char) =>
-		({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]!)
-	);
+	const table: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+	return String(value ?? "").replace(/[&<>"']/g, (char) => table[char]!);
 }
 const handler: ApiHandler["handler"] = async (req, res) => {
 	const deemix = req.app.get("deemix");

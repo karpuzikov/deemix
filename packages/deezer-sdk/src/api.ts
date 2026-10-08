@@ -47,8 +47,7 @@ export class API {
 		const existing = this.inflight.get(key) as Promise<T> | undefined;
 		if (existing) return existing;
 
-		let request: Promise<T>;
-		request = loader().finally(() => {
+		const request = loader().finally(() => {
 			if (this.inflight.get(key) === request) this.inflight.delete(key);
 		});
 		this.inflight.set(key, request);
@@ -69,9 +68,7 @@ export class API {
 					searchParams: args,
 					cookieJar: this.cookieJar,
 					headers: this.httpHeaders,
-					https: {
-						rejectUnauthorized: false,
-					},
+					
 				})
 				.json();
 		} catch (e) {
