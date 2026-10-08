@@ -33,6 +33,18 @@ process.env.DEEMIX_HOST = argv.host;
 
 let win: BrowserWindow | null = null;
 
+// Keep Electron profile, cookies, window geometry, cache and logs inside the
+// same per-product Windows Documents folder as the download engine. Copy the
+// previous profile once so browser state and login settings are retained.
+if (process.platform === "win32") {
+	const oldUserData = app.getPath("userData");
+	const newUserData = join(app.getPath("documents"), "Karpuzikov Tools", "Deemix", "Electron");
+	if (!fs.existsSync(newUserData) && fs.existsSync(oldUserData)) {
+		fs.cpSync(oldUserData, newUserData, { recursive: true });
+	}
+	fs.mkdirSync(newUserData, { recursive: true });
+	app.setPath("userData", newUserData);
+}
 const windowStatePath = join(app.getPath("userData"), "window-state.json");
 
 function getWindowState() {
