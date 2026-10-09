@@ -38,3 +38,7 @@ GitHub Actions [Windows run 37857394826](https://github.com/karpuzikov/deemix/ac
 ## Desktop login restore regression (GUI v0.5.3)
 
 Desktop GUI configures existing single-user credential persistence only when server binding is loopback; ordinary server retains multi-user behavior. Supertest validates initial login, durable credential save, restarting Express with fresh session, `/api/connect` restored credentials, automatic `/api/loginArl`, successful download, logout clearing persistence, and no multi-user persistence. Windows DPAPI checks are already in Windows workflow.
+
+## Release verified: v0.5.3 - Under construction ⚠️ (2026-10-09)
+
+Windows GUI release workflow [37862970747](https://github.com/karpuzikov/deemix/actions/runs/37862970747) completed **success** on source commit `eb856025a8b52d7bf76d9634a104566ea8fde6e0`. Windows DPAPI test, Electron packaging, packaged-GUI HTTP startup smoke, versioned asset verification and publication all passed. Released asset is [Deemix.v0.5.3.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.3.exe), 112992768 bytes; the only asset in the latest Windows prerelease. PR #4 regression tests verified mock-persisted credential restore across fresh Express app, resumed downloads, explicit logout, and multi-user isolation (19/19 CI tasks passing). Actual Windows user restart/login confirmation is **not yet obtained**; user may need to enter credentials once after upgrading, then close/reopen to verify persistence. Maintain the version and Under construction ⚠️ until confirmed.
