@@ -136,3 +136,63 @@ export function getReleaseEditionKey(downloadObject: any): string {
 	if (trackSignature) return `tracks:${trackSignature}`;
 	return `album:${String(downloadObject?.id ?? "unknown")}`;
 }
+
+/**
+ * Match complete releases only. A clean copy is skipped when its explicit
+ * equivalent is among the releases actually generated for this download.
+ * Never collapse playlists, different tracklists, or distinct edition titles.
+ */
+function normalizedEditionTitle(title: unknown): string {
+	let value = String(title ?? "").trim();
+	const suffix = /(?:\s*[([]\s*(?:clean|explicit)(?:\s+(?:version|edit))?\s*[)\]]|\s+[-:]\s*(?:clean|explicit)(?:\s+(?:version|edit))?)$/i;
+	let previous = "";
+	while (value && previous !== value) {
+		previous = value;
+		value = value.replace(suffix, "").trim();
+	}
+	return normalizeReleaseTitle(value);
+}
+
+function isExplicit(value: any): boolean {
+	return value?.explicit === true || value?.explicit === 1 ||
+		value?.explicit_lyrics === true || value?.explicit_lyrics === 1 ||
+		value?.explicit_content_lyrics === 1 || value?.explicit_content_lyrics === 4;
+}
+
+function isKnownClean(value: any): boolean {
+	return value?.explicit_lyrics === false || value?.explicit_lyrics === 0 ||
+		value?.explicit_content_lyrics === 0 || value?.explicit_content_lyrics === 3 ||
+		/\bclean(?:\s+version)?\b/i.test(String(value?.title ?? ""));
+}
+
+function comparison(item: any): { key: string; explicit: boolean; clean: boolean } | null {
+	if (item?.type !== "album" && item?.type !== "track") return null;
+	const album = item?.collection?.albumAPI ?? item?.single?.albumAPI ?? item?.single?.trackAPI?.album;
+	const tracks = item?.collection?.tracks ??
+		(item?.single?.trackAPI ? [item.single.trackAPI] : []);
+	if (!album || !Array.isArray(tracks) || !tracks.length) return null;
+	const title = normalizedEditionTitle(album.title ?? item.title);
+	const artist = normalizeReleaseTitle(album.artist?.name ?? item.artist ?? "");
+	const trackTitles = tracks.map((track: any) => normalizedEditionTitle(track?.title ?? track?.SNG_TITLE));
+	if (!title || !artist || trackTitles.some((trackTitle: string) => !trackTitle)) return null;
+	const explicit = isExplicit(item) || isExplicit(album) || tracks.some(isExplicit);
+	const clean = !explicit && (
+		isKnownClean(item) || isKnownClean(album) || tracks.some(isKnownClean)
+	);
+	return {
+		key: JSON.stringify([artist, title, trackTitles]),
+		explicit,
+		clean,
+	};
+}
+
+export function skipCleanWhenExplicitAvailable<T>(items: T[]): T[] {
+	const editions = items.map(comparison);
+	const explicitKeys = new Set(
+		editions.filter((edition) => edition?.explicit).map((edition) => edition!.key)
+	);
+	return items.filter((_, index) => {
+		const edition = editions[index];
+		return !edition || !edition.clean || !explicitKeys.has(edition.key);
+	});
+}
