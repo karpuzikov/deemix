@@ -166,6 +166,8 @@ A distributable GUI app can be built with the following command:
 pnpm make
 ```
 
-**Windows release status:** GUI v0.5.2 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's prerelease page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
+**Windows release status:** GUI v0.5.3 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's prerelease page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
 
-**Windows executable:** [Deemix.v0.5.2.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.2.exe) - v0.5.2 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
+**Windows executable:** [Deemix.v0.5.3.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.3.exe) - v0.5.3 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
+
+**Desktop persistent login (v0.5.3):** The local Windows GUI restores the saved login using the OS-encrypted credentials, not browser localStorage. Enter login once after upgrading if necessary, then close and reopen to confirm it reconnects. Logging out clears the stored login. Network-facing multi-user WebUI behavior is unchanged.

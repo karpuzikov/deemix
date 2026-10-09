@@ -34,3 +34,7 @@ Successful login must modify req.session.deemixAuthenticated=true so saveUniniti
 ## Release checkpoint: v0.5.2 - Under construction ⚠️
 
 GitHub Actions [Windows run 37857394826](https://github.com/karpuzikov/deemix/actions/runs/37857394826) completed successfully. Source commit 4f4256b7b99af3268e2278c9b0f97bc38e6ac3e3. Windows DPAPI tests, GUI installer build, packaged GUI HTTP startup test, versioned asset preparation and publication all passed. The prerelease tag `windows-latest` now contains only [Deemix.v0.5.2.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.2.exe), 112991232 bytes, replacing v0.5.1. Regression tests proved browser session continuity from successful Deezer login to downloading; underlying root cause was `saveUninitialized: false` without session mutation, so no `connect.sid` cookie was persisted. Runtime interactive user confirmation of downloads is still required. Keep actual version and Under construction ⚠️ status until user confirms Done; do not mark as tested by the user based solely on CI.
+
+## Desktop login restore regression (GUI v0.5.3)
+
+Desktop GUI configures existing single-user credential persistence only when server binding is loopback; ordinary server retains multi-user behavior. Supertest validates initial login, durable credential save, restarting Express with fresh session, `/api/connect` restored credentials, automatic `/api/loginArl`, successful download, logout clearing persistence, and no multi-user persistence. Windows DPAPI checks are already in Windows workflow.
