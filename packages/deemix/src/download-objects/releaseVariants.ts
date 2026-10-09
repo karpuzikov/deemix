@@ -138,61 +138,147 @@ export function getReleaseEditionKey(downloadObject: any): string {
 }
 
 /**
- * Match complete releases only. A clean copy is skipped when its explicit
- * equivalent is among the releases actually generated for this download.
- * Never collapse playlists, different tracklists, or distinct edition titles.
+ * A clean/explicit comparison must use the actual release, not just a barcode:
+ * both versions usually have different UPCs and Deezer track IDs/ISRCs.
+ * Keep different edition labels, track counts and albums with poor overlap.
  */
+type Edition = {
+	item: any;
+	id: string;
+	title: string;
+	trackTitles: string[];
+	explicit: boolean;
+	clean: boolean;
+	rootArtistID: string;
+	artistID: string;
+	artistName: string;
+};
+
+const CONTENT_MARKER = String.raw`\s*[\[(]\s*(?:clean|explicit|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?\s*[\])]\s*`;
+
 function normalizedEditionTitle(title: unknown): string {
 	let value = String(title ?? "").trim();
-	const suffix = /(?:\s*[([]\s*(?:clean|explicit)(?:\s+(?:version|edit))?\s*[)\]]|\s+[-:]\s*(?:clean|explicit)(?:\s+(?:version|edit))?)$/i;
-	let previous = "";
-	while (value && previous !== value) {
-		previous = value;
-		value = value.replace(suffix, "").trim();
-	}
+	// Track-level tags also occur *before* the feature credit or twice:
+	// "Song [Clean] (feat. Artist)" and "Song [Clean] [Clean]".
+	value = value.replace(new RegExp(CONTENT_MARKER, "gi"), " ");
+	value = value.replace(
+		/\s+[-:]\s*(?:clean|explicit|edited|censored)(?:\s+(?:version|edit))?$/i,
+		""
+	);
 	return normalizeReleaseTitle(value);
 }
 
-function isExplicit(value: any): boolean {
+function hasExplicitMarker(value: any): boolean {
 	return value?.explicit === true || value?.explicit === 1 ||
 		value?.explicit_lyrics === true || value?.explicit_lyrics === 1 ||
-		value?.explicit_content_lyrics === 1 || value?.explicit_content_lyrics === 4;
+		value?.explicit_content_lyrics === 1 || value?.explicit_content_lyrics === 4 ||
+		/(?:^|[\s[(])explicit(?:\s+(?:version|edit))?[\s\])]*$/i.test(
+			String(value?.title ?? "")
+		);
 }
 
-function isKnownClean(value: any): boolean {
+function hasCleanMarker(value: any): boolean {
 	return value?.explicit_lyrics === false || value?.explicit_lyrics === 0 ||
 		value?.explicit_content_lyrics === 0 || value?.explicit_content_lyrics === 3 ||
-		/\bclean(?:\s+version)?\b/i.test(String(value?.title ?? ""));
+		/(?:^|[\s[(])(?:clean|edited|censored)(?:\s+(?:version|edit))?[\s\])]*$/i.test(
+			String(value?.title ?? "")
+		);
 }
 
-function comparison(item: any): { key: string; explicit: boolean; clean: boolean } | null {
-	if (item?.type !== "album" && item?.type !== "track") return null;
-	const album = item?.collection?.albumAPI ?? item?.single?.albumAPI ?? item?.single?.trackAPI?.album;
-	const tracks = item?.collection?.tracks ??
-		(item?.single?.trackAPI ? [item.single.trackAPI] : []);
-	if (!album || !Array.isArray(tracks) || !tracks.length) return null;
+function editionOf(item: any): Edition | null {
+	if (!item || (item.type !== "album" && item.type !== "track")) return null;
+	const album = item.collection?.albumAPI ?? item.single?.albumAPI ?? item.single?.trackAPI?.album;
+	const tracks = item.collection?.tracks ??
+		(item.single?.trackAPI ? [item.single.trackAPI] : []);
+	if (!album || !Array.isArray(tracks) || tracks.length === 0) return null;
 	const title = normalizedEditionTitle(album.title ?? item.title);
-	const artist = normalizeReleaseTitle(album.artist?.name ?? item.artist ?? "");
-	const trackTitles = tracks.map((track: any) => normalizedEditionTitle(track?.title ?? track?.SNG_TITLE));
-	if (!title || !artist || trackTitles.some((trackTitle: string) => !trackTitle)) return null;
-	const explicit = isExplicit(item) || isExplicit(album) || tracks.some(isExplicit);
-	const clean = !explicit && (
-		isKnownClean(item) || isKnownClean(album) || tracks.some(isKnownClean)
+	const artistName = normalizeReleaseTitle(album.artist?.name ?? item.artist ?? "");
+	const trackTitles = tracks.map((track: any) =>
+		normalizedEditionTitle(track?.title ?? track?.SNG_TITLE ?? "")
 	);
+	if (!title || !artistName || trackTitles.some((t: string) => !t)) return null;
+	const explicit = hasExplicitMarker(album) || hasExplicitMarker(item) ||
+		tracks.some((track: any) => hasExplicitMarker(track));
+	const clean = !explicit && (hasCleanMarker(album) ||
+		tracks.some((track: any) => hasCleanMarker(track)));
 	return {
-		key: JSON.stringify([artist, title, trackTitles]),
+		item,
+		id: String(item.id ?? ""),
+		title,
+		trackTitles,
 		explicit,
 		clean,
+		rootArtistID: album.root_artist?.id == null ? "" : String(album.root_artist.id),
+		artistID: album.artist?.id == null ? "" : String(album.artist.id),
+		artistName,
 	};
 }
 
+function sameArtist(a: Edition, b: Edition): boolean {
+	if (a.rootArtistID && b.rootArtistID) return a.rootArtistID === b.rootArtistID;
+	if (a.artistID && b.artistID && a.artistID === b.artistID) return true;
+	if (a.artistName === b.artistName) return true;
+	// Deezer sometimes credits one edition to a main artist and another to
+	// main artist + co-main artist. Do not equate unrelated names or "Various".
+	const names = (text: string) => text
+		.split(/\s+(?:and|feat|featuring|with)\s+|\s*&\s*|\s*,\s*/)
+		.map(s => s.trim()).filter(s => s && s !== "various artists");
+	const as = names(a.artistName), bs = names(b.artistName);
+	return as.some((name: string) => bs.includes(name) && name.length >= 4);
+}
+
+function sameRecordings(a: Edition, b: Edition): boolean {
+	if (a.trackTitles.length !== b.trackTitles.length) return false;
+	const count = a.trackTitles.length;
+	let sameSlots = 0;
+	for (let i = 0; i < count; i++) {
+		if (a.trackTitles[i] === b.trackTitles[i]) sameSlots++;
+	}
+	// Version-specific censoring alters a small number of Deezer track
+	// titles. Require the vast majority of album slots to agree; for short
+	// singles and EPs every slot must still agree.
+	const required = count >= 8 ? 0.7 : count >= 5 ? 0.8 : 1;
+	return sameSlots / count >= required;
+}
+
+function isCleanDuplicate(clean: Edition, explicit: Edition): boolean {
+	return clean.clean && explicit.explicit &&
+		clean.title === explicit.title &&
+		sameArtist(clean, explicit) &&
+		sameRecordings(clean, explicit);
+}
+
+export function preferExplicitReleases<T>(
+	incoming: T[],
+	waiting: T[] = [],
+	active: T[] = []
+): { kept: T[]; skipped: T[]; supersededWaiting: T[] } {
+	const incomingEditions = incoming.map(editionOf);
+	const waitingEditions = waiting.map(editionOf);
+	const activeEditions = active.map(editionOf);
+	const explicitByTitleAndCount = new Map<string, Edition[]>();
+	const insert = (edition: Edition | null) => {
+		if (!edition?.explicit) return;
+		const key = JSON.stringify([edition.title, edition.trackTitles.length]);
+		const group = explicitByTitleAndCount.get(key) ?? [];
+		group.push(edition);
+		explicitByTitleAndCount.set(key, group);
+	};
+	incomingEditions.forEach(insert);
+	waitingEditions.forEach(insert);
+	activeEditions.forEach(insert);
+	const duplicate = (candidate: Edition | null) => {
+		if (!candidate?.clean) return false;
+		const key = JSON.stringify([candidate.title, candidate.trackTitles.length]);
+		const potential = explicitByTitleAndCount.get(key) ?? [];
+		return potential.some(explicit => isCleanDuplicate(candidate, explicit));
+	};
+	const kept = incoming.filter((_, index) => !duplicate(incomingEditions[index]));
+	const skipped = incoming.filter((_, index) => duplicate(incomingEditions[index]));
+	const supersededWaiting = waiting.filter((_, index) => duplicate(waitingEditions[index]));
+	return { kept, skipped, supersededWaiting };
+}
+
 export function skipCleanWhenExplicitAvailable<T>(items: T[]): T[] {
-	const editions = items.map(comparison);
-	const explicitKeys = new Set(
-		editions.filter((edition) => edition?.explicit).map((edition) => edition!.key)
-	);
-	return items.filter((_, index) => {
-		const edition = editions[index];
-		return !edition || !edition.clean || !explicitKeys.has(edition.key);
-	});
+	return preferExplicitReleases(items).kept;
 }
