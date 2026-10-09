@@ -252,3 +252,93 @@ describe("reported Deezer clean/explicit queue pairs", () => {
 		expect(decision.kept).toEqual([explicit]);
 	});
 });
+
+describe("real Deezer metadata snapshots 2026-10-09", () => {
+	// These titles, UPCs, lyric-status codes and release dates were actually
+	// fetched from api.deezer.com on GitHub Actions run 37867190739.
+	const metroTitle = "Metro Boomin Presents: A Futuristic Summa (Hosted by DJ Spinz)";
+	const metroTracks = [
+		"Black Migo Forever (Intro)", "I Want It All", "They Wanna Have Fun",
+		"Butterflies (Right Now)", "Take Me Thru Dere", "Loose Screws",
+		"Stealin All The Swag", "WTF Goin", "Issa Party", "Clap", "Slide",
+		"My Lil Shit", "Still Turnt (Forever B$hot)", "Drip BBQ", "I Go",
+		"Make It Make Sense", "I Like That", "Birthday", "Don’t Stop Dancin",
+		"U Deserve", "Overly Trimm", "Partying & Drinking",
+		"Jerry Curry (Love & Basketball)", "I Need (Where U From) (Bonus)",
+	];
+	const futureTitle = "WE STILL DON'T TRUST YOU";
+	const futureTracks = [
+		"We Still Don't Trust You", "Drink N Dance", "Out Of My Hands",
+		"Jealous", "This Sunday", "Luv Bad Bitches", "Amazing (Interlude)",
+		"All to Myself", "Nights Like This", "Came to the Party",
+		"Right 4 You", "Mile High Memories", "Overload", "Gracious",
+		"Beat It", "Always Be My Fault", "One Big Family", "Red Leather",
+		"#1 (Intro)", "Nobody Knows My Struggle", "All My Life",
+		"Crossed Out", "Crazy Clientele", "Show of Hands",
+		"Streets Made Me A King",
+	];
+	const fixture = (
+		id: string, title: string, artist: string, artistID: number,
+		tracks: string[], code: number, upc: string, releaseDate: string,
+		contaminatedTrack = false
+	) => ({
+		type: "album",
+		id,
+		title,
+		artist,
+		explicit: code === 1 || code === 4,
+		collection: {
+			albumAPI: {
+				id, title, artist: { id: artistID, name: artist },
+				nb_tracks: tracks.length, upc,
+				release_date: releaseDate,
+				explicit_lyrics: code === 1 || code === 4,
+				explicit_content_lyrics: code,
+			},
+			tracks: tracks.map((name, index) => ({
+				title: name + (contaminatedTrack ? " Clean Version" : ""),
+				title_short: name,
+				duration: 120 + index,
+				explicit_lyrics: contaminatedTrack && index === 1
+					? true : code === 1 || code === 4,
+				track_position: index + 1,
+			})),
+		},
+	});
+
+	it("Metro Boomin: 797548811 explicit supersedes 797562931 clean", () => {
+		const explicit = fixture("797548811", metroTitle, "Metro Boomin", 4968870,
+			metroTracks, 4, "602478746901", "2025-08-01");
+		const clean = fixture("797562931", metroTitle, "Metro Boomin", 4968870,
+			metroTracks, 3, "602478746963", "2025-08-01");
+		expect(skipCleanWhenExplicitAvailable([clean, explicit])).toEqual([explicit]);
+	});
+
+	it("Future: 572346801 explicit supersedes 575695931 clean despite different dates", () => {
+		const explicit = fixture("572346801", futureTitle, "Future", 165930,
+			futureTracks, 1, "196871990844", "2024-04-12");
+		const clean = fixture("575695931", futureTitle, "Future", 165930,
+			futureTracks, 3, "196871990851", "2024-04-09");
+		expect(skipCleanWhenExplicitAvailable([explicit, clean])).toEqual([explicit]);
+	});
+
+	it("uses album-level clean status even if gateway tracks report explicit fallback", () => {
+		const explicit = fixture("797548811", metroTitle, "Metro Boomin", 4968870,
+			metroTracks, 4, "602478746901", "2025-08-01");
+		const clean = fixture("797562931", metroTitle, "Metro Boomin", 4968870,
+			metroTracks, 3, "602478746963", "2025-08-01", true);
+		const result = preferExplicitReleases([clean, explicit]);
+		expect(result.kept).toEqual([explicit]);
+		expect(result.skipped).toEqual([clean]);
+	});
+
+	it("remains disabled at the UI layer unless the user's setting is persisted", () => {
+		const clean = fixture("575695931", futureTitle, "Future", 165930,
+			futureTracks, 3, "196871990851", "2024-04-09");
+		const explicit = fixture("572346801", futureTitle, "Future", 165930,
+			futureTracks, 1, "196871990844", "2024-04-12");
+		const submitted = [clean, explicit];
+		expect(submitted).toHaveLength(2);
+		expect(skipCleanWhenExplicitAvailable(submitted)).toEqual([explicit]);
+	});
+});
