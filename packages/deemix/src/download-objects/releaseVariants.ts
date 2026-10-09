@@ -168,21 +168,27 @@ function normalizedEditionTitle(title: unknown): string {
 	return normalizeReleaseTitle(value);
 }
 
+function hasEditionLabel(value: any, kind: "explicit" | "clean"): boolean {
+	const title = String(value?.title ?? "");
+	// Literal edition labels only. A record titled "Come Clean" is not
+	// automatically a clean edit; nor is "Non Explicit" an explicit label.
+	const label = kind === "explicit"
+		? /(?:\s*[\[(]\s*explicit(?:\s+(?:version|edit))?\s*[\])]|(?:\s+[-:]\s*explicit(?:\s+(?:version|edit))?))\s*$/i
+		: /(?:\s*[\[(]\s*(?:clean|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?\s*[\])]|(?:\s+[-:]\s*(?:clean|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?))\s*$/i;
+	return label.test(title);
+}
+
 function hasExplicitMarker(value: any): boolean {
 	return value?.explicit === true || value?.explicit === 1 ||
 		value?.explicit_lyrics === true || value?.explicit_lyrics === 1 ||
 		value?.explicit_content_lyrics === 1 || value?.explicit_content_lyrics === 4 ||
-		/(?:^|[\s[(])explicit(?:\s+(?:version|edit))?[\s\])]*$/i.test(
-			String(value?.title ?? "")
-		);
+		hasEditionLabel(value, "explicit");
 }
 
 function hasCleanMarker(value: any): boolean {
 	return value?.explicit_lyrics === false || value?.explicit_lyrics === 0 ||
 		value?.explicit_content_lyrics === 0 || value?.explicit_content_lyrics === 3 ||
-		/(?:^|[\s[(])(?:clean|edited|censored)(?:\s+(?:version|edit))?[\s\])]*$/i.test(
-			String(value?.title ?? "")
-		);
+		hasEditionLabel(value, "clean");
 }
 
 function editionOf(item: any): Edition | null {
