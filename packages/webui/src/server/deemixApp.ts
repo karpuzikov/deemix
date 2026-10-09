@@ -280,6 +280,7 @@ export class DeemixApp {
 			}
 		}
 
+		logger.info(`Explicit-first setting: ${this.settings.skipCleanIfExplicitAvailable ? "enabled" : "disabled"}; generated ${downloadObjs.length} item(s)`);
 		if (this.settings.skipCleanIfExplicitAvailable) {
 			// Include earlier submissions that are still waiting. A clean album
 			// can be queued before the corresponding explicit album arrives.
