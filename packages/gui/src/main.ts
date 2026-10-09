@@ -30,6 +30,15 @@ const PORT = process.env.DEEMIX_SERVER_PORT || argv.port;
 process.env.DEEMIX_SERVER_PORT = PORT;
 process.env.DEEMIX_HOST = process.env.DEEMIX_HOST ?? argv.host;
 
+// The desktop app has one local user. Restore saved login through the
+// server's existing Windows DPAPI-protected credentials, not localStorage.
+// Respect explicit overrides and do not enable this for remote binds.
+process.env.DEEMIX_SINGLE_USER ??= (
+	["127.0.0.1", "localhost", "::1"].includes(process.env.DEEMIX_HOST)
+		? "true"
+		: "false"
+);
+
 // The imported package starts Express as a side effect; configure it first.
 const { deemixApp } = await import("deemix-webui");
 

@@ -1,4 +1,6 @@
 import { sessionDZ } from "@/deemixApp.js";
+import connect from "../get/connect.js";
+import logout from "./logout.js";
 import express from "express";
 import session from "express-session";
 import request from "supertest";
@@ -7,9 +9,14 @@ import loginArl from "./loginArl.js";
 import addToQueue from "./addToQueue.js";
 
 vi.mock("@/deemixApp.js", () => ({ sessionDZ: {} }));
+const savedLogin = vi.hoisted(() => ({ arl: null as string | null }));
+
 vi.mock("@/helpers/loginStorage.js", () => ({
-	resetLoginCredentials: vi.fn(),
-	saveLoginCredentials: vi.fn(),
+	getLoginCredentials: vi.fn(() => ({ arl: savedLogin.arl })),
+	resetLoginCredentials: vi.fn(() => { savedLogin.arl = null; }),
+	saveLoginCredentials: vi.fn((login: { arl: string | null }) => {
+		savedLogin.arl = login.arl;
+	}),
 }));
 vi.mock("@/helpers/logger.js", () => ({
 	logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -29,6 +36,7 @@ vi.mock("deezer-sdk", () => ({
 
 describe("login session persists through download requests", () => {
 	beforeEach(() => {
+		savedLogin.arl = null;
 		for (const key of Object.keys(sessionDZ)) delete sessionDZ[key];
 		// Use the normal login code path; the older NODE_ENV=test branch logs
 		// in a temporary Deezer instance and cannot test session continuity.
@@ -36,7 +44,7 @@ describe("login session persists through download requests", () => {
 	});
 	afterEach(() => vi.unstubAllEnvs());
 
-	function createApp() {
+	function createApp(singleUser = false) {
 		const app = express();
 		app.use(express.json());
 		app.use(
@@ -47,11 +55,13 @@ describe("login session persists through download requests", () => {
 			saveUninitialized: false,
 			cookie: { httpOnly: true, sameSite: "strict" },
 		}));
-		app.set("isSingleUser", false);
+		app.set("isSingleUser", singleUser);
 		app.set("deemix", {
 			isDeezerAvailable: async () => true,
 			startQueue: vi.fn(),
-			getSettings: () => ({ settings: { maxBitrate: 3 } }),
+			getSettings: () => ({ settings: { maxBitrate: 3, autoCheckForUpdates: false } }),
+			getQueue: () => ({ queue: {}, queueOrder: [] }),
+			plugins: { spotify: { enabled: false } },
 			addToQueue: async (dz: { loggedIn: boolean }) => {
 				if (!dz.loggedIn) {
 					const error = new Error("Login required");
@@ -62,6 +72,8 @@ describe("login session persists through download requests", () => {
 			},
 			listener: { send: vi.fn() },
 		});
+		app.get("/api/connect", connect.handler);
+		app.post("/api/logout", logout.handler);
 		app.post("/api/loginArl", loginArl.handler);
 		app.post("/api/addToQueue", addToQueue.handler);
 		return app;
@@ -89,6 +101,43 @@ describe("login session persists through download requests", () => {
 		// The login remains isolated to the browser that received the cookie.
 		const anotherBrowser = await request(app).post("/api/addToQueue").send(payload);
 		expect(anotherBrowser.body.errid).toBe("NotLoggedIn");
+	});
+
+	it("restores a locally saved login after a complete desktop restart", async () => {
+		const first = request.agent(createApp(true));
+		const loggedIn = await first.post("/api/loginArl").send({ arl: "abcdef1234" });
+		expect(loggedIn.body.status).toBe(1);
+		expect(savedLogin.arl).toBe("abcdef1234");
+
+		// The old browser and Express session are gone; durable credentials
+		// (mocked at the storage boundary) survive the restart.
+		for (const key of Object.keys(sessionDZ)) delete sessionDZ[key];
+		const restarted = request.agent(createApp(true));
+		const connected = await restarted.get("/api/connect");
+		expect(connected.status).toBe(200);
+		expect(connected.body.autologin).toBe(true);
+		expect(connected.body.singleUser.arl).toBe("abcdef1234");
+		const restored = await restarted.post("/api/loginArl").send({
+			arl: connected.body.singleUser.arl,
+		});
+		expect(restored.body.status).toBe(1);
+		const download = await restarted.post("/api/addToQueue").send({
+			url: "https://www.deezer.com/track/123",
+			bitrate: 3,
+		});
+		expect(download.body.result).toBe(true);
+
+		await restarted.post("/api/logout");
+		expect(savedLogin.arl).toBeNull();
+		const afterLogout = await request(createApp(true)).get("/api/connect");
+		expect(afterLogout.body.singleUser.arl).toBeNull();
+	});
+
+	it("never persists browser-only login credentials in multi-user mode", async () => {
+		const browser = request.agent(createApp(false));
+		const result = await browser.post("/api/loginArl").send({ arl: "abcdef1234" });
+		expect(result.body.status).toBe(1);
+		expect(savedLogin.arl).toBeNull();
 	});
 
 	it("does not persist an uninitialized or failed login session", async () => {
