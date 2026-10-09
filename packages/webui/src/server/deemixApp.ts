@@ -288,7 +288,7 @@ export class DeemixApp {
 				try {
 					return [JSON.parse(fs.readFileSync(this.queueFile(uuid), "utf8"))];
 				} catch (error) {
-					logger.warn(\`Could not inspect waiting release \${uuid}: \${String(error)}\`);
+					logger.warn(`Could not inspect waiting release ${uuid}: ${String(error)}`);
 					return [];
 				}
 			});
@@ -306,7 +306,7 @@ export class DeemixApp {
 			}
 			const skipped = selection.skipped.length + selection.supersededWaiting.length;
 			if (skipped) {
-				logger.info(\`Skipped \${skipped} clean release(s) with matching explicit releases\`);
+				logger.info(`Skipped ${skipped} clean release(s) with matching explicit releases`);
 				this.listener.send("skippedCleanVersions", { count: skipped });
 			}
 		}

@@ -154,7 +154,7 @@ type Edition = {
 	artistName: string;
 };
 
-const CONTENT_MARKER = String.raw`\s*[\[(]\s*(?:clean|explicit|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?\s*[\])]\s*`;
+const CONTENT_MARKER = String.raw`\s*(?:\(|\[)\s*(?:clean|explicit|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?\s*(?:\)|\])\s*`;
 
 function normalizedEditionTitle(title: unknown): string {
 	let value = String(title ?? "").trim();
@@ -173,8 +173,8 @@ function hasEditionLabel(value: any, kind: "explicit" | "clean"): boolean {
 	// Literal edition labels only. A record titled "Come Clean" is not
 	// automatically a clean edit; nor is "Non Explicit" an explicit label.
 	const label = kind === "explicit"
-		? /(?:\s*[\[(]\s*explicit(?:\s+(?:version|edit))?\s*[\])]|(?:\s+[-:]\s*explicit(?:\s+(?:version|edit))?))\s*$/i
-		: /(?:\s*[\[(]\s*(?:clean|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?\s*[\])]|(?:\s+[-:]\s*(?:clean|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?))\s*$/i;
+		? /(?:\s*(?:\(|\[)\s*explicit(?:\s+(?:version|edit))?\s*(?:\)|\])|(?:\s+[-:]\s*explicit(?:\s+(?:version|edit))?))\s*$/i
+		: /(?:\s*(?:\(|\[)\s*(?:clean|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?\s*(?:\)|\])|(?:\s+[-:]\s*(?:clean|edited|censored|non[\s-]?explicit)(?:\s+(?:version|edit))?))\s*$/i;
 	return label.test(title);
 }
 
