@@ -79,9 +79,9 @@ function handleSpotifyOAuthMessage(event: MessageEvent) {
 	}
 }
 
-function connectSpotify() {
-	// Save settings first so credentials are persisted
-	saveSettings();
+async function connectSpotify() {
+	// OAuth must not start using stale Spotify credentials if saving fails.
+	if (!(await saveSettings())) return;
 	// Open OAuth login in a popup window
 	const width = 500;
 	const height = 700;
@@ -180,9 +180,11 @@ async function saveSettings() {
 			loginStore.setSpotifyUserId(lastUser.value);
 		}
 		toast(t("settings.toasts.saved"), "done", true, "settings-save");
+		return true;
 	} catch (error) {
 		console.error("Could not persist settings", error);
 		toast(t("settings.toasts.saveFailed"), "error", true, "settings-save");
+		return false;
 	} finally {
 		savingSettings.value = false;
 	}
