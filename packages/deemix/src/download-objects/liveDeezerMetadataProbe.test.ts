@@ -22,7 +22,7 @@ describe("PROBE supplied Deezer album metadata (temporary)", () => {
 			]);
 			const tracks = Array.isArray(trackResponse?.data)
 				? trackResponse.data : album?.tracks?.data;
-			console.info("DEEZE_PROBE", JSON.stringify({
+			console.warn("DEEZE_PROBE", JSON.stringify({
 				id, title: album?.title, artist: album?.artist,
 				artist_name: album?.artist?.name,
 				record_type: album?.record_type, nb_tracks: album?.nb_tracks,
