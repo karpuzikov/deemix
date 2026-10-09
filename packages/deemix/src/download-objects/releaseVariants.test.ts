@@ -8,6 +8,7 @@ import {
 	isSameReleaseArtist,
 	shouldExpandArtistDiscography,
 	skipCleanWhenExplicitAvailable,
+	preferExplicitReleases,
 } from "./releaseVariants.js";
 
 describe("release variant helpers", () => {
@@ -165,5 +166,89 @@ describe("skip clean albums when matching explicit albums exist", () => {
 	it("never filters a user playlist", () => {
 		const playlist = album(1, false, { type: "playlist" });
 		expect(skipCleanWhenExplicitAvailable([playlist, album(2, true)])).toHaveLength(2);
+	});
+});
+
+describe("reported Deezer clean/explicit queue pairs", () => {
+	function mockAlbum(id: string, title: string, artist: string, explicit: boolean,
+		titles: string[], rootArtistID?: string) {
+		return {
+			type: "album", id, title, artist, explicit,
+			collection: {
+				albumAPI: {
+					id, title, artist: { name: artist },
+					explicit_lyrics: explicit,
+					root_artist: rootArtistID ? { id: rootArtistID, name: "Metro Boomin" } : undefined,
+				},
+				tracks: titles.map(t => ({ title: t, explicit_lyrics: explicit })),
+			},
+		};
+	}
+
+	it("recognizes 797548811 vs 797562931 even with co-main artists and censored track titles", () => {
+		// Synthetic representative metadata using the two supplied Deezer IDs;
+		// these are not fetched live from Deezer during unit tests.
+		const tracks = [
+			"Black Migo Forever (Intro)", "I Want It All", "They Wanna Have Fun",
+			"Butterflies (Right Now)", "Take Me Thru Dere", "Loose Screws",
+			"Stealin All The Swag", "WTF Goin", "Issa Party", "Clap",
+		];
+		const title = "Metro Boomin Presents: A Futuristic Summa (Hosted by DJ Spinz)";
+		const explicit = mockAlbum("797548811", title, "Metro Boomin", true, tracks, "123");
+		const clean = mockAlbum("797562931", title + " [Clean]", "Metro Boomin & DJ Spinz", false,
+			tracks.map((t, i) => i === 4 ? t + " [Clean] [Clean]" :
+				i === 2 ? "They Wanna Have [Clean] Fun" :
+				i === 7 ? "WTF Is Goin" : t), "123");
+		const result = preferExplicitReleases([clean, explicit]);
+		expect(result.kept).toEqual([explicit]);
+		expect(result.skipped).toEqual([clean]);
+	});
+
+	it("recognizes 572346801 vs 575695931 across separate queue submissions", () => {
+		// Synthetic data with IDs from the reported second pair; Deezer album
+		// metadata is not available in this test environment.
+		const titles = ["Intro", "Song One", "Song Two", "Song Three", "Outro"];
+		const explicit = mockAlbum("572346801", "Second Example", "Artist", true, titles);
+		const clean = mockAlbum("575695931", "Second Example (Clean)", "Artist", false,
+			titles.map((t,i) => i === 2 ? t + " (Clean)" : t));
+		const first = preferExplicitReleases([clean]);
+		expect(first.kept).toEqual([clean]);
+		const later = preferExplicitReleases([explicit], first.kept);
+		expect(later.kept).toEqual([explicit]);
+		expect(later.supersededWaiting).toEqual([clean]);
+		const next = preferExplicitReleases([clean], [explicit]);
+		expect(next.kept).toEqual([]);
+		expect(next.skipped).toEqual([clean]);
+	});
+
+	it("protects deluxe, live, different albums and poorly matching lists", () => {
+		const clean = mockAlbum("1", "A Title", "Artist", false,
+			["Track 1", "Track 2", "Track 3", "Track 4", "Track 5"]);
+		const others = [
+			mockAlbum("2", "A Title (Deluxe)", "Artist", true, ["Track 1", "Track 2", "Track 3", "Track 4", "Track 5"]),
+			mockAlbum("3", "A Title", "Other", true, ["Track 1", "Track 2", "Track 3", "Track 4", "Track 5"]),
+			mockAlbum("4", "A Title (Live)", "Artist", true, ["Track 1", "Track 2", "Track 3", "Track 4", "Track 5"]),
+			mockAlbum("5", "A Title", "Artist", true, ["Track 1", "Track 2", "Different", "Other", "Track 5"]),
+			mockAlbum("6", "A Title", "Artist", true, ["Track 1", "Track 2"]),
+		];
+		expect(preferExplicitReleases([clean, ...others]).kept).toHaveLength(6);
+	});
+
+	it("does not skip a song named Clean or an unknown-status release", () => {
+		const explicit = mockAlbum("2", "Come Clean", "Artist", true, ["Song"]);
+		const unknown = mockAlbum("1", "Come Clean", "Artist", false, ["Song"]);
+		delete (unknown as any).collection.albumAPI.explicit_lyrics;
+		delete (unknown as any).collection.tracks[0].explicit_lyrics;
+		(unknown as any).explicit = undefined;
+		expect(preferExplicitReleases([unknown, explicit]).kept).toHaveLength(2);
+	});
+
+	it("does not remove an already downloading item", () => {
+		const tracks = ["A", "B"];
+		const clean = mockAlbum("1", "Album (Clean)", "Artist", false, tracks);
+		const explicit = mockAlbum("2", "Album", "Artist", true, tracks);
+		const decision = preferExplicitReleases([explicit], [], [clean]);
+		expect(decision.supersededWaiting).toHaveLength(0);
+		expect(decision.kept).toEqual([explicit]);
 	});
 });

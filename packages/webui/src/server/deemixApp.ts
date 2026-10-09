@@ -19,7 +19,7 @@ import {
 	type SpotifySettings,
 	type PluginRegistry,
 	isConvertiblePlugin,
-	skipCleanWhenExplicitAvailable,
+	preferExplicitReleases,
 } from "deemix";
 import { Deezer, setDeezerCacheDir } from "deezer-sdk";
 import fs from "fs";
@@ -281,11 +281,32 @@ export class DeemixApp {
 		}
 
 		if (this.settings.skipCleanIfExplicitAvailable) {
-			const count = downloadObjs.length;
-			downloadObjs = skipCleanWhenExplicitAvailable(downloadObjs);
-			const skipped = count - downloadObjs.length;
+			// Include earlier submissions that are still waiting. A clean album
+			// can be queued before the corresponding explicit album arrives.
+			const waiting = this.queueOrder.flatMap(uuid => {
+				if (this.queue[uuid]?.status !== "inQueue") return [];
+				try {
+					return [JSON.parse(fs.readFileSync(this.queueFile(uuid), "utf8"))];
+				} catch (error) {
+					logger.warn(\`Could not inspect waiting release \${uuid}: \${String(error)}\`);
+					return [];
+				}
+			});
+			const active = this.currentJob instanceof Downloader
+				? [this.currentJob.downloadObject] : [];
+			const selection = preferExplicitReleases(downloadObjs, waiting, active);
+			downloadObjs = selection.kept;
+
+			// Only cancel not-yet-started clean items. Never alter a download
+			// already in progress or remove completed music on disk.
+			for (const superseded of selection.supersededWaiting) {
+				if (this.queue[superseded.uuid]?.status === "inQueue") {
+					this.cancelDownload(superseded.uuid);
+				}
+			}
+			const skipped = selection.skipped.length + selection.supersededWaiting.length;
 			if (skipped) {
-				logger.info(`Skipped ${skipped} clean release(s) with matched explicit versions`);
+				logger.info(\`Skipped \${skipped} clean release(s) with matching explicit releases\`);
 				this.listener.send("skippedCleanVersions", { count: skipped });
 			}
 		}
