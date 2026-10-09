@@ -342,3 +342,22 @@ describe("real Deezer metadata snapshots 2026-10-09", () => {
 		expect(skipCleanWhenExplicitAvailable(submitted)).toEqual([explicit]);
 	});
 });
+
+describe("enable setting after clean and explicit are already waiting", () => {
+	it("identifies previously queued clean edition for removal without a new download", () => {
+		const make = (id: string, code: number) => ({
+			type: "album", id, uuid: "album_" + id + "_3",
+			artist: "Future", explicit: code === 1,
+			collection: {
+				albumAPI: {
+					title: "WE STILL DON'T TRUST YOU", artist: { id: 165930, name: "Future" },
+					explicit_content_lyrics: code, explicit_lyrics: code === 1,
+				},
+				tracks: ["Song 1", "Song 2", "Song 3"].map(title => ({ title })),
+			},
+		});
+		const explicit = make("572346801", 1);
+		const clean = make("575695931", 3);
+		expect(preferExplicitReleases([], [clean, explicit]).supersededWaiting).toEqual([clean]);
+	});
+});
