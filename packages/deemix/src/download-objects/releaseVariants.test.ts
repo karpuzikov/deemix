@@ -7,6 +7,7 @@ import {
 	isReleaseVariantTitle,
 	isSameReleaseArtist,
 	shouldExpandArtistDiscography,
+	skipCleanWhenExplicitAvailable,
 } from "./releaseVariants.js";
 
 describe("release variant helpers", () => {
@@ -111,5 +112,58 @@ describe("release variant helpers", () => {
 		expect(getReleaseEditionKey(item)).toContain(
 			"tracks:isrc:FRABC1234567|isrc:USXYZ1234567"
 		);
+	});
+});
+
+describe("skip clean albums when matching explicit albums exist", () => {
+	const album = (id: number, explicit: boolean, options: {
+		title?: string; artist?: string; tracks?: string[]; known?: boolean; type?: string
+	} = {}) => ({
+		id: String(id),
+		type: options.type ?? "album",
+		artist: options.artist ?? "Artist",
+		explicit: options.known === false ? undefined : explicit,
+		collection: {
+			albumAPI: {
+				title: options.title ?? "Album",
+				artist: { name: options.artist ?? "Artist" },
+				explicit_lyrics: options.known === false ? undefined : explicit,
+				upc: String(id),
+			},
+			tracks: (options.tracks ?? ["Opening", "Song"]).map((title, i) => ({
+				title, position: i + 1,
+				explicit_lyrics: options.known === false ? undefined : explicit,
+			})),
+		},
+	});
+
+	it("removes clean counterparts with different UPCs in either order", () => {
+		const clean = album(1, false), explicit = album(2, true);
+		expect(skipCleanWhenExplicitAvailable([clean, explicit])).toEqual([explicit]);
+		expect(skipCleanWhenExplicitAvailable([explicit, clean])).toEqual([explicit]);
+	});
+	it("keeps clean-only and unknown-status releases", () => {
+		const clean = album(1, false), unknown = album(3, false, { known: false });
+		expect(skipCleanWhenExplicitAvailable([clean])).toEqual([clean]);
+		expect(skipCleanWhenExplicitAvailable([unknown, album(2, true)])).toHaveLength(2);
+	});
+	it("does not collapse deluxe tracklists, different tracks, artists, or named editions", () => {
+		const clean = album(1, false);
+		const variants = [
+			album(2, true, { tracks: ["Opening", "Song", "Bonus"] }),
+			album(3, true, { tracks: ["Opening", "Remix"] }),
+			album(4, true, { artist: "Other Artist" }),
+			album(5, true, { title: "Album (Live)" }),
+		];
+		expect(skipCleanWhenExplicitAvailable([clean, ...variants])).toHaveLength(5);
+	});
+	it("recognizes only clean/explicit suffixes on album and track titles", () => {
+		const clean = album(1, false, { title: "Album (Clean)", tracks: ["Song (Clean)"] });
+		const explicit = album(2, true, { title: "Album (Explicit)", tracks: ["Song (Explicit)"] });
+		expect(skipCleanWhenExplicitAvailable([clean, explicit])).toEqual([explicit]);
+	});
+	it("never filters a user playlist", () => {
+		const playlist = album(1, false, { type: "playlist" });
+		expect(skipCleanWhenExplicitAvailable([playlist, album(2, true)])).toHaveLength(2);
 	});
 });

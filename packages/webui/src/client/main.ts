@@ -277,6 +277,10 @@ socket.on("queueError", function (queueItem: any) {
 	}
 });
 
+socket.on("skippedCleanVersions", function (data: { count: number }) {
+	toast(i18n.global.t("toasts.skippedCleanVersions", { n: data.count }), "playlist_add_check");
+});
+
 socket.on("alreadyInQueue", function (data: { title: string }) {
 	toast(
 		i18n.global.t("toasts.alreadyInQueue", { item: data.title }),
