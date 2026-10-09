@@ -165,6 +165,17 @@ export class DeemixApp {
 		saveSettings(newSettings, configFolder);
 		this.settings = newSettings;
 		this.plugins.spotify.saveSettings(newSpotifySettings);
+		// Reconcile releases already waiting when the option is first enabled.
+		// Never cancel a current download or delete completed tracks on disk.
+		if (this.settings.skipCleanIfExplicitAvailable) {
+			const waiting = this.getWaitingQueueItems();
+			const { supersededWaiting } = preferExplicitReleases([], waiting);
+			const removed = this.removeSupersededWaiting(supersededWaiting);
+			if (removed) {
+				logger.info(`Removed ${removed} previously queued clean release(s) on settings save`);
+				this.listener.send("skippedCleanVersions", { count: removed });
+			}
+		}
 	}
 
 	getDownloadLocation(): string {
@@ -197,6 +208,29 @@ export class DeemixApp {
 		}
 
 		return result;
+	}
+
+	private getWaitingQueueItems(): any[] {
+		return this.queueOrder.flatMap(uuid => {
+			if (this.queue[uuid]?.status !== "inQueue") return [];
+			try {
+				return [JSON.parse(fs.readFileSync(this.queueFile(uuid), "utf8"))];
+			} catch (error) {
+				logger.warn(`Could not inspect waiting release ${uuid}: ${String(error)}`);
+				return [];
+			}
+		});
+	}
+
+	private removeSupersededWaiting(items: any[]): number {
+		let removed = 0;
+		for (const item of items) {
+			if (this.queue[item.uuid]?.status === "inQueue") {
+				this.cancelDownload(item.uuid);
+				removed++;
+			}
+		}
+		return removed;
 	}
 
 	private queueFile(uuid: string): string {
@@ -280,18 +314,11 @@ export class DeemixApp {
 			}
 		}
 
+		logger.info(`Explicit-first setting: ${this.settings.skipCleanIfExplicitAvailable ? "enabled" : "disabled"}; generated ${downloadObjs.length} item(s)`);
 		if (this.settings.skipCleanIfExplicitAvailable) {
 			// Include earlier submissions that are still waiting. A clean album
 			// can be queued before the corresponding explicit album arrives.
-			const waiting = this.queueOrder.flatMap(uuid => {
-				if (this.queue[uuid]?.status !== "inQueue") return [];
-				try {
-					return [JSON.parse(fs.readFileSync(this.queueFile(uuid), "utf8"))];
-				} catch (error) {
-					logger.warn(`Could not inspect waiting release ${uuid}: ${String(error)}`);
-					return [];
-				}
-			});
+			const waiting = this.getWaitingQueueItems();
 			const active = this.currentJob instanceof Downloader
 				? [this.currentJob.downloadObject] : [];
 			const selection = preferExplicitReleases(downloadObjs, waiting, active);
@@ -299,12 +326,8 @@ export class DeemixApp {
 
 			// Only cancel not-yet-started clean items. Never alter a download
 			// already in progress or remove completed music on disk.
-			for (const superseded of selection.supersededWaiting) {
-				if (this.queue[superseded.uuid]?.status === "inQueue") {
-					this.cancelDownload(superseded.uuid);
-				}
-			}
-			const skipped = selection.skipped.length + selection.supersededWaiting.length;
+			const removed = this.removeSupersededWaiting(selection.supersededWaiting);
+			const skipped = selection.skipped.length + removed;
 			if (skipped) {
 				logger.info(`Skipped ${skipped} clean release(s) with matching explicit releases`);
 				this.listener.send("skippedCleanVersions", { count: skipped });

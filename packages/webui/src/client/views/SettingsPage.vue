@@ -2,7 +2,7 @@
 import BaseAccordion from "@/components/globals/BaseAccordion.vue";
 import TemplateVariablesList from "@/components/settings/TemplateVariablesList.vue";
 import { trackTemplateVariables } from "@/data/file-templates";
-import { getSettingsData } from "@/data/settings";
+import { getSettingsData, persistSettings } from "@/data/settings";
 import { pinia } from "@/stores";
 import { useAppInfoStore } from "@/stores/appInfo";
 import { useLoginStore } from "@/stores/login";
@@ -37,6 +37,7 @@ const appInfoRef = reactive({
 	previewVolume: appInfoStore.previewVolume,
 });
 const settings = ref<any>(initialSettings);
+const savingSettings = ref(false);
 const lastSettings = ref<any>(initialSettings);
 const defaultSettings = ref({});
 const spotifyFeatures = ref({
@@ -78,9 +79,9 @@ function handleSpotifyOAuthMessage(event: MessageEvent) {
 	}
 }
 
-function connectSpotify() {
-	// Save settings first so credentials are persisted
-	saveSettings();
+async function connectSpotify() {
+	// OAuth must not start using stale Spotify credentials if saving fails.
+	if (!(await saveSettings())) return;
 	// Open OAuth login in a popup window
 	const width = 500;
 	const height = 700;
@@ -152,37 +153,41 @@ function copyARLtoClipboard() {
 	toast(t("settings.toasts.ARLcopied"), "assignment");
 }
 
-function saveSettings() {
-	lastSettings.value = settings.value;
-	lastCredentials.value = spotifyFeatures.value;
-
-	appInfoStore.setSlimDownloads(appInfoRef.hasSlimDownloads);
-	appInfoStore.setSlimSidebar(appInfoRef.hasSlimSidebar);
-	appInfoStore.setShowBitrateTags(appInfoRef.showBitrateTags);
-	appInfoStore.setShowSearchButton(appInfoRef.showSearchButton);
-	appInfoStore.setPreviewVolume(appInfoRef.previewVolume);
-
-	let changed = false;
-
-	if (lastUser.value !== spotifyUser.value) {
-		// force cloning without linking
-		lastUser.value = (" " + spotifyUser.value).slice(1);
-		localStorage.setItem("spotifyUser", lastUser.value);
-		loginStore.setSpotifyUserId(lastUser.value);
-		changed = true;
-	}
-
-	socket.emit("saveSettings", {
-		settings: settings.value,
-		spotifySettings: {
+async function saveSettings() {
+	if (savingSettings.value) return;
+	savingSettings.value = true;
+	toast(t("settings.toasts.saving"), "loading", false, "settings-save");
+	try {
+		const spotifySettings = {
 			clientId: spotifyFeatures.value.clientId,
 			clientSecret: spotifyFeatures.value.clientSecret,
 			fallbackSearch: spotifyFeatures.value.fallbackSearch,
-		},
-		spotifyUser: changed ? lastUser.value : false,
-	});
+		};
+		// Do not pretend the UI setting is saved before the server confirms it.
+		await persistSettings(settings.value, spotifySettings);
+		lastSettings.value = JSON.parse(JSON.stringify(settings.value));
+		lastCredentials.value = JSON.parse(JSON.stringify(spotifyFeatures.value));
 
-	// this.refreshSpotifyStatus()
+		appInfoStore.setSlimDownloads(appInfoRef.hasSlimDownloads);
+		appInfoStore.setSlimSidebar(appInfoRef.hasSlimSidebar);
+		appInfoStore.setShowBitrateTags(appInfoRef.showBitrateTags);
+		appInfoStore.setShowSearchButton(appInfoRef.showSearchButton);
+		appInfoStore.setPreviewVolume(appInfoRef.previewVolume);
+
+		if (lastUser.value !== spotifyUser.value) {
+			lastUser.value = spotifyUser.value;
+			localStorage.setItem("spotifyUser", lastUser.value);
+			loginStore.setSpotifyUserId(lastUser.value);
+		}
+		toast(t("settings.toasts.saved"), "done", true, "settings-save");
+		return true;
+	} catch (error) {
+		console.error("Could not persist settings", error);
+		toast(t("settings.toasts.saveFailed"), "error", true, "settings-save");
+		return false;
+	} finally {
+		savingSettings.value = false;
+	}
 }
 function openDownloadFolder() {
 	window.api?.send("openDownloadsFolder");
@@ -1440,8 +1445,8 @@ function canDownload(bitrate: number) {
 			<button class="btn btn-primary mr-2" @click="resetToDefault">
 				{{ t("settings.reset") }}
 			</button>
-			<button class="btn btn-primary" @click="saveSettings">
-				{{ t("settings.save") }}
+			<button class="btn btn-primary" :disabled="savingSettings" @click="saveSettings">
+				{{ savingSettings ? t("settings.toasts.saving") : t("settings.save") }}
 			</button>
 		</footer>
 	</div>

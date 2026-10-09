@@ -1,4 +1,4 @@
-import { fetchData } from "@/utils/api-utils";
+import { fetchData, postToServer } from "@/utils/api-utils";
 
 let settingsData = {};
 let defaultSettingsData = {};
@@ -24,4 +24,13 @@ export function getInitialPreviewVolume() {
 	}
 
 	return volume;
+}
+
+/** Save through HTTP with an acknowledged response, unlike fire-and-forget WS. */
+export async function persistSettings(settings: Record<string, any>,
+	spotifySettings: Record<string, any>): Promise<void> {
+	const response = await postToServer("saveSettings", { settings, spotifySettings });
+	if (response?.result !== true) {
+		throw new Error("Settings were not saved by the server.");
+	}
 }

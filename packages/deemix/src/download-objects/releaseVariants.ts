@@ -199,14 +199,38 @@ function editionOf(item: any): Edition | null {
 	if (!album || !Array.isArray(tracks) || tracks.length === 0) return null;
 	const title = normalizedEditionTitle(album.title ?? item.title);
 	const artistName = normalizeReleaseTitle(album.artist?.name ?? item.artist ?? "");
+	// Gateway mapGwTrackToDeezer appends VERSION to title; title_short
+	// represents the original track name. A plain suffix such as "Clean
+	// Version" otherwise makes an entire clean tracklist appear unrelated.
 	const trackTitles = tracks.map((track: any) =>
-		normalizedEditionTitle(track?.title ?? track?.SNG_TITLE ?? "")
+		normalizedEditionTitle(track?.title_short ?? track?.SNG_TITLE ?? track?.title ?? "")
 	);
 	if (!title || !artistName || trackTitles.some((t: string) => !t)) return null;
-	const explicit = hasExplicitMarker(album) || hasExplicitMarker(item) ||
-		tracks.some((track: any) => hasExplicitMarker(track));
-	const clean = !explicit && (hasCleanMarker(album) ||
-		tracks.some((track: any) => hasCleanMarker(track)));
+	// Album-level Deezer status is authoritative. A clean album may contain
+	// gateway fallback tracks that report explicit=true; OR'ing all track
+	// statuses incorrectly reclassifies the entire clean release as explicit.
+	const lyricStatus = Number(album.explicit_content_lyrics);
+	const knownStatus = album.explicit_content_lyrics !== undefined &&
+		album.explicit_content_lyrics !== null &&
+		album.explicit_content_lyrics !== "" &&
+		Number.isFinite(lyricStatus);
+	let explicit = false;
+	let clean = false;
+	if (knownStatus && (lyricStatus === 1 || lyricStatus === 4)) {
+		explicit = true;
+	} else if (knownStatus && (lyricStatus === 0 || lyricStatus === 3)) {
+		clean = true;
+	} else if (typeof album.explicit_lyrics === "boolean") {
+		explicit = album.explicit_lyrics;
+		clean = !explicit;
+	} else if (hasEditionLabel(album, "clean")) {
+		clean = true;
+	} else if (hasEditionLabel(album, "explicit")) {
+		explicit = true;
+	} else {
+		explicit = hasExplicitMarker(item) || tracks.some((track: any) => hasExplicitMarker(track));
+		clean = !explicit && (hasCleanMarker(item) || tracks.some((track: any) => hasCleanMarker(track)));
+	}
 	return {
 		item,
 		id: String(item.id ?? ""),

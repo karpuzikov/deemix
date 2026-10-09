@@ -479,6 +479,9 @@ const en = {
 		toasts: {
 			init: "Settings loaded!",
 			update: "Settings updated!",
+			saving: "Saving settings...",
+			saved: "Settings saved!",
+			saveFailed: "Could not save settings. Changes were not applied.",
 			reset: "Settings reset to default!",
 			ARLcopied: "ARL copied to clipboard",
 		},
