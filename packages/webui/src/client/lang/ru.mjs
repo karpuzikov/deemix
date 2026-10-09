@@ -226,6 +226,7 @@ const ru = {
 		deezerNotAvailable: "Deezer недоступен в вашей стране. Используйте VPN.",
 		startGeneratingItems: "Обработка {n} загрузок...",
 		finishGeneratingItems: "Обработано {n} загрузок.",
+		skippedCleanVersions: "Пропущено clean-версий: {n}; доступны explicit-версии.",
 		noLovedPlaylist: "Нет плейлиста с любимыми треками!",
 		checkingUpdates: "Проверка обновлений...",
 		updateAvailable: "Доступно обновление программы!",
@@ -346,6 +347,7 @@ const ru = {
 				e: "Нет, вне зависимости от расширения",
 			},
 			fallbackBitrate: "Загружать с битрейтом ниже, если текущий недоступен",
+			skipCleanIfExplicitAvailable: "Пропускать clean-версии, если есть explicit-версии",
 			fallbackSearch: "Искать похожий трек, если запрашиваемый недоступен",
 			fallbackISRC:
 				"Искать похожий трек, если запрашиваемый по ISRC недоступен",

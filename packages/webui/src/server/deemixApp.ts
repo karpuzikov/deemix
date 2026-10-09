@@ -19,6 +19,7 @@ import {
 	type SpotifySettings,
 	type PluginRegistry,
 	isConvertiblePlugin,
+	skipCleanWhenExplicitAvailable,
 } from "deemix";
 import { Deezer, setDeezerCacheDir } from "deezer-sdk";
 import fs from "fs";
@@ -276,6 +277,16 @@ export class DeemixApp {
 				}
 			} catch (e) {
 				downloadErrors.push(e);
+			}
+		}
+
+		if (this.settings.skipCleanIfExplicitAvailable) {
+			const count = downloadObjs.length;
+			downloadObjs = skipCleanWhenExplicitAvailable(downloadObjs);
+			const skipped = count - downloadObjs.length;
+			if (skipped) {
+				logger.info(`Skipped ${skipped} clean release(s) with matched explicit versions`);
+				this.listener.send("skippedCleanVersions", { count: skipped });
 			}
 		}
 
