@@ -30,6 +30,7 @@ import {
 	resolveISRCTrackID,
 } from "./utils/isrcCache.js";
 import { enrichLyricsFromLRCLIB } from "./utils/lyricsFallback.js";
+import { withFallbackTimeout } from "./utils/fallbackTimeout.js";
 import { enrichMetadataFromMusicBrainz } from "./utils/musicbrainzFallback.js";
 import { downloadImage } from "./utils/downloadImage.js";
 import { checkShouldDownload, tagTrack } from "./utils/downloadUtils.js";
@@ -54,7 +55,12 @@ const extensions = {
 	[TrackFormats.MP4_RA1]: ".mp4",
 } as const;
 
-const MAX_FALLBACK_ATTEMPTS = 20;
+const MAX_FALLBACK_ATTEMPTS = 6;
+const ISRC_FALLBACK_BUDGET_MS = 15000;
+const ISRC_MAX_ALBUM_LOOKUPS = 3;
+const ISRC_MAX_CANDIDATES = 3;
+const ISRC_MAX_SEARCH_PAGES = 2;
+const METADATA_TIMEOUT_MS = 5000;
 
 const TEMPDIR = tmpdir() + "/deemix-imgs";
 mkdirSync(TEMPDIR, { recursive: true });
@@ -242,14 +248,14 @@ export class Downloader {
 
 		// Enrich track with additional data
 		try {
-			await track.parseData(
-				this.dz,
-				trackAPI.id,
-				trackAPI,
-				albumAPI,
-				playlistAPI,
-				refetchTrack
+			const parse = () => track.parseData(
+				this.dz, trackAPI.id, trackAPI, albumAPI, playlistAPI, refetchTrack
 			);
+			if (probeOnly) {
+				await withFallbackTimeout(parse, Date.now() + 12000, 12000);
+			} else {
+				await parse();
+			}
 
 			// SpotiFLAC-inspired metadata fallback: only ask LRCLIB when lyrics
 			// are actually requested and Deezer did not provide them.
@@ -286,7 +292,7 @@ export class Downloader {
 		// Check the target bitrate
 		let selectedFormat;
 		try {
-			selectedFormat = await getPreferredBitrate(
+			const resolveBitrate = () => getPreferredBitrate(
 				this.dz,
 				track,
 				this.bitrate,
@@ -295,6 +301,9 @@ export class Downloader {
 				this.downloadObject.uuid,
 				this.listener
 			);
+			selectedFormat = (probeOnly || this.settings.fallbackISRC)
+				? await withFallbackTimeout(resolveBitrate, Date.now() + 15000, 15000)
+				: await resolveBitrate();
 		} catch (e) {
 			if (e.name === "WrongLicense") {
 				throw new DownloadFailed("wrongLicense");
@@ -657,6 +666,9 @@ export class Downloader {
 			visitedTrackIDs: Set<string>;
 			isrcAttempted: boolean;
 			isrcSearchAttempted: boolean;
+			isrcDeadline?: number;
+			isrcAlbumLookups?: number;
+			isrcCandidates?: number;
 			attempts: number;
 			indeterminate?: boolean;
 		} = {
@@ -695,26 +707,47 @@ export class Downloader {
 				if (e.track) {
 					const failedTrack = e.track;
 
+					if (this.settings.fallbackISRC && failedTrack.ISRC &&
+						fallbackState.isrcDeadline === undefined) {
+						fallbackState.isrcDeadline = Date.now() + ISRC_FALLBACK_BUDGET_MS;
+					}
+					const hasISRCTime = () =>
+						Date.now() < (fallbackState.isrcDeadline ?? 0);
+					const boundedLookup = <T>(
+						operation: () => Promise<T>, isISRC: boolean
+					) => withFallbackTimeout(
+						operation,
+						isISRC ? (fallbackState.isrcDeadline ?? Date.now()) :
+							Date.now() + METADATA_TIMEOUT_MS,
+						METADATA_TIMEOUT_MS
+					);
+
 					const tryFallbackID = async (
 						fallbackID: number | string,
-						solution: "fallback" | "search"
+						solution: "fallback" | "search",
+						isISRC = false
 					) => {
 						const id = String(fallbackID);
 						if (
 							!id ||
 							id === "0" ||
 							fallbackState.visitedTrackIDs.has(id) ||
-							fallbackState.attempts >= MAX_FALLBACK_ATTEMPTS
+							fallbackState.attempts >= MAX_FALLBACK_ATTEMPTS ||
+							(isISRC && (!hasISRCTime() ||
+								(fallbackState.isrcCandidates ?? 0) >= ISRC_MAX_CANDIDATES))
 						) {
 							return null;
 						}
 
 						fallbackState.visitedTrackIDs.add(id);
 						fallbackState.attempts += 1;
-
+						if (isISRC) fallbackState.isrcCandidates =
+							(fallbackState.isrcCandidates ?? 0) + 1;
 						try {
-							const gwTrack =
-								await this.dz.gw.get_track_with_fallback(fallbackID);
+							const gwTrack = await boundedLookup(
+								() => this.dz.gw.get_track_with_fallback(fallbackID),
+								isISRC
+							);
 							const mappedFallback = map_track(gwTrack);
 							const expectedISRC = normalizeISRC(failedTrack.ISRC);
 							const fallbackISRC = normalizeISRC(mappedFallback.isrc);

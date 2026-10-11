@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { Deezer } from "deezer-sdk";
 import { getConfigFolder } from "./localpaths.js";
+import { withFallbackTimeout } from "./fallbackTimeout.js";
 
 type CacheEntry = {
 	trackID: string;
@@ -92,7 +93,10 @@ export async function resolveISRCTrackID(
 
 	const request = (async () => {
 		try {
-			const track = await dz.api.getTrack(`isrc:${key}`);
+			const track = await withFallbackTimeout(
+				() => dz.api.getTrack(`isrc:${key}`),
+				Date.now() + 5000
+			);
 			if (!track?.id || normalizeISRC(track.isrc) !== key) return null;
 			const id = String(track.id);
 			putCachedISRCTrackID(key, id);
