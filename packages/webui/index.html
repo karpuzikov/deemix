@@ -15,11 +15,13 @@
 			}
 		</style>
 		<script>
-			if (localStorage.getItem("selectedTheme")) {
-				document.documentElement.setAttribute(
-					"data-theme",
-					localStorage.getItem("selectedTheme")
-				);
+			// Migrate the original Deemix theme preference once; prevent collision
+			// with other apps sharing the embedded WebView origin.
+			const selectedTheme = localStorage.getItem("deemix-selectedTheme") ||
+				localStorage.getItem("selectedTheme");
+			if (selectedTheme) {
+				localStorage.setItem("deemix-selectedTheme", selectedTheme);
+				document.documentElement.setAttribute("data-theme", selectedTheme);
 			}
 		</script>
 	</head>
