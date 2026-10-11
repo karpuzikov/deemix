@@ -11,6 +11,7 @@ import { generateCryptedStreamURL } from "../decryption.js";
 import { PreferredBitrateNotFound, TrackNot360 } from "../errors.js";
 import Track from "../types/Track.js";
 import { USER_AGENT_HEADER } from "../utils/core.js";
+import { withFallbackTimeout } from "./fallbackTimeout.js";
 
 const { WrongLicense, WrongGeolocation } = _errors;
 const { mapGwTrackToDeezer: map_track } = utils;
@@ -152,22 +153,32 @@ export async function getPreferredBitrate(
 			feelingLucky
 		);
 		let newTrack;
-		do {
-			if (!url && hasAlternative) {
-				newTrack = await dz.gw.get_track_with_fallback(currentTrack.fallbackID);
-				newTrack = map_track(newTrack);
-				currentTrack = new Track();
-				currentTrack.parseEssentialData(newTrack);
-				hasAlternative = currentTrack.fallbackID !== 0;
+		// Native fallback relationships can form cycles (A -> B -> A).
+		// Only attempt a few distinct IDs, and never block on a broken GW call.
+		const visitedAlternatives = new Set<string>([String(track.id)]);
+		let alternativeCount = 0;
+		const nativeDeadline = Date.now() + 12000;
+		while (!url && hasAlternative && alternativeCount < 3) {
+			const nextID = String(currentTrack.fallbackID);
+			if (!nextID || nextID === "0" || visitedAlternatives.has(nextID)) break;
+			visitedAlternatives.add(nextID);
+			alternativeCount++;
+			try {
+				newTrack = map_track(await withFallbackTimeout(
+					() => dz.gw.get_track_with_fallback(nextID),
+					nativeDeadline,
+					5000
+				));
+			} catch {
+				break;
 			}
-			if (!url)
-				url = await getCorrectURL(
-					currentTrack,
-					formatName,
-					formatNumber,
-					feelingLucky
-				);
-		} while (!url && hasAlternative);
+			currentTrack = new Track();
+			currentTrack.parseEssentialData(newTrack);
+			hasAlternative = currentTrack.fallbackID !== 0;
+			url = await getCorrectURL(
+				currentTrack, formatName, formatNumber, feelingLucky
+			);
+		}
 
 		if (url) {
 			if (newTrack) track.parseEssentialData(newTrack);

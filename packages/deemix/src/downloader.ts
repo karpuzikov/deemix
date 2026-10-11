@@ -30,6 +30,7 @@ import {
 	resolveISRCTrackID,
 } from "./utils/isrcCache.js";
 import { enrichLyricsFromLRCLIB } from "./utils/lyricsFallback.js";
+import { withFallbackTimeout } from "./utils/fallbackTimeout.js";
 import { enrichMetadataFromMusicBrainz } from "./utils/musicbrainzFallback.js";
 import { downloadImage } from "./utils/downloadImage.js";
 import { checkShouldDownload, tagTrack } from "./utils/downloadUtils.js";
@@ -54,7 +55,12 @@ const extensions = {
 	[TrackFormats.MP4_RA1]: ".mp4",
 } as const;
 
-const MAX_FALLBACK_ATTEMPTS = 20;
+const MAX_FALLBACK_ATTEMPTS = 6;
+const ISRC_FALLBACK_BUDGET_MS = 15000;
+const ISRC_MAX_ALBUM_LOOKUPS = 3;
+const ISRC_MAX_CANDIDATES = 3;
+const ISRC_MAX_SEARCH_PAGES = 2;
+const METADATA_TIMEOUT_MS = 5000;
 
 const TEMPDIR = tmpdir() + "/deemix-imgs";
 mkdirSync(TEMPDIR, { recursive: true });
@@ -140,11 +146,22 @@ export class Downloader {
 				this.settings.dontDownloadIncompleteReleases &&
 				this.downloadObject.type === "album"
 			) {
-				const unavailableTracks = await this.findUnavailableReleaseTracks();
+				let unavailableTracks: Awaited<ReturnType<Downloader["findUnavailableReleaseTracks"]>>;
+				try {
+					unavailableTracks = await this.findUnavailableReleaseTracks();
+				} catch (error) {
+					// Fail closed: never start an album when requested-quality
+					// preflight fails. Do not create any music files.
+					unavailableTracks = this.downloadObject.collection.tracks.map(track => ({
+						id: track.id, title: track.title,
+						artist: track.artist?.name || "",
+						reason: `Verification failed: ${String(error)}`,
+					}));
+				}
 				if (unavailableTracks.length) {
 					skipIncompleteRelease = true;
 					const error =
-						`Release skipped because ${unavailableTracks.length} of ${this.downloadObject.size} track(s) are not available at the desired quality.`;
+						`Release skipped: ${unavailableTracks.length} of ${this.downloadObject.size} track(s) are unavailable or could not be verified at the selected quality. No tracks were downloaded.`;
 
 					this.downloadObject.errors.push({
 						message: error,
@@ -242,14 +259,14 @@ export class Downloader {
 
 		// Enrich track with additional data
 		try {
-			await track.parseData(
-				this.dz,
-				trackAPI.id,
-				trackAPI,
-				albumAPI,
-				playlistAPI,
-				refetchTrack
+			const parse = () => track.parseData(
+				this.dz, trackAPI.id, trackAPI, albumAPI, playlistAPI, refetchTrack
 			);
+			if (probeOnly) {
+				await withFallbackTimeout(parse, Date.now() + 12000, 12000);
+			} else {
+				await parse();
+			}
 
 			// SpotiFLAC-inspired metadata fallback: only ask LRCLIB when lyrics
 			// are actually requested and Deezer did not provide them.
@@ -286,7 +303,7 @@ export class Downloader {
 		// Check the target bitrate
 		let selectedFormat;
 		try {
-			selectedFormat = await getPreferredBitrate(
+			const resolveBitrate = () => getPreferredBitrate(
 				this.dz,
 				track,
 				this.bitrate,
@@ -295,6 +312,9 @@ export class Downloader {
 				this.downloadObject.uuid,
 				this.listener
 			);
+			selectedFormat = (probeOnly || this.settings.fallbackISRC)
+				? await withFallbackTimeout(resolveBitrate, Date.now() + 15000, 15000)
+				: await resolveBitrate();
 		} catch (e) {
 			if (e.name === "WrongLicense") {
 				throw new DownloadFailed("wrongLicense");
@@ -657,6 +677,9 @@ export class Downloader {
 			visitedTrackIDs: Set<string>;
 			isrcAttempted: boolean;
 			isrcSearchAttempted: boolean;
+			isrcDeadline?: number;
+			isrcAlbumLookups?: number;
+			isrcCandidates?: number;
 			attempts: number;
 			indeterminate?: boolean;
 		} = {
@@ -695,26 +718,47 @@ export class Downloader {
 				if (e.track) {
 					const failedTrack = e.track;
 
+					if (this.settings.fallbackISRC && failedTrack.ISRC &&
+						fallbackState.isrcDeadline === undefined) {
+						fallbackState.isrcDeadline = Date.now() + ISRC_FALLBACK_BUDGET_MS;
+					}
+					const hasISRCTime = () =>
+						Date.now() < (fallbackState.isrcDeadline ?? 0);
+					const boundedLookup = <T>(
+						operation: () => Promise<T>, isISRC: boolean
+					) => withFallbackTimeout(
+						operation,
+						isISRC ? (fallbackState.isrcDeadline ?? Date.now()) :
+							Date.now() + METADATA_TIMEOUT_MS,
+						METADATA_TIMEOUT_MS
+					);
+
 					const tryFallbackID = async (
 						fallbackID: number | string,
-						solution: "fallback" | "search"
+						solution: "fallback" | "search",
+						isISRC = false
 					) => {
 						const id = String(fallbackID);
 						if (
 							!id ||
 							id === "0" ||
 							fallbackState.visitedTrackIDs.has(id) ||
-							fallbackState.attempts >= MAX_FALLBACK_ATTEMPTS
+							fallbackState.attempts >= MAX_FALLBACK_ATTEMPTS ||
+							(isISRC && (!hasISRCTime() ||
+								(fallbackState.isrcCandidates ?? 0) >= ISRC_MAX_CANDIDATES))
 						) {
 							return null;
 						}
 
 						fallbackState.visitedTrackIDs.add(id);
 						fallbackState.attempts += 1;
-
+						if (isISRC) fallbackState.isrcCandidates =
+							(fallbackState.isrcCandidates ?? 0) + 1;
 						try {
-							const gwTrack =
-								await this.dz.gw.get_track_with_fallback(fallbackID);
+							const gwTrack = await boundedLookup(
+								() => this.dz.gw.get_track_with_fallback(fallbackID),
+								isISRC
+							);
 							const mappedFallback = map_track(gwTrack);
 							const expectedISRC = normalizeISRC(failedTrack.ISRC);
 							const fallbackISRC = normalizeISRC(mappedFallback.isrc);
@@ -767,14 +811,17 @@ export class Downloader {
 					) {
 						fallbackState.isrcAttempted = true;
 						const targetISRC = normalizeISRC(failedTrack.ISRC);
-						const cachedOrResolvedID = await resolveISRCTrackID(
-							this.dz,
-							targetISRC
-						);
+						const cachedOrResolvedID = hasISRCTime()
+							? await boundedLookup(
+								() => resolveISRCTrackID(this.dz, targetISRC),
+								true
+							).catch(() => null)
+							: null;
 						if (cachedOrResolvedID) {
 							const fallbackResult = await tryFallbackID(
 								cachedOrResolvedID,
-								"fallback"
+								"fallback",
+								true
 							);
 							if (fallbackResult) return fallbackResult;
 							invalidateCachedISRCTrackID(targetISRC, cachedOrResolvedID);
@@ -785,11 +832,18 @@ export class Downloader {
 					while (
 						failedTrack.albumsFallback.length &&
 						this.settings.fallbackISRC &&
+						hasISRCTime() &&
+						(fallbackState.isrcAlbumLookups ?? 0) < ISRC_MAX_ALBUM_LOOKUPS &&
+						(fallbackState.isrcCandidates ?? 0) < ISRC_MAX_CANDIDATES &&
 						fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
 					) {
 						const newAlbumID = failedTrack.albumsFallback.pop();
+						fallbackState.isrcAlbumLookups =
+							(fallbackState.isrcAlbumLookups ?? 0) + 1;
 						try {
-							const newAlbum = await this.dz.gw.get_album_page(newAlbumID);
+							const newAlbum = await boundedLookup(
+								() => this.dz.gw.get_album_page(newAlbumID), true
+							);
 							const targetISRC = normalizeISRC(failedTrack.ISRC);
 							const alternativeTrack = newAlbum?.SONGS?.data?.find(
 								(newTrack) =>
@@ -801,7 +855,8 @@ export class Downloader {
 							putCachedISRCTrackID(targetISRC, alternativeTrack.SNG_ID);
 							const fallbackResult = await tryFallbackID(
 								alternativeTrack.SNG_ID,
-								"fallback"
+								"fallback",
+								true
 							);
 							if (fallbackResult) return fallbackResult;
 						} catch {
@@ -816,6 +871,8 @@ export class Downloader {
 						this.settings.fallbackISRC &&
 						!fallbackState.isrcSearchAttempted &&
 						failedTrack.ISRC &&
+						hasISRCTime() &&
+						(fallbackState.isrcCandidates ?? 0) < ISRC_MAX_CANDIDATES &&
 						fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
 					) {
 						fallbackState.isrcSearchAttempted = true;
@@ -824,18 +881,25 @@ export class Downloader {
 
 						try {
 							let index = 0;
+							let pages = 0;
 							let total = Number.POSITIVE_INFINITY;
 							const pageSize = 100;
 
 							while (
 								index < total &&
-								index < 300 &&
+								pages < ISRC_MAX_SEARCH_PAGES &&
+								hasISRCTime() &&
+								(fallbackState.isrcCandidates ?? 0) < ISRC_MAX_CANDIDATES &&
 								fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
 							) {
-								const response: any = await this.dz.api.search_track(searchQuery, {
-									index,
-									limit: pageSize,
-								});
+								pages++;
+								const response: any = await boundedLookup(
+									() => this.dz.api.search_track(searchQuery, {
+										index,
+										limit: pageSize,
+									}),
+									true
+								);
 								const candidates = Array.isArray(response?.data)
 									? response.data
 									: [];
@@ -850,7 +914,8 @@ export class Downloader {
 
 									const fallbackResult = await tryFallbackID(
 										candidate.id,
-										"fallback"
+										"fallback",
+										true
 									);
 									if (fallbackResult) {
 										putCachedISRCTrackID(targetISRC, candidate.id);
@@ -873,11 +938,18 @@ export class Downloader {
 						this.settings.fallbackSearch &&
 						fallbackState.attempts < MAX_FALLBACK_ATTEMPTS
 					) {
-						const searchedID = await this.dz.api.get_track_id_from_metadata(
-							failedTrack.mainArtist.name,
-							failedTrack.title,
-							failedTrack.album.title
-						);
+						let searchedID: string | number = "0";
+						try {
+							searchedID = await boundedLookup(
+								() => this.dz.api.get_track_id_from_metadata(
+									failedTrack.mainArtist.name,
+									failedTrack.title,
+									failedTrack.album.title
+								), false
+							);
+						} catch {
+							if (probeOnly) fallbackState.indeterminate = true;
+						}
 						if (searchedID !== "0") {
 							const searchResult = await tryFallbackID(searchedID, "search");
 							if (searchResult) return searchResult;
@@ -957,6 +1029,7 @@ export class Downloader {
 			id: string | number;
 			title: string;
 			artist: string;
+			reason?: string;
 		}> = [];
 		const concurrency = Math.max(
 			1,
@@ -967,32 +1040,48 @@ export class Downloader {
 			downloadObject.collection.tracks,
 			concurrency,
 			async (trackAPI: APITrack) => {
-				const result = await this.downloadWrapper(
-					{
-						trackAPI,
-						albumAPI: downloadObject.collection.albumAPI,
-						playlistAPI: downloadObject.collection.playlistAPI,
-					},
-					undefined,
-					true,
-					{
-						visitedTrackIDs: new Set<string>(),
-						isrcAttempted: false,
-						isrcSearchAttempted: false,
-						attempts: 0,
-						indeterminate: false,
-					},
-					false,
-					true,
-					true,
-					true
-				);
+				// One unreliable track must not stall album preflight indefinitely.
+				// Verify every track BEFORE the first file is written.
+				let result: any;
+				try {
+					result = await withFallbackTimeout(
+						() => this.downloadWrapper(
+							{
+								trackAPI,
+								albumAPI: downloadObject.collection.albumAPI,
+								playlistAPI: downloadObject.collection.playlistAPI,
+							},
+							undefined,
+							true,
+							{
+								visitedTrackIDs: new Set<string>(),
+								isrcAttempted: false,
+								isrcSearchAttempted: false,
+								attempts: 0,
+								indeterminate: false,
+							},
+							false,
+							true,
+							true,
+							true
+						),
+						Date.now() + 12000,
+						12000
+					);
+				} catch (error) {
+					result = { probeIndeterminate: true, reason: String(error) };
+				}
 
-				if (result?.probeUnavailable) {
+				// Fail closed on timeout, undefined, errors or unverified quality.
+				// Only an affirmative exact-format probe permits the album.
+				if (result?.probeAvailable !== true || result.bitrate !== this.bitrate) {
 					unavailableTracks.push({
 						id: trackAPI.id,
 						title: trackAPI.title,
 						artist: trackAPI.artist?.name || "",
+						reason: result?.reason || (result?.probeIndeterminate
+							? "Could not verify desired quality"
+							: "Desired quality unavailable"),
 					});
 				}
 			}
