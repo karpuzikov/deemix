@@ -17,7 +17,7 @@ The docker image was heavily inspired by the fantastic work of [Bockiii](https:/
 
 ### Standalone Electron App
 
-**Current Windows GUI: v0.5.6 (user-tested).** [Download Deemix v0.5.6.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.6.exe) or open the [release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest).
+**Current Windows GUI: v0.5.7 - Under construction ⚠️.** [Download Deemix v0.5.7.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.7.exe) or open the [release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest).
 
 Note: The app is not signed (because it's crazy expensive), so you'll need to disable the security warnings when running it.
 
@@ -166,9 +166,9 @@ A distributable GUI app can be built with the following command:
 pnpm make
 ```
 
-**Windows release status:** GUI v0.5.6 (user-tested, 2026-10-09). The versioned Windows installer is published from `main` to the [fork's release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
+**Windows release status:** GUI v0.5.7 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
 
-**Windows executable:** [Deemix.v0.5.6.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.6.exe) - v0.5.6. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
+**Windows executable:** [Deemix.v0.5.7.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.7.exe) - v0.5.7 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
 
 **Desktop persistent login (v0.5.3):** The local Windows GUI restores the saved login using the OS-encrypted credentials, not browser localStorage. Enter login once after upgrading if necessary, then close and reopen to confirm it reconnects. Logging out clears the stored login. Network-facing multi-user WebUI behavior is unchanged.
 
@@ -177,3 +177,5 @@ pnpm make
 **v0.5.5 - Under construction ⚠️:** When Settings > Downloads > Skip clean version if explicit is available is enabled and saved, compare clean and explicit releases across the current download request and previously waiting queue entries. Respect co-main artists, censor labels inside track titles, and modest title variations; preserve different track counts, deluxe/live editions and user playlists. Only not-yet-started clean queue entries are canceled. No previously downloaded files are deleted.
 
 **v0.5.6:** Fixes the clean/explicit preference using actual public Deezer metadata for the reported Metro Boomin and Future albums, and changes Settings > Save to an acknowledged HTTP request so an offline WebSocket cannot silently discard the checkbox change. Check for a visible 'Settings saved!' message before downloading.
+
+**v0.5.7 - Under construction ⚠️:** Bound every ISRC fallback metadata operation (5s per request, 15s shared budget, no more than 3 alternative albums/3 ISRC candidates/2 search pages), break native fallback ID cycles, and fail closed for album strict-quality preflight. With **Don't download incomplete releases** enabled, inspect all album tracks before any media file is downloaded, requiring an affirmative exact-format verification of *every* track. Unavailable, lower-quality, timed-out or indeterminate tracks skip the whole album. Audio stream downloading is not subject to the auxiliary metadata deadlines. Manual Windows verification pending.
