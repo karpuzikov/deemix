@@ -129,6 +129,7 @@ export async function streamTrack(writepath, track, downloadObject, listener) {
 		.stream(track.downloadURL, {
 			headers,
 			https: { rejectUnauthorized: false },
+			signal: downloadObject?.abortController?.signal,
 		})
 		.on("response", (response) => {
 			clearTimeout(timeout);
@@ -166,6 +167,7 @@ export async function streamTrack(writepath, track, downloadObject, listener) {
 		await pipeline(request, decrypter, depadder, outputStream);
 	} catch (e) {
 		if (fs.existsSync(writepath)) fs.unlinkSync(writepath);
+		if (downloadObject?.isCanceled) throw new DownloadCanceled();
 		if (
 			e instanceof ReadError ||
 			e instanceof TimeoutError ||

@@ -150,9 +150,8 @@ async function main() {
 
 	win.on("close", () => {
 		saveWindowState(win!);
-		if (deemixApp.getSettings().settings.clearQueueOnExit) {
-			deemixApp.cancelAllDownloads();
-		}
+		// Never discard queue metadata when closing for an app update.
+		deemixApp.pauseQueue();
 	});
 }
 

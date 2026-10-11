@@ -24,6 +24,7 @@ export class DownloadObject {
 	progressNext: number;
 	uuid: string;
 	isCanceled: boolean;
+	abortController: AbortController;
 	__type__: "Single" | "Collection" | "Convertable" | null;
 
 	constructor(obj) {
@@ -44,6 +45,7 @@ export class DownloadObject {
 		this.progressNext = 0;
 		this.uuid = `${this.type}_${this.id}_${this.bitrate}`;
 		this.isCanceled = false;
+		this.abortController = new AbortController();
 		this.__type__ = null;
 	}
 
