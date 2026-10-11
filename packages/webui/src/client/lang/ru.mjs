@@ -10,6 +10,8 @@ const ru = {
 		play_hint: "Прослушать",
 		toggle_download_tab_hint: "Показать/Скрыть",
 		clean_queue_hint: "Очистить завершённые",
+		remove_errored_downloads: "Удалить загрузки с ошибками",
+		remove_errored_downloads_failed: "Не удалось удалить загрузки с ошибками",
 		cancel_queue_hint: "Очистить всё",
 		open_downloads_folder: "Открыть папку с загрузками",
 		cut: "вырезать",
