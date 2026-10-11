@@ -278,11 +278,33 @@ export class DeemixApp {
 	/** Resume previously queued releases without reconstructing artist URLs. */
 	resumeQueue(dz: Deezer): boolean {
 		if (!dz.loggedIn) return false;
+		// Stopped attempts remain in the original queue and restart in order.
+		for (const [uuid, entry] of Object.entries(this.queue)) {
+			if (entry.status !== "stopped") continue;
+			entry.status = "inQueue";
+			try {
+				const saved = JSON.parse(fs.readFileSync(this.queueFile(uuid), "utf8"));
+				this.writeQueueJson(this.queueFile(uuid), { ...saved, status: "inQueue" });
+			} catch (error) {
+				logger.warn(`Could not resume persisted release ${uuid}: ${String(error)}`);
+			}
+			if (!this.queueOrder.includes(uuid)) this.queueOrder.push(uuid);
+		}
+		this.persistQueueOrder();
 		this.queuePaused = false;
 		this.persistQueueControl();
 		this.listener.send("queueStateChanged", { paused: false });
 		void this.startQueue(dz);
 		return true;
+	}
+
+	/** Preserve current and pending releases while canceling the active stream. */
+	stopQueue(): void {
+		this.pauseQueue();
+		if (this.currentJob instanceof Downloader) {
+			this.currentJob.downloadObject.isCanceled = true;
+			this.listener.send("queueStopRequested", { uuid: this.currentJob.downloadObject.uuid });
+		}
 	}
 
 	private persistQueueOrder(): void {
@@ -488,6 +510,14 @@ export class DeemixApp {
 				this.listener.send("startDownload", currentUUID);
 				await this.currentJob.start();
 
+				if (downloadObject.isCanceled && this.queue[currentUUID]) {
+					this.queue[currentUUID].status = "stopped";
+					this.writeQueueJson(this.queueFile(currentUUID), {
+						...currentItem, status: "stopped",
+					});
+					if (!this.queueOrder.includes(currentUUID)) this.queueOrder.unshift(currentUUID);
+					this.listener.send("queueItemStopped", { uuid: currentUUID });
+				}
 				if (!downloadObject.isCanceled && this.queue[currentUUID]) {
 					if (
 						downloadObject.failed === downloadObject.size &&
@@ -645,7 +675,8 @@ export class DeemixApp {
 				}
 				if (
 					currentItem.status === "inQueue" ||
-					currentItem.status === "downloading"
+					currentItem.status === "downloading" ||
+					currentItem.status === "stopped"
 				) {
 					let downloadObject: any;
 					switch (currentItem.__type__) {
@@ -676,7 +707,8 @@ export class DeemixApp {
 					}
 					if (!downloadObject) return;
 					this.queue[downloadObject.uuid] = downloadObject.getEssentialDict();
-					this.queue[downloadObject.uuid].status = "inQueue";
+					this.queue[downloadObject.uuid].status =
+						currentItem.status === "stopped" ? "stopped" : "inQueue";
 					if (currentItem.status === "downloading") {
 						currentItem.status = "inQueue";
 						this.writeQueueJson(
@@ -691,11 +723,11 @@ export class DeemixApp {
 		});
 
 		const pendingUUIDs = Object.values(this.queue)
-			.filter((item: any) => item?.status === "inQueue" && item?.uuid)
+			.filter((item: any) => ["inQueue", "stopped"].includes(item?.status) && item?.uuid)
 			.map((item: any) => String(item.uuid));
 
 		const restoredOrder = this.queueOrder.filter(
-			(uuid) => this.queue[uuid]?.status === "inQueue"
+			(uuid) => ["inQueue", "stopped"].includes(this.queue[uuid]?.status)
 		);
 		for (const uuid of pendingUUIDs) {
 			if (!restoredOrder.includes(uuid)) restoredOrder.push(uuid);
