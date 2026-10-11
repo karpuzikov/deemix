@@ -25,4 +25,7 @@ export default [
 	retryDownload,
 	spotifyLogout,
 	pauseQueue,
+	stopQueue,
+	resumeQueue,
+	removeDownloadsWithErrors,
 ];
