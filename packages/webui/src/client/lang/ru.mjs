@@ -11,6 +11,10 @@ const ru = {
 		toggle_download_tab_hint: "Показать/Скрыть",
 		clean_queue_hint: "Очистить завершённые",
 		cancel_queue_hint: "Очистить всё",
+		pause_queue_hint: "Пауза с сохранением очереди",
+		stop_queue_hint: "Остановить и удалить файлы незавершённого релиза",
+		resume_queue_hint: "Возобновить загрузки",
+		remove_errors_hint: "Удалить загрузки с ошибками",
 		open_downloads_folder: "Открыть папку с загрузками",
 		cut: "вырезать",
 		copy: "копировать",
@@ -205,6 +209,7 @@ const ru = {
 	toasts: {
 		restoringQueue: "Восстановление очереди загрузок...",
 		queueRestored: "Очередь восстановлена!",
+		queueControlFailed: "Не удалось изменить состояние очереди.",
 		addedToQueue: "{item} добавлено в очередь",
 		addedMoreToQueue: "{n} загрузок добавлены в очередь",
 		alreadyInQueue: "{item} уже присутствует в очереди!",
