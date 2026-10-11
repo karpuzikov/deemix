@@ -13,6 +13,7 @@ const ru = {
 		remove_errored_downloads: "Удалить загрузки с ошибками",
 		remove_errored_downloads_failed: "Не удалось удалить загрузки с ошибками",
 		pause_downloads: "Пауза после текущего релиза",
+		stop_downloads: "Остановить и удалить незавершённые файлы релиза (очередь сохранится)",
 		resume_downloads: "Продолжить загрузки",
 		queue_control_failed: "Не удалось изменить состояние очереди",
 		cancel_queue_hint: "Очистить всё",
