@@ -283,7 +283,12 @@ export class DeemixApp {
 	stopQueue(): { paused: boolean; stopping: boolean } {
 		this.pauseQueue();
 		const active = this.currentJob !== null;
-		if (active) {
+		const completedRelease =
+			this.currentJob instanceof Downloader &&
+			this.currentJob.downloadObject.size > 0 &&
+			this.currentJob.downloadObject.downloaded === this.currentJob.downloadObject.size &&
+			this.currentJob.downloadObject.failed === 0;
+		if (active && !completedRelease) {
 			this.stopRequested = true;
 			if (this.currentJob instanceof Downloader) {
 				this.currentJob.downloadObject.isCanceled = true;
@@ -292,7 +297,9 @@ export class DeemixApp {
 				});
 			}
 		}
-		return { paused: true, stopping: active };
+		// A fully downloaded release may still be saving art/metadata. Let
+		// that finalization complete and keep its files instead of rolling back.
+		return { paused: true, stopping: active && !completedRelease };
 	}
 
 	resumeQueue(dz: Deezer): { paused: boolean } {
