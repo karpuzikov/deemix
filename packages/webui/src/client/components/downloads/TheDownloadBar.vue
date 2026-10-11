@@ -302,6 +302,25 @@ function cleanQueue() {
 	socket.emit("removeFinishedDownloads");
 }
 
+async function removeErroredDownloads() {
+	try {
+		const result = await postToServer("removeErroredDownloads", {});
+		if (result?.result !== true) {
+			toast(t("globals.remove_errored_downloads_failed"), "error");
+		}
+	} catch {
+		toast(t("globals.remove_errored_downloads_failed"), "error");
+	}
+}
+
+function removedErroredDownloads({ uuids }: { uuids: string[] }) {
+	if (!Array.isArray(uuids)) return;
+	const doomed = new Set(uuids);
+	queue.value = queue.value.filter((uuid) => !doomed.has(uuid));
+	queueComplete.value = queueComplete.value.filter((uuid) => !doomed.has(uuid));
+	for (const uuid of doomed) delete queueList.value[uuid];
+}
+
 function cancelQueue() {
 	socket.emit("cancelAllDownloads");
 }
@@ -377,6 +396,7 @@ onMounted(() => {
 	socket.on("finishDownload", finishDownload);
 	socket.on("removedAllDownloads", removeAllDownloads);
 	socket.on("removedFinishedDownloads", removedFinishedDownloads);
+	socket.on("removedErroredDownloads", removedErroredDownloads);
 
 	fetchData("getQueue")
 		.then((res) => {
@@ -459,6 +479,15 @@ onUnmounted(() => {
 				>
 					folder_open
 				</i>
+				<button
+					type="button"
+					class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
+					:title="t('globals.remove_errored_downloads')"
+					:aria-label="t('globals.remove_errored_downloads')"
+					@click="removeErroredDownloads"
+				>
+					<i class="material-icons" aria-hidden="true">error_outline</i>
+				</button>
 				<i class="material-icons cursor-pointer text-xl" @click="cleanQueue">
 					clear_all
 				</i>
@@ -535,6 +564,15 @@ onUnmounted(() => {
 			>
 				folder_open
 			</i>
+			<button
+				type="button"
+				class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
+				:title="t('globals.remove_errored_downloads')"
+				:aria-label="t('globals.remove_errored_downloads')"
+				@click="removeErroredDownloads"
+			>
+				<i class="material-icons" aria-hidden="true">error_outline</i>
+			</button>
 			<i
 				class="material-icons m-1 cursor-pointer text-2xl"
 				:title="t('globals.clean_queue_hint')"
