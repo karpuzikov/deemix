@@ -578,7 +578,17 @@ export class DeemixApp {
 					error instanceof Error ? error : new Error(String(error));
 				logger.error(queueError);
 
-				if (currentUUID && this.queue[currentUUID]) {
+				const canceledForStop = this.queuePaused &&
+					this.currentJob instanceof Downloader &&
+					this.currentJob.downloadObject.isCanceled;
+				if (currentUUID && this.queue[currentUUID] && canceledForStop) {
+					this.queue[currentUUID].status = "stopped";
+					if (!this.queueOrder.includes(currentUUID)) this.queueOrder.unshift(currentUUID);
+					this.writeQueueJson(this.queueFile(currentUUID), {
+						...currentItem, status: "stopped"
+					});
+					this.listener.send("queueItemStopped", { uuid: currentUUID });
+				} else if (currentUUID && this.queue[currentUUID]) {
 					this.queue[currentUUID].status = "failed";
 					const persistedItem =
 						currentItem && typeof currentItem === "object"
