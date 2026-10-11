@@ -48,7 +48,7 @@ export class ReleaseTransaction {
   private readonly manifestFile: string;
   private manifest: Manifest;
 
-  constructor(destination: string, id = randomUUID(), recovering = false) {
+  constructor(destination: string, id: string = randomUUID(), recovering = false) {
     if (!/^[\da-f-]{36}$/i.test(id)) throw new Error("Invalid release ID");
     this.dest = path.resolve(destination);
     this.folder = path.join(this.dest, ".deemix-incomplete", id);
