@@ -26,6 +26,7 @@ import fs from "fs";
 import got, { type Response as GotResponse } from "got";
 import { sep } from "path";
 import { v4 as uuidv4 } from "uuid";
+import { ReleaseTransaction } from "./releaseTransaction.js";
 
 // Constants
 export const configFolder: string = utils.getConfigFolder();
@@ -80,6 +81,10 @@ export class DeemixApp {
 
 		this.plugins.spotify.setup();
 		this.plugins.listenbrainz.setup();
+		// Recover unfinished albums from their own per-release manifests only.
+		// Do not delete anything when a manifest cannot prove ownership.
+		try { ReleaseTransaction.recover(this.settings.downloadLocation); }
+		catch (error) { logger.error(`Album transaction recovery needs attention: ${String(error)}`); }
 		this.restoreQueueFromDisk();
 	}
 
@@ -500,15 +505,46 @@ export class DeemixApp {
 						);
 				}
 
-				this.currentJob = new Downloader(
-					dz,
-					downloadObject,
-					effectiveSettings,
-					this.listener
-				);
+				// The lightweight host opts into per-release staging. The original
+				// Electron build remains unchanged unless explicitly configured.
+				const staged = process.env.DEEMIX_ATOMIC_RELEASES === "true" &&
+					downloadObject instanceof Collection && downloadObject.type === "album"
+					? new ReleaseTransaction(effectiveSettings.downloadLocation)
+					: null;
+				const stagedSettings = staged
+					? { ...effectiveSettings, downloadLocation: staged.media }
+					: effectiveSettings;
+				this.currentJob = new Downloader(dz, downloadObject, stagedSettings, this.listener);
 
 				this.listener.send("startDownload", currentUUID);
-				await this.currentJob.start();
+				try {
+					await this.currentJob.start();
+					if (staged) {
+						if (downloadObject.isCanceled) staged.rollback();
+						else if (downloadObject.failed > 0 ||
+							downloadObject.downloaded !== downloadObject.size ||
+							downloadObject.errors.length > 0) {
+							staged.rollback();
+							throw new Error("Incomplete release: none of this attempt's files were published");
+						} else {
+							staged.publish(() => downloadObject.isCanceled, effectiveSettings.overwriteFile || "n");
+							const normalize = (p: string) => typeof p === "string" &&
+								p.startsWith(staged.media) ? effectiveSettings.downloadLocation +
+								p.slice(staged.media.length) : p;
+							downloadObject.extrasPath = normalize(downloadObject.extrasPath);
+							for (const file of downloadObject.files) {
+								if (file && typeof file.path === "string") file.path = normalize(file.path);
+							}
+							this.listener.send("updateQueue", {
+								uuid: currentUUID, downloadFolder: downloadObject.extrasPath,
+								extrasPath: downloadObject.extrasPath
+							});
+						}
+					}
+				} catch (error) {
+					if (staged) staged.rollback();
+					throw error;
+				}
 
 				if (downloadObject.isCanceled && this.queue[currentUUID]) {
 					this.queue[currentUUID].status = "stopped";
