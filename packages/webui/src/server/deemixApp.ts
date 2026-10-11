@@ -45,6 +45,9 @@ export class DeemixApp {
 	queueOrder: string[];
 	queue: Record<string, any>;
 	currentJob: boolean | Downloader | null;
+	queuePaused: boolean;
+	stopCleanupRequested: boolean;
+	resumeRequested: boolean;
 
 	deezerAvailable?: DeezerAvailable;
 	latestVersion: string | null;
@@ -62,6 +65,13 @@ export class DeemixApp {
 		this.queueOrder = [];
 		this.queue = {};
 		this.currentJob = null;
+		this.stopCleanupRequested = false;
+		this.resumeRequested = false;
+		try {
+			this.queuePaused = JSON.parse(fs.readFileSync(configFolder + "queue-state.json", "utf8"))?.paused === true;
+		} catch {
+			this.queuePaused = false;
+		}
 
 		this.plugins = {
 			spotify: new SpotifyPlugin(),
@@ -201,6 +211,7 @@ export class DeemixApp {
 		const result: any = {
 			queue: this.queue,
 			queueOrder: this.queueOrder,
+			queuePaused: this.queuePaused,
 		};
 
 		if (this.currentJob instanceof Downloader) {
@@ -230,6 +241,42 @@ export class DeemixApp {
 				removed++;
 			}
 		}
+		return removed;
+	}
+
+	private persistPausedState(): void {
+		this.writeQueueJson(configFolder + "queue-state.json", { paused: this.queuePaused });
+	}
+
+	pauseQueue(stopAndClean = false): void {
+		this.queuePaused = true;
+		this.stopCleanupRequested ||= stopAndClean;
+		this.resumeRequested = false;
+		this.persistPausedState();
+		if (this.currentJob instanceof Downloader) this.currentJob.requestStop();
+		this.listener.send("queueControlChanged", { paused: true, stopping: stopAndClean });
+	}
+
+	resumeQueue(dz: Deezer): void {
+		this.queuePaused = false;
+		this.persistPausedState();
+		this.resumeRequested = this.currentJob !== null;
+		this.listener.send("queueControlChanged", { paused: false, stopping: false });
+		if (this.currentJob === null) void this.startQueue(dz);
+	}
+
+	removeErroredDownloads(): string[] {
+		const removed: string[] = [];
+		for (const [uuid, item] of Object.entries(this.queue)) {
+			if (item.status !== "failed" && item.status !== "withErrors" &&
+				!(item.status === "completed" && Array.isArray(item.errors) && item.errors.length)) continue;
+			this.removeQueueFile(uuid);
+			delete this.queue[uuid];
+			removed.push(uuid);
+		}
+		this.queueOrder = this.queueOrder.filter(uuid => !removed.includes(uuid));
+		this.persistQueueOrder();
+		if (removed.length) this.listener.send("removedErroredDownloads", { uuids: removed });
 		return removed;
 	}
 
@@ -380,137 +427,105 @@ export class DeemixApp {
 			this.listener.send("addedToQueue", slimmedObjects[0]);
 		else this.listener.send("addedToQueue", slimmedObjects);
 
-		this.startQueue(dz);
+		if (!this.queuePaused) void this.startQueue(dz);
 		return slimmedObjects;
 	}
 
-	async startQueue(dz: Deezer) {
-		do {
-			if (this.currentJob !== null || this.queueOrder.length === 0) {
-				return null;
-			}
-
+	async startQueue(dz: Deezer): Promise<null> {
+		if (this.currentJob !== null || this.queuePaused) return null;
+		while (this.queueOrder.length && !this.queuePaused) {
 			this.currentJob = true;
 			let currentUUID = "";
 			let currentItem: any = null;
-
+			let interrupted = false;
 			try {
-				do {
-					currentUUID = this.queueOrder.shift() || "";
-				} while (
-					this.queue[currentUUID] === undefined &&
-					this.queueOrder.length
-				);
-
-				if (this.queue[currentUUID] === undefined) return null;
-
+				currentUUID = this.queueOrder.shift() || "";
+				if (!currentUUID || !this.queue[currentUUID]) continue;
+				this.persistQueueOrder();
+				currentItem = JSON.parse(fs.readFileSync(this.queueFile(currentUUID), "utf8"));
 				this.queue[currentUUID].status = "downloading";
-				currentItem = JSON.parse(
-					fs.readFileSync(this.queueFile(currentUUID)).toString()
-				);
-				currentItem.status = "downloading";
-				this.writeQueueJson(this.queueFile(currentUUID), currentItem);
+				this.writeQueueJson(this.queueFile(currentUUID), {
+					...currentItem, status: "downloading",
+				});
 
-				let downloadObject: Single | Collection | Convertable | undefined;
+				let downloadObject: Single | Collection | Convertable;
 				const effectiveSettings = this.getEffectiveSettings();
-
 				switch (currentItem.__type__) {
-					case "Single":
-						downloadObject = new Single(currentItem);
-						break;
-					case "Collection":
-						downloadObject = new Collection(currentItem);
-						break;
+					case "Single": downloadObject = new Single(currentItem); break;
+					case "Collection": downloadObject = new Collection(currentItem); break;
 					case "Convertable": {
 						const convertable = new Convertable(currentItem);
 						const plugin = this.plugins[convertable.plugin];
-						if (!isConvertiblePlugin(plugin)) {
-							throw new Error(
-								`Plugin "${convertable.plugin}" cannot convert queued items`
-							);
-						}
-
+						if (!isConvertiblePlugin(plugin)) throw new Error(
+							`Plugin "${convertable.plugin}" cannot convert queued items`
+						);
 						downloadObject = await plugin.convert(
-							dz,
-							convertable,
-							effectiveSettings,
-							this.listener
+							dz, convertable, effectiveSettings, this.listener
 						);
 						this.writeQueueJson(this.queueFile(downloadObject.uuid), {
-							...downloadObject.toDict(),
-							status: "downloading",
+							...downloadObject.toDict(), status: "downloading",
 						});
 						break;
 					}
-					default:
-						throw new Error(
-							`Unsupported queued item type: ${String(currentItem.__type__)}`
-						);
+					default: throw new Error(
+						`Unsupported queued item type: ${String(currentItem.__type__)}`
+					);
 				}
-
-				this.currentJob = new Downloader(
-					dz,
-					downloadObject,
-					effectiveSettings,
-					this.listener
-				);
-
-				this.listener.send("startDownload", currentUUID);
-				await this.currentJob.start();
-
-				if (!downloadObject.isCanceled && this.queue[currentUUID]) {
-					if (
-						downloadObject.failed === downloadObject.size &&
-						downloadObject.size !== 0
-					) {
-						this.queue[currentUUID].status = "failed";
-					} else if (downloadObject.failed > 0) {
-						this.queue[currentUUID].status = "withErrors";
-					} else {
-						this.queue[currentUUID].status = "completed";
-					}
-
-					const savedObject = {
-						...downloadObject.getSlimmedDict(),
-						status: this.queue[currentUUID].status,
-					};
-					this.queue[currentUUID] = savedObject;
-					this.writeQueueJson(this.queueFile(currentUUID), savedObject);
+				if (!this.queuePaused) {
+					this.currentJob = new Downloader(
+						dz, downloadObject, effectiveSettings, this.listener
+					);
+					this.listener.send("startDownload", currentUUID);
+					await this.currentJob.start();
+				}
+				interrupted = this.queuePaused || this.resumeRequested || downloadObject.isCanceled;
+				if (!interrupted && this.queue[currentUUID]) {
+					const status = downloadObject.failed === downloadObject.size &&
+						downloadObject.size !== 0 ? "failed" :
+						downloadObject.failed > 0 ? "withErrors" : "completed";
+					const saved = { ...downloadObject.getSlimmedDict(), status };
+					this.queue[currentUUID] = saved;
+					this.writeQueueJson(this.queueFile(currentUUID), saved);
 				}
 			} catch (error) {
-				const queueError =
-					error instanceof Error ? error : new Error(String(error));
-				logger.error(queueError);
-
-				if (currentUUID && this.queue[currentUUID]) {
-					this.queue[currentUUID].status = "failed";
-					const persistedItem =
-						currentItem && typeof currentItem === "object"
-							? {
-									...currentItem,
-									status: "failed",
-								}
-							: { ...this.queue[currentUUID], status: "failed" };
-
-					try {
-						this.writeQueueJson(this.queueFile(currentUUID), persistedItem);
-					} catch (persistError) {
-						logger.error(persistError);
+				interrupted = this.queuePaused || this.resumeRequested ||
+					(this.currentJob instanceof Downloader &&
+						this.currentJob.downloadObject.isCanceled);
+				if (!interrupted) {
+					const reason = error instanceof Error ? error : new Error(String(error));
+					logger.error(reason);
+					if (currentUUID && this.queue[currentUUID]) {
+						const failed = {
+							...(currentItem || this.queue[currentUUID]), status: "failed",
+						};
+						this.queue[currentUUID] = failed;
+						this.writeQueueJson(this.queueFile(currentUUID), failed);
+						this.listener.send("updateQueue", {
+							uuid: currentUUID, failed: true,
+							error: reason.message, type: "queue",
+						});
 					}
-
-					this.listener.send("updateQueue", {
-						uuid: currentUUID,
-						failed: true,
-						error: queueError.message,
-						type: "queue",
-					});
 				}
 			} finally {
+				if (interrupted && currentUUID && this.queue[currentUUID]) {
+					if (this.stopCleanupRequested && this.currentJob instanceof Downloader) {
+						this.currentJob.cleanupIncompleteRelease();
+					}
+					const saved = {
+						...currentItem, status: "inQueue", downloaded: 0, failed: 0,
+						progress: 0, errors: [], files: [], extrasPath: "",
+					};
+					this.queue[currentUUID] = saved;
+					this.writeQueueJson(this.queueFile(currentUUID), saved);
+					if (!this.queueOrder.includes(currentUUID)) this.queueOrder.unshift(currentUUID);
+					this.listener.send("queueItemReset", { uuid: currentUUID, item: saved });
+				}
 				this.persistQueueOrder();
 				this.currentJob = null;
+				this.stopCleanupRequested = false;
+				this.resumeRequested = false;
 			}
-		} while (this.queueOrder.length);
-
+		}
 		return null;
 	}
 
@@ -519,7 +534,7 @@ export class DeemixApp {
 			switch (this.queue[uuid].status) {
 				case "downloading":
 					if (this.currentJob instanceof Downloader) {
-						this.currentJob.downloadObject.isCanceled = true;
+						this.currentJob.requestStop();
 					}
 					this.listener.send("cancellingCurrentItem", uuid);
 					break;
@@ -546,7 +561,7 @@ export class DeemixApp {
 		Object.values(this.queue).forEach((downloadObject: any) => {
 			if (downloadObject.status === "downloading") {
 				if (this.currentJob instanceof Downloader) {
-					this.currentJob.downloadObject.isCanceled = true;
+					this.currentJob.requestStop();
 				}
 
 				this.listener.send("cancellingCurrentItem", downloadObject.uuid);

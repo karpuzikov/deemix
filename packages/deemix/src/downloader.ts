@@ -7,7 +7,7 @@ import {
 	type APIAlbum,
 	type APITrack,
 } from "deezer-sdk";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { HTTPError } from "got";
 import { tmpdir } from "os";
 import { streamTrack } from "./decryption.js";
@@ -74,6 +74,7 @@ export class Downloader {
 	playlistCovername?: string;
 	playlistURLs: { url: string; ext: string }[];
 	coverQueue: Record<string, string>;
+	createdFiles: Set<string>;
 
 	constructor(
 		dz: Deezer,
@@ -90,6 +91,30 @@ export class Downloader {
 		this.playlistURLs = [];
 
 		this.coverQueue = {};
+		this.createdFiles = new Set();
+	}
+
+	/** Stop in-flight media immediately; no queue item is deleted. */
+	requestStop(): void {
+		this.downloadObject.isCanceled = true;
+		this.downloadObject.abortController.abort();
+	}
+
+	/** Roll back only files newly created during this attempt. */
+	cleanupIncompleteRelease(): number {
+		let count = 0;
+		for (const filename of this.createdFiles) {
+			try {
+				if (existsSync(filename)) {
+					rmSync(filename, { force: true });
+					count++;
+				}
+			} catch {
+				// Files held by other processes must not block queue persistence.
+			}
+		}
+		this.createdFiles.clear();
+		return count;
 	}
 
 	log(data, state) {
@@ -204,20 +229,12 @@ export class Downloader {
 
 				await q.drain();
 			}
-			if (!skipIncompleteRelease) await this.afterDownloadCollection(tracks);
+			if (!skipIncompleteRelease && !this.downloadObject.isCanceled)
+				await this.afterDownloadCollection(tracks);
 		}
 
-		if (this.downloadObject.isCanceled) {
-			this.listener.send("currentItemCancelled", {
-				uuid: this.downloadObject.uuid,
-				title: this.downloadObject.title,
-			});
-			this.listener.send("removedFromQueue", {
-				uuid: this.downloadObject.uuid,
-				title: this.downloadObject.title,
-			});
-		}
 
+		if (this.downloadObject.isCanceled) return;
 		this.listener.send("finishDownload", {
 			uuid: this.downloadObject.uuid,
 			title: this.downloadObject.title,
@@ -552,7 +569,9 @@ export class Downloader {
 					this.settings.overwriteFile
 				)
 			) {
-				writeFileSync(`${filepath}/${filename}.lrc`, track.lyrics.sync);
+				const lrcPath = `${filepath}/${filename}.lrc`;
+				if (!existsSync(lrcPath)) this.createdFiles.add(lrcPath);
+				writeFileSync(lrcPath, track.lyrics.sync);
 			}
 		}
 
@@ -560,6 +579,7 @@ export class Downloader {
 		track.downloadURL = track.urls[formatsName[track.bitrate]];
 		if (!track.downloadURL) throw new DownloadFailed("notAvailable", track);
 		try {
+			if (!existsSync(writepath)) this.createdFiles.add(writepath);
 			await streamTrack(writepath, track, this.downloadObject, this.listener);
 		} catch (e) {
 			if (e instanceof HTTPError)

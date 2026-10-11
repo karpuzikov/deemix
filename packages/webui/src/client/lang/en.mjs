@@ -11,6 +11,10 @@ const en = {
 		toggle_download_tab_hint: "Expand/Collapse",
 		clean_queue_hint: "Clear Finished",
 		cancel_queue_hint: "Cancel All",
+		pause_queue_hint: "Pause and keep queue",
+		stop_queue_hint: "Stop and clean unfinished release files",
+		resume_queue_hint: "Resume downloads",
+		remove_errors_hint: "Remove downloads with errors",
 		open_downloads_folder: "Open Downloads Folder",
 		download_to_folder: "Download to folder",
 		cut: "cut",
@@ -171,6 +175,7 @@ const en = {
 	toasts: {
 		restoringQueue: "Restoring download queue...",
 		queueRestored: "Download queue restored!",
+		queueControlFailed: "Could not update download queue.",
 		addedToQueue: "{item} added to queue",
 		addedMoreToQueue: "{n} items added to queue",
 		alreadyInQueue: "{item} is already in queue!",

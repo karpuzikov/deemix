@@ -31,6 +31,8 @@ const cachedTabWidth = ref(
 const queue = ref([]);
 const queueList = ref<any>({});
 const queueComplete = ref([]);
+const queuePaused = ref(false);
+const queueBusy = ref(false);
 const isExpanded = ref(localStorage.getItem("downloadTabOpen") === "true");
 
 const clientMode = computed(() => loginStore.clientMode);
@@ -63,6 +65,54 @@ function checkIfToggleBar(keyEvent) {
 
 const setErrors = (errors) => errorStore.setErrors(errors);
 
+async function controlQueue(action: "pause" | "stop" | "resume") {
+	if (queueBusy.value) return;
+	queueBusy.value = true;
+	try {
+		const endpoint = action === "resume" ? "resumeQueue" : "pauseQueue";
+		const result = await postToServer(endpoint, action === "stop" ? { stop: true } : {});
+		if (result?.result !== true) throw new Error("Queue control request failed");
+		queuePaused.value = action !== "resume";
+	} catch (error) {
+		console.error("Queue control failed", error);
+		toast(t("toasts.queueControlFailed"), "error");
+	} finally {
+		queueBusy.value = false;
+	}
+}
+
+async function removeErroredDownloads() {
+	try {
+		const result = await postToServer("removeErroredDownloads", {});
+		if (result?.result !== true) throw new Error("Could not remove errored entries");
+		for (const uuid of result.removed ?? []) removeFromQueue({ uuid });
+	} catch (error) {
+		console.error("Remove errored entries failed", error);
+		toast(t("toasts.queueControlFailed"), "error");
+	}
+}
+
+function onQueueControlChanged(data: { paused: boolean }) {
+	queuePaused.value = data.paused;
+}
+
+function onQueueItemReset(data: { uuid: string; item: any }) {
+	const item = queueList.value[data.uuid];
+	if (!item) {
+		addToQueue({ ...data.item, silent: true });
+		return;
+	}
+	Object.assign(item, data.item, {
+		downloaded: 0, failed: 0, progress: 0, errors: [],
+		status: "inQueue", current: false,
+	});
+	if (!queue.value.includes(data.uuid)) queue.value.unshift(data.uuid);
+}
+
+function onRemovedErroredDownloads(data: { uuids: string[] }) {
+	for (const uuid of data.uuids) removeFromQueue({ uuid });
+}
+
 function onRemoveItem(uuid: string) {
 	socket.emit("removeFromQueue", uuid);
 }
@@ -87,9 +137,11 @@ function initQueue(data) {
 		//		queueComplete: initQueueComplete,
 		current: currentItem,
 		queue: initQueueList,
+		queuePaused: restoredPaused,
 		restored,
 	} = data;
 
+	queuePaused.value = restoredPaused === true;
 	const initQueueComplete = Object.values(initQueueList)
 		.filter((el: any) =>
 			["completed", "withErrors", "failed"].includes(el.status)
@@ -152,7 +204,7 @@ function addToQueue(queueItem, current = false) {
 	const itemIsAlreadyDownloaded =
 		queueItem.downloaded + queueItem.failed == queueItem.size;
 
-	if (itemIsAlreadyDownloaded) {
+	if (itemIsAlreadyDownloaded && ["completed", "withErrors", "failed", "download finished"].includes(queueItem.status)) {
 		const itemIsNotInCompletedQueue = !queueComplete.value.includes(
 			queueItem.uuid
 		);
@@ -248,10 +300,14 @@ function updateQueue(update) {
 }
 
 function removeFromQueue({ uuid }: { uuid: string }) {
+	const completeIndex = queueComplete.value.indexOf(uuid);
+	if (completeIndex >= 0) queueComplete.value.splice(completeIndex, 1);
 	const index = queue.value.indexOf(uuid);
 
 	if (index > -1) {
-		delete queue.value[index];
+		queue.value.splice(index, 1);
+		delete queueList.value[uuid];
+	} else {
 		delete queueList.value[uuid];
 	}
 }
@@ -377,6 +433,9 @@ onMounted(() => {
 	socket.on("finishDownload", finishDownload);
 	socket.on("removedAllDownloads", removeAllDownloads);
 	socket.on("removedFinishedDownloads", removedFinishedDownloads);
+	socket.on("queueControlChanged", onQueueControlChanged);
+	socket.on("queueItemReset", onQueueItemReset);
+	socket.on("removedErroredDownloads", onRemovedErroredDownloads);
 
 	fetchData("getQueue")
 		.then((res) => {
@@ -459,6 +518,18 @@ onUnmounted(() => {
 				>
 					folder_open
 				</i>
+				<button type="button" class="queue-action" :disabled="queueBusy" :title="t('globals.pause_queue_hint')" :aria-label="t('globals.pause_queue_hint')" @click="controlQueue('pause')">
+					<i class="material-icons">pause_circle</i>
+				</button>
+				<button type="button" class="queue-action" :disabled="queueBusy" :title="t('globals.stop_queue_hint')" :aria-label="t('globals.stop_queue_hint')" @click="controlQueue('stop')">
+					<i class="material-icons">stop_circle</i>
+				</button>
+				<button type="button" class="queue-action" :disabled="queueBusy || !queuePaused" :title="t('globals.resume_queue_hint')" :aria-label="t('globals.resume_queue_hint')" @click="controlQueue('resume')">
+					<i class="material-icons">play_circle_filled</i>
+				</button>
+				<button type="button" class="queue-action" :title="t('globals.remove_errors_hint')" :aria-label="t('globals.remove_errors_hint')" @click="removeErroredDownloads">
+					<i class="material-icons">playlist_remove</i>
+				</button>
 				<i class="material-icons cursor-pointer text-xl" @click="cleanQueue">
 					clear_all
 				</i>
@@ -527,6 +598,10 @@ onUnmounted(() => {
 				'visible opacity-100': isExpanded,
 			}"
 		>
+			<button type="button" class="queue-action" :disabled="queueBusy" :title="t('globals.pause_queue_hint')" :aria-label="t('globals.pause_queue_hint')" @click="controlQueue('pause')"><i class="material-icons">pause_circle</i></button>
+			<button type="button" class="queue-action" :disabled="queueBusy" :title="t('globals.stop_queue_hint')" :aria-label="t('globals.stop_queue_hint')" @click="controlQueue('stop')"><i class="material-icons">stop_circle</i></button>
+			<button type="button" class="queue-action" :disabled="queueBusy || !queuePaused" :title="t('globals.resume_queue_hint')" :aria-label="t('globals.resume_queue_hint')" @click="controlQueue('resume')"><i class="material-icons">play_circle_filled</i></button>
+			<button type="button" class="queue-action" :title="t('globals.remove_errors_hint')" :aria-label="t('globals.remove_errors_hint')" @click="removeErroredDownloads"><i class="material-icons">playlist_remove</i></button>
 			<i
 				v-if="clientMode"
 				class="material-icons m-1 cursor-pointer text-2xl"
@@ -572,6 +647,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.queue-action { padding: 4px; vertical-align: middle; }
+.queue-action:disabled { opacity: 0.35; cursor: not-allowed; }
+.queue-action .material-icons { font-size: 22px; vertical-align: middle; }
+
 #toggle_download_tab {
 	width: 25px;
 	height: 25px;
