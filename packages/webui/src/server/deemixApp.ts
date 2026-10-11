@@ -282,13 +282,15 @@ export class DeemixApp {
 
 	stopQueue(): { paused: boolean; stopping: boolean } {
 		this.pauseQueue();
-		const active = this.currentJob instanceof Downloader;
+		const active = this.currentJob !== null;
 		if (active) {
 			this.stopRequested = true;
-			this.currentJob.downloadObject.isCanceled = true;
-			this.listener.send("queueStopping", {
-				uuid: this.currentJob.downloadObject.uuid,
-			});
+			if (this.currentJob instanceof Downloader) {
+				this.currentJob.downloadObject.isCanceled = true;
+				this.listener.send("queueStopping", {
+					uuid: this.currentJob.downloadObject.uuid,
+				});
+			}
 		}
 		return { paused: true, stopping: active };
 	}
@@ -514,6 +516,9 @@ export class DeemixApp {
 					effectiveSettings,
 					this.listener
 				);
+				// Stop can arrive while a plugin converts an item, before
+				// currentJob is a Downloader. Honor it before the first track.
+				if (this.stopRequested) downloadObject.isCanceled = true;
 
 				this.listener.send("startDownload", currentUUID);
 				await this.currentJob.start();
