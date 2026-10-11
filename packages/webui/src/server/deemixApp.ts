@@ -559,6 +559,23 @@ export class DeemixApp {
 		this.listener.send("removedAllDownloads", currentItem);
 	}
 
+	/** Remove only terminal errored queue records; never remove on-disk media. */
+	clearErroredDownloads(): number {
+		const removed: string[] = [];
+		for (const [uuid, item] of Object.entries(this.queue)) {
+			if (item.status !== "failed" && item.status !== "withErrors") continue;
+			// A failed record should not normally remain ordered, but remove any
+			// stale references rather than allowing it to restart unexpectedly.
+			this.queueOrder = this.queueOrder.filter((pending) => pending !== uuid);
+			this.removeQueueFile(uuid);
+			delete this.queue[uuid];
+			removed.push(uuid);
+		}
+		if (removed.length) this.persistQueueOrder();
+		this.listener.send("removedErroredDownloads", { uuids: removed });
+		return removed.length;
+	}
+
 	clearCompletedDownloads() {
 		Object.values(this.queue).forEach((downloadObject: any) => {
 			if (downloadObject.status === "completed") {
