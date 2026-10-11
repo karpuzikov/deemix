@@ -4,7 +4,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 
 import { DeemixApp } from "./deemixApp.js";
-import { Downloader } from "deemix";
+import { Collection, Downloader } from "deemix";
 
 const dirs: string[] = [];
 afterEach(() => {
@@ -63,6 +63,22 @@ describe("lightweight queue lifecycle", () => {
 		expect(Object.keys(app.queue)).toEqual(["album_2", "album_3", "album_4"]);
 		expect(existsSync(audio)).toBe(true);
 	});
+
+	it("does not roll back all media when a fully downloaded album is only saving artwork", () => {
+		const { app } = makeApp();
+		const full = {
+			type: "album", id: 123, bitrate: 3, size: 2, downloaded: 2,
+			failed: 0, title: "Complete", artist: "Artist", cover: "",
+			collection: { tracks: [], albumAPI: { id: 123, title: "Complete" } },
+		};
+		const downloader = new Downloader({} as any, new Collection(full) as any,
+			{} as any, { send: vi.fn() } as any);
+		app.currentJob = downloader;
+		expect(app.stopQueue().stopping).toBe(false);
+		expect(downloader.downloadObject.isCanceled).toBe(false);
+		expect(app.queuePaused).toBe(true);
+	});
+
 
 	it("stop removes only files created in the current attempt and restores full queued payload", async () => {
 		const { app, dir, send } = makeApp();
