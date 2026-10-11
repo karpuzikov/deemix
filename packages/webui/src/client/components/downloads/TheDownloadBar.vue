@@ -154,7 +154,7 @@ function addToQueue(queueItem, current = false) {
 
 	// * Used when opening the app in another tab
 	const itemIsAlreadyDownloaded =
-		queueItem.downloaded + queueItem.failed == queueItem.size;
+		queueItem.status !== "stopped" && queueItem.downloaded + queueItem.failed == queueItem.size;
 
 	if (itemIsAlreadyDownloaded) {
 		const itemIsNotInCompletedQueue = !queueComplete.value.includes(
@@ -306,6 +306,25 @@ function cleanQueue() {
 	socket.emit("removeFinishedDownloads");
 }
 
+async function stopQueueSafely() {
+	try {
+		const response = await postToServer("stopQueue", {});
+		if (response?.result !== true) toast(t("globals.queue_control_failed"), "error");
+	} catch {
+		toast(t("globals.queue_control_failed"), "error");
+	}
+}
+
+function queueItemStopped({ uuid }: { uuid: string }) {
+	if (!queueList.value[uuid]) return;
+	queueList.value[uuid].status = "stopped";
+	queueList.value[uuid].progress = 0;
+	queueList.value[uuid].downloaded = 0;
+	const index = queueComplete.value.indexOf(uuid);
+	if (index !== -1) queueComplete.value.splice(index, 1);
+	if (!queue.value.includes(uuid)) queue.value.unshift(uuid);
+}
+
 async function toggleQueuePause() {
 	const command = queueIsPaused.value ? "resumeQueue" : "pauseQueue";
 	try {
@@ -418,6 +437,7 @@ onMounted(() => {
 	socket.on("removedFinishedDownloads", removedFinishedDownloads);
 	socket.on("removedErroredDownloads", removedErroredDownloads);
 	socket.on("queueStateChanged", queueStateChanged);
+	socket.on("queueItemStopped", queueItemStopped);
 
 	fetchData("getQueue")
 		.then((res) => {
@@ -508,6 +528,13 @@ onUnmounted(() => {
 					@click="toggleQueuePause"
 				>
 					<i class="material-icons" aria-hidden="true">{{ queueIsPaused ? "play_arrow" : "pause" }}</i>
+				</button>
+				<button type="button"
+					class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
+					:title="t('globals.stop_downloads')"
+					:aria-label="t('globals.stop_downloads')"
+					@click="stopQueueSafely">
+					<i class="material-icons" aria-hidden="true">stop</i>
 				</button>
 				<button
 					type="button"
@@ -602,6 +629,13 @@ onUnmounted(() => {
 				@click="toggleQueuePause"
 			>
 				<i class="material-icons" aria-hidden="true">{{ queueIsPaused ? "play_arrow" : "pause" }}</i>
+			</button>
+			<button type="button"
+				class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
+				:title="t('globals.stop_downloads')"
+				:aria-label="t('globals.stop_downloads')"
+				@click="stopQueueSafely">
+				<i class="material-icons" aria-hidden="true">stop</i>
 			</button>
 			<button
 				type="button"
