@@ -41,7 +41,10 @@ export function reverseStreamURL(url) {
 	return reverseStreamPath(urlPart);
 }
 
-export async function streamTrack(writepath, track, downloadObject, listener) {
+const MAX_STREAM_RETRIES = 3;
+const STREAM_IDLE_TIMEOUT_MS = 15000;
+
+export async function streamTrack(writepath, track, downloadObject, listener, retry = 0) {
 	if (downloadObject && downloadObject.isCanceled) throw new DownloadCanceled();
 	const headers = { "User-Agent": USER_AGENT_HEADER };
 	let chunkLength = 0;
@@ -155,13 +158,13 @@ export async function streamTrack(writepath, track, downloadObject, listener) {
 			timeout = setTimeout(() => {
 				error = "DownloadTimeout";
 				request.destroy();
-			}, 5000);
+			}, STREAM_IDLE_TIMEOUT_MS);
 		});
 
 	timeout = setTimeout(() => {
 		error = "DownloadTimeout";
 		request.destroy();
-	}, 5000);
+	}, STREAM_IDLE_TIMEOUT_MS);
 
 	try {
 		await pipeline(request, decrypter, depadder, outputStream);
@@ -192,7 +195,10 @@ export async function streamTrack(writepath, track, downloadObject, listener) {
 					state: "downloadTimeout",
 				});
 			}
-			return await streamTrack(writepath, track, downloadObject, listener);
+			if (retry >= MAX_STREAM_RETRIES || downloadObject?.isCanceled) {
+				throw new Error(`Audio stream failed after ${retry + 1} attempt(s): ${String(e)}`);
+			}
+			return await streamTrack(writepath, track, downloadObject, listener, retry + 1);
 		} else if (request.destroyed) {
 			switch (error) {
 				case "DownloadEmpty":
@@ -206,5 +212,7 @@ export async function streamTrack(writepath, track, downloadObject, listener) {
 			console.trace(e);
 			throw e;
 		}
+	} finally {
+		clearTimeout(timeout);
 	}
 }

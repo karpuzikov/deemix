@@ -579,7 +579,9 @@ export class Downloader {
 					this.settings.overwriteFile
 				)
 			) {
-				writeFileSync(`${filepath}/${filename}.lrc`, track.lyrics.sync);
+				const lrcPath = `${filepath}/${filename}.lrc`;
+				if (!existsSync(lrcPath)) this.createdFiles.add(lrcPath);
+				writeFileSync(lrcPath, track.lyrics.sync);
 			}
 		}
 
