@@ -150,7 +150,9 @@ async function main() {
 
 	win.on("close", () => {
 		saveWindowState(win!);
-		if (deemixApp.getSettings().settings.clearQueueOnExit) {
+		// Explicit Pause preserves pending releases even when the legacy
+		// clear-on-exit preference was enabled for normal running sessions.
+		if (deemixApp.getSettings().settings.clearQueueOnExit && !deemixApp.queuePaused) {
 			deemixApp.cancelAllDownloads();
 		}
 	});
