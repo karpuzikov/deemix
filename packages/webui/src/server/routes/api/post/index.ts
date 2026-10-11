@@ -3,6 +3,7 @@ import loginArl from "./loginArl.js";
 import addToQueue from "./addToQueue.js";
 import cancelAllDownloads from "./cancelAllDownloads.js";
 import removeFinishedDownloads from "./removeFinishedDownloads.js";
+import removeErroredDownloads from "./removeErroredDownloads.js";
 import removeFromQueue from "./removeFromQueue.js";
 import logout from "./logout.js";
 import saveSettings from "./saveSettings.js";
@@ -15,6 +16,7 @@ export default [
 	addToQueue,
 	cancelAllDownloads,
 	removeFinishedDownloads,
+	removeErroredDownloads,
 	removeFromQueue,
 	logout,
 	saveSettings,
