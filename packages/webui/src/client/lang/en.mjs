@@ -10,6 +10,8 @@ const en = {
 		play_hint: "Play",
 		toggle_download_tab_hint: "Expand/Collapse",
 		clean_queue_hint: "Clear Finished",
+		remove_errored_downloads: "Remove downloads with errors",
+		remove_errored_downloads_failed: "Could not remove downloads with errors",
 		cancel_queue_hint: "Cancel All",
 		open_downloads_folder: "Open Downloads Folder",
 		download_to_folder: "Download to folder",
