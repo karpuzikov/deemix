@@ -233,16 +233,6 @@ export class Downloader {
 				await this.afterDownloadCollection(tracks);
 		}
 
-		if (this.downloadObject.isCanceled) {
-			this.listener.send("currentItemCancelled", {
-				uuid: this.downloadObject.uuid,
-				title: this.downloadObject.title,
-			});
-			this.listener.send("removedFromQueue", {
-				uuid: this.downloadObject.uuid,
-				title: this.downloadObject.title,
-			});
-		}
 
 		if (this.downloadObject.isCanceled) return;
 		this.listener.send("finishDownload", {
