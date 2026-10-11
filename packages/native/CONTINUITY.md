@@ -45,3 +45,9 @@ The original Deemix Node/TypeScript download core is reused by calling its exist
 2. Implement release-level artist/playlist expansion with authoritative exact track manifests. Reuse authenticated core preflight and validate stream completion **before** making album visible in final output.
 3. Migrate the existing Electron queue/settings/DPAPI credentials without losing active artist submissions; preserve opt-in user preferences. Implement native settings/auth/search/collections/plugin parity.
 4. Add Windows staging/stop/restart and race/crash tests, full UXDT UI audit, security and performance tests. Build/publish only after all mandatory rules pass and user accepts.
+
+## Mandatory source parity gate - 2026-10-11
+
+The user explicitly clarified: a different UI is permitted, but **every feature from `bambanah/deemix` plus every change in `karpuzikov/deemix` is mandatory**, with no exceptions. **Do not ship the rejected experimental Tk/CLI program, a simplistic WebView wrapper, or any native UI that omits the original search, all 54 current configuration fields and 33 tag fields, 12 screens, 29 original GET/POST API handlers, library browsing, downloads, plugins, or custom improvements.** See `docs/NATIVE_FULL_PARITY_GATE.md` and complete machine-readable original/fork blob manifests in `docs/PARITY_SOURCE_MANIFEST.json`. These are inventory/acceptance documentation, not implementation of the port.
+
+Working shared-server WIP on this branch: remove errored queue entries without deleting user media; persistent pause after current release; authenticated resume without reconstructing artist queue items. These are **not tested on real Windows**, Stop with ownership-based incomplete album cleanup and full native .pyw remain BLOCKED. User requested full product, not feature checklist alone. Electron v0.5.7 must remain intact.
