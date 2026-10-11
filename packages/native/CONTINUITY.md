@@ -4,7 +4,7 @@ Date: 2026-10-11. Status: **v0.1.0 - Under construction ⚠️**. This is a sepa
 
 ## Source and development checkpoint
 
-A 528-line experimental, single-file Python/Tk `Deemix Native v0.1.0.pyw` was authored as a **conversation download artifact**, not yet committed as a repository file. Seven local tests passed on Linux for persistence and transactional staging/commit/rollback using temporary filesystem fixtures; **Windows and authenticated download testing have not been performed**. The GitHub branch currently contains documentation only; do not present it as a source release or stable download. Before publishing, add the audited .pyw source to this branch and run release gates.
+A 548-line experimental, single-file Python/Tk `Deemix Native v0.1.0.pyw` was authored as a **conversation download artifact**, not yet committed as a repository file. Nine local tests passed on Linux, including an end-to-end simulated CLI success and active-process stop for persistence and transactional staging/commit/rollback using temporary filesystem fixtures; **Windows and authenticated download testing have not been performed**. The GitHub branch currently contains documentation only; do not present it as a source release or stable download. Before publishing, add the audited .pyw source to this branch and run release gates.
 
 The original Deemix Node/TypeScript download core is reused by calling its existing CLI subprocess from the Python controller; there is not yet an independently rewritten Python Deezer SDK or backend. A working original CLI and Node installation may be required. Do not claim the .pyw is standalone/complete/parity-ready. A WebView-only wrapper is explicitly rejected, so the new front end uses Tk rather than embedding the Vue interface.
 
