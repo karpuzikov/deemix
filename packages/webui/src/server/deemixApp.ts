@@ -45,6 +45,8 @@ export class DeemixApp {
 	queueOrder: string[];
 	queue: Record<string, any>;
 	currentJob: boolean | Downloader | null;
+	queuePaused: boolean;
+	stopRequested: boolean;
 
 	deezerAvailable?: DeezerAvailable;
 	latestVersion: string | null;
@@ -62,6 +64,8 @@ export class DeemixApp {
 		this.queueOrder = [];
 		this.queue = {};
 		this.currentJob = null;
+		this.queuePaused = false;
+		this.stopRequested = false;
 
 		this.plugins = {
 			spotify: new SpotifyPlugin(),
@@ -73,6 +77,13 @@ export class DeemixApp {
 		this.plugins.spotify.setup();
 		this.plugins.listenbrainz.setup();
 		this.restoreQueueFromDisk();
+		try {
+			this.queuePaused = Boolean(JSON.parse(
+				fs.readFileSync(configFolder + "queue-control.json", "utf8")
+			).paused);
+		} catch {
+			// A fresh install runs normally; paused queues persist across updates.
+		}
 	}
 
 	async isDeezerAvailable() {
@@ -201,6 +212,7 @@ export class DeemixApp {
 		const result: any = {
 			queue: this.queue,
 			queueOrder: this.queueOrder,
+			paused: this.queuePaused,
 		};
 
 		if (this.currentJob instanceof Downloader) {
@@ -253,6 +265,54 @@ export class DeemixApp {
 		} finally {
 			fs.rmSync(tempPath, { force: true });
 		}
+	}
+
+	private persistQueueControl(): void {
+		this.writeQueueJson(configFolder + "queue-control.json", {
+			paused: this.queuePaused,
+		});
+	}
+
+	pauseQueue(): { paused: boolean } {
+		this.queuePaused = true;
+		this.persistQueueControl();
+		this.listener.send("queuePaused", { paused: true });
+		return { paused: true };
+	}
+
+	stopQueue(): { paused: boolean; stopping: boolean } {
+		this.pauseQueue();
+		const active = this.currentJob instanceof Downloader;
+		if (active) {
+			this.stopRequested = true;
+			this.currentJob.downloadObject.isCanceled = true;
+			this.listener.send("queueStopping", {
+				uuid: this.currentJob.downloadObject.uuid,
+			});
+		}
+		return { paused: true, stopping: active };
+	}
+
+	resumeQueue(dz: Deezer): { paused: boolean } {
+		this.queuePaused = false;
+		this.persistQueueControl();
+		this.listener.send("queueResumed", { paused: false });
+		void this.startQueue(dz);
+		return { paused: false };
+	}
+
+	removeDownloadsWithErrors(): number {
+		let count = 0;
+		for (const item of Object.values(this.queue) as any[]) {
+			if (!item || (!["failed", "withErrors"].includes(item.status) &&
+				!(item.status === "completed" && item.errors?.length > 0))) continue;
+			this.removeQueueFile(item.uuid);
+			delete this.queue[item.uuid];
+			this.listener.send("removedFromQueue", { uuid: item.uuid });
+			count++;
+		}
+		this.persistQueueOrder();
+		return count;
 	}
 
 	private persistQueueOrder(): void {
@@ -386,7 +446,7 @@ export class DeemixApp {
 
 	async startQueue(dz: Deezer) {
 		do {
-			if (this.currentJob !== null || this.queueOrder.length === 0) {
+			if (this.queuePaused || this.currentJob !== null || this.queueOrder.length === 0) {
 				return null;
 			}
 
@@ -506,10 +566,42 @@ export class DeemixApp {
 					});
 				}
 			} finally {
+				if (this.stopRequested && currentUUID && this.queue[currentUUID]) {
+					// Reuse the persisted original payload on Resume, never ask
+					// the user to add the artist/download links again.
+					let removed = 0;
+					let failed = 0;
+					if (this.currentJob instanceof Downloader) {
+						({ removed, failed } = this.currentJob.cleanupStoppedRelease());
+					}
+					if (currentItem) {
+						const waiting = {
+							...currentItem, status: "inQueue",
+							downloaded: 0, failed: 0, progress: 0,
+							files: [], errors: [], extrasPath: "",
+						};
+						try {
+							this.writeQueueJson(this.queueFile(currentUUID), waiting);
+							this.queue[currentUUID] = {
+								...this.queue[currentUUID], status: "inQueue",
+								downloaded: 0, failed: 0, progress: 0,
+								files: [], errors: [], extrasPath: "",
+							};
+							this.queueOrder = this.queueOrder.filter(x => x !== currentUUID);
+							this.queueOrder.unshift(currentUUID);
+							this.listener.send("queueReleaseStopped", {
+								uuid: currentUUID, removed, failed,
+							});
+						} catch (error) {
+							logger.error(error);
+						}
+					}
+				}
+				this.stopRequested = false;
 				this.persistQueueOrder();
 				this.currentJob = null;
 			}
-		} while (this.queueOrder.length);
+		} while (this.queueOrder.length && !this.queuePaused);
 
 		return null;
 	}
