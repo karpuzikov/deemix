@@ -1,0 +1,3265 @@
+{
+  "original_repository": "bambanah/deemix",
+  "original_ref": "main",
+  "original_tree": "61858706d6db1a6152d55add5029cec89c773360",
+  "fork_repository": "karpuzikov/deemix",
+  "fork_ref": "main",
+  "fork_tree": "c2ff79f2b5a58f86cb61091a6065b67197556c5d",
+  "audited_utc_date": "2026-10-11",
+  "original_files": [
+    {
+      "path": ".changeset/README.md",
+      "sha": "e5b6d8d6a67ad0dca8f20117fbfc72e076882d00"
+    },
+    {
+      "path": ".changeset/config.json",
+      "sha": "30198285353104cd68bfacc2d24fd129b2395f69"
+    },
+    {
+      "path": ".commitlintrc.json",
+      "sha": "db59e1527977744b4237f3b6b4f746910d2fcf5b"
+    },
+    {
+      "path": ".dockerignore",
+      "sha": "d489c057baaf17d4e09bd198a380ca1dd4600ad3"
+    },
+    {
+      "path": ".gitattributes",
+      "sha": "ee783f9eeceda000fc08343a71a71628710baa52"
+    },
+    {
+      "path": ".github/CODEOWNERS",
+      "sha": "c99b200e148bc9b011942e95bae31ee173681e6f"
+    },
+    {
+      "path": ".github/FUNDING.yml",
+      "sha": "4059a302adf4f547bbafd66442fe82c32e99a76e"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "sha": "160740ee5ae705b04dd973bb68c2afcb9a510c33"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "sha": "628665035450c13871c7dc408eb8d7bf665a8796"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "sha": "2bc90ab5f36aa1c98db1742ca71d52d90bec61ab"
+    },
+    {
+      "path": ".github/workflows/build-publish-docker.yml",
+      "sha": "b8c2af2e536ce06a10de594c4cf829a337267bdb"
+    },
+    {
+      "path": ".github/workflows/build-release-cli.yml",
+      "sha": "7005c2f5dd0a4d7e2a2e305382ad3ea470375631"
+    },
+    {
+      "path": ".github/workflows/build-release-electron.yml",
+      "sha": "797f0f33ac92c8db5db79b4d00f703ee1dc77d12"
+    },
+    {
+      "path": ".github/workflows/create-release-or-publish.yml",
+      "sha": "f4cc32162626e345dc09a81cb4b90245821d93a9"
+    },
+    {
+      "path": ".github/workflows/pull-request.yml",
+      "sha": "c33373e3bc6413e439a8aa6d1156972770432b4c"
+    },
+    {
+      "path": ".gitignore",
+      "sha": "139dc9fd7de79c1378e409954d2ed35ae665f764"
+    },
+    {
+      "path": ".husky/commit-msg",
+      "sha": "47ff70a52c9c099128b0245700f047874fe53620"
+    },
+    {
+      "path": ".husky/pre-commit",
+      "sha": "d0a778429a369218df7f719986395c730290d97c"
+    },
+    {
+      "path": ".prettierignore",
+      "sha": "97d4647d50cec781c36200cb556dd28702a3fc19"
+    },
+    {
+      "path": "Dockerfile",
+      "sha": "7364a4592db4aef9e6f624822aeb9f96c86a35f8"
+    },
+    {
+      "path": "LICENSE.txt",
+      "sha": "810fce6e9bf2aa10265b85614db5ac65941ecf81"
+    },
+    {
+      "path": "README.md",
+      "sha": "5e6a0061983ad271ec3f6df386af386766b2c162"
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha": "6a995d5a26a362bbb69e9b8ae30a27972fa11afe"
+    },
+    {
+      "path": "docker/custom-cont-init.d/10-fix_folders",
+      "sha": "2134d0e717bdea45fabfe778790617d83f38ba6f"
+    },
+    {
+      "path": "docker/custom-cont-init.d/15-checks",
+      "sha": "c43d371262239527a246cddea85afd30c1427a5f"
+    },
+    {
+      "path": "docker/custom-services.d/deemix",
+      "sha": "738f85424ff65d48aaf3e6b3141edcb9c2bb336e"
+    },
+    {
+      "path": "docker/usr/local/bin/deemix",
+      "sha": "a657b8a4f6cd60840fa7243c8a1a9ea70f068a26"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "sha": "8174a7eb70a85b822e57a5204b6f6bccd474a904"
+    },
+    {
+      "path": "flake.lock",
+      "sha": "751194f8333b5eaa0fc80dd9761f031329b7c489"
+    },
+    {
+      "path": "flake.nix",
+      "sha": "1547ed3ad522c82993996701e8ea86c51d28f539"
+    },
+    {
+      "path": "lint-staged.config.mjs",
+      "sha": "5a36f365a49a3c4f869fa1074324e913c6d1803b"
+    },
+    {
+      "path": "package.json",
+      "sha": "f7198772a7f68138a3e75dabb4a6652caf95e121"
+    },
+    {
+      "path": "packages/cli/.gitignore",
+      "sha": "f733c4b5fb40899f62e54d786d259c701938eba3"
+    },
+    {
+      "path": "packages/cli/CHANGELOG.md",
+      "sha": "28408333fd7eb5f3d605a6b9da38715723852d1d"
+    },
+    {
+      "path": "packages/cli/README.md",
+      "sha": "803b47692d7eadd5f0bc5926f284dfc89e638949"
+    },
+    {
+      "path": "packages/cli/package.json",
+      "sha": "48d7075dd419e69fc51130fb158b2421481eec46"
+    },
+    {
+      "path": "packages/cli/src/bitrate.test.ts",
+      "sha": "ef0bd17b6729b35d5ac67380e67e2508a6b539f1"
+    },
+    {
+      "path": "packages/cli/src/bitrate.ts",
+      "sha": "08d2fc197ef40711c612b0f862b44c2cfad80441"
+    },
+    {
+      "path": "packages/cli/src/download.ts",
+      "sha": "c628732eb9bbc718dd320d10e2609dfa5c0ed407"
+    },
+    {
+      "path": "packages/cli/src/login.test.ts",
+      "sha": "ed04e87a86e4ba5444872df4e50d23652050d1d2"
+    },
+    {
+      "path": "packages/cli/src/login.ts",
+      "sha": "7ecbf69fcf916c2916fb474e54748c2724bb1322"
+    },
+    {
+      "path": "packages/cli/src/main.ts",
+      "sha": "14cb07f9dae6800f1e1868ab194f0742252196ea"
+    },
+    {
+      "path": "packages/cli/tsconfig.json",
+      "sha": "fa6192305a441e5af2233c2db539cbe1be6a6238"
+    },
+    {
+      "path": "packages/cli/tsup.config.ts",
+      "sha": "c383d10ae8f803c6cb991c998a7776d407d81871"
+    },
+    {
+      "path": "packages/cli/vitest.config.ts",
+      "sha": "954ff1236f3703a9ca3d6151b170f788a3e507f8"
+    },
+    {
+      "path": "packages/deemix/CHANGELOG.md",
+      "sha": "113714e1f6ef666036113508b543722821c00e6e"
+    },
+    {
+      "path": "packages/deemix/package.json",
+      "sha": "18bce0073b345083d50fd0195ab7c6c9f3997225"
+    },
+    {
+      "path": "packages/deemix/src/credentials.test.ts",
+      "sha": "d55a12eb986e863ab63b175b4d7aa0f9ec2331ae"
+    },
+    {
+      "path": "packages/deemix/src/credentials.ts",
+      "sha": "4898f99028c20f78933ec30cefc1de406987a309"
+    },
+    {
+      "path": "packages/deemix/src/decryption.ts",
+      "sha": "ec3cdab5ac252239200720a2da499521308021a9"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/Collection.ts",
+      "sha": "4984b4d99c30291e97ad87977ae9a07a40c91b5e"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/DownloadObject.ts",
+      "sha": "d529f0311f62e716e47b04faa14bf32b36090bc5"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/Single.ts",
+      "sha": "65cd6ec5a997961de88586dac7ea602853fd17bb"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generateAlbumItem.ts",
+      "sha": "cbe2fe58638e65b597e58dd4402cc18caf3b4c47"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generateArtistTopItem.ts",
+      "sha": "3a0ef158097ada886c72dbd0d80ede8887549c92"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generatePlaylistItem.ts",
+      "sha": "bf168ba52f5f0354a213da2cfc64bdf458a20594"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generateTrackItem.ts",
+      "sha": "39ecfbaa49af0178793fbcd454053009899042d8"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/index.ts",
+      "sha": "30c348dbb07342a078ed872183ea740b706e811c"
+    },
+    {
+      "path": "packages/deemix/src/downloader.test.ts",
+      "sha": "58a8e0013bca3bdd5047f58d7cdf55146add6469"
+    },
+    {
+      "path": "packages/deemix/src/downloader.ts",
+      "sha": "23578f775d6fc346f58d6465b7cf9c700fe30135"
+    },
+    {
+      "path": "packages/deemix/src/errors.ts",
+      "sha": "970dd82bc29bcc4eabe3964b2f670e3a9e57c453"
+    },
+    {
+      "path": "packages/deemix/src/index.ts",
+      "sha": "7d3f25bb3ec2b88978cd968dbe52dcb34f022365"
+    },
+    {
+      "path": "packages/deemix/src/plugins/base.ts",
+      "sha": "c7ae4b59beda51638d039f380511437479294973"
+    },
+    {
+      "path": "packages/deemix/src/plugins/index.ts",
+      "sha": "e9686cbb1d136cc21d6c25694828d481712fc419"
+    },
+    {
+      "path": "packages/deemix/src/plugins/spotify.test.ts",
+      "sha": "c34fc6c4709bae928473c64d46e53146d19e9224"
+    },
+    {
+      "path": "packages/deemix/src/plugins/spotify.ts",
+      "sha": "a569518c535b802941bc81a971280bbf603c34ae"
+    },
+    {
+      "path": "packages/deemix/src/settings.ts",
+      "sha": "781061b4992fb7b16c26b34c500efb63ad5a18b8"
+    },
+    {
+      "path": "packages/deemix/src/tagger.ts",
+      "sha": "2d6a3988a837ee80e3a460d4e05485ac83fc31e8"
+    },
+    {
+      "path": "packages/deemix/src/types/Album.ts",
+      "sha": "36e4b39763cd90b28a5ceb6ca737215ed9f7eb39"
+    },
+    {
+      "path": "packages/deemix/src/types/Artist.ts",
+      "sha": "6f9f705cf6d2b763734201c770668a8f225a1527"
+    },
+    {
+      "path": "packages/deemix/src/types/CustomDate.ts",
+      "sha": "ad7277058c9e57aca646b7b74c972eb8f5462f76"
+    },
+    {
+      "path": "packages/deemix/src/types/LoginFile.ts",
+      "sha": "4aab6f3aaac2cdf05d9f75235ca9880082823728"
+    },
+    {
+      "path": "packages/deemix/src/types/Lyrics.ts",
+      "sha": "240861fd428cba1162b817f0d38e84eafdae943a"
+    },
+    {
+      "path": "packages/deemix/src/types/Picture.ts",
+      "sha": "f646aec73d0207f6773049560d1f5571f8659754"
+    },
+    {
+      "path": "packages/deemix/src/types/Playlist.ts",
+      "sha": "d08a1ea42e7e6519642d4aebb5034c9d2402dd7c"
+    },
+    {
+      "path": "packages/deemix/src/types/Settings.ts",
+      "sha": "0e1d8f58ce50d2e88946d389366579b00e011611"
+    },
+    {
+      "path": "packages/deemix/src/types/Track.ts",
+      "sha": "957930a4dff36616e00e2af2b5a8328dd480375f"
+    },
+    {
+      "path": "packages/deemix/src/types/index.ts",
+      "sha": "c2b8c60786753071d48dd5a35baae03d45df6fc4"
+    },
+    {
+      "path": "packages/deemix/src/types/listener.ts",
+      "sha": "a9b248b0186714a21cb781620aa1a8175908779e"
+    },
+    {
+      "path": "packages/deemix/src/utils/blowfish.cjs",
+      "sha": "1b12ab44d8957826b257868382b970e277c2591f"
+    },
+    {
+      "path": "packages/deemix/src/utils/core.ts",
+      "sha": "df86f178df85580266e7153366272bfa8b9311ad"
+    },
+    {
+      "path": "packages/deemix/src/utils/crypto.ts",
+      "sha": "46445c17cac70e9357719e35149ac0816b2b7075"
+    },
+    {
+      "path": "packages/deemix/src/utils/deezer.ts",
+      "sha": "eb1c9008c04442c96d18c7c83c4d0228826a63e0"
+    },
+    {
+      "path": "packages/deemix/src/utils/downloadImage.ts",
+      "sha": "92eaa31fa0587c4bf9b738d9bd052cb33b866259"
+    },
+    {
+      "path": "packages/deemix/src/utils/downloadUtils.ts",
+      "sha": "350471ae35268808f39d44b9e25a92032680962a"
+    },
+    {
+      "path": "packages/deemix/src/utils/getPreferredBitrate.ts",
+      "sha": "d2fe3d27e82b1658399f56cac76e1225082184f9"
+    },
+    {
+      "path": "packages/deemix/src/utils/index.ts",
+      "sha": "b3cf7daa2eef70c3c8db7f0f727cc977a2cd27a4"
+    },
+    {
+      "path": "packages/deemix/src/utils/localpaths.ts",
+      "sha": "d390521af8128f84e77a38e50b8fcc8366ac1e30"
+    },
+    {
+      "path": "packages/deemix/src/utils/pathtemplates.test.ts",
+      "sha": "0ae172dece3cdbfeda8720bded552cb14620d01d"
+    },
+    {
+      "path": "packages/deemix/src/utils/pathtemplates.ts",
+      "sha": "ee44e0e9076c11bc29fe206b629dde0b918f2037"
+    },
+    {
+      "path": "packages/deemix/tsconfig.json",
+      "sha": "3e70d9e73d53fc2543fc92d69e46fc6f634f61ec"
+    },
+    {
+      "path": "packages/deemix/vitest.config.ts",
+      "sha": "1c3992b94a7735887ed7f8ee76cf0e4d63d069b0"
+    },
+    {
+      "path": "packages/deezer-sdk/CHANGELOG.md",
+      "sha": "93157f1cd5e56d6265da89a956c009d96eeff492"
+    },
+    {
+      "path": "packages/deezer-sdk/package.json",
+      "sha": "1fca5788a0e7604d7789d678817254b9c360762d"
+    },
+    {
+      "path": "packages/deezer-sdk/src/api.ts",
+      "sha": "4229af57881f9c27d43bb98dd193006072ae0df8"
+    },
+    {
+      "path": "packages/deezer-sdk/src/deezer.ts",
+      "sha": "979fd5b33d328ea246496439da514a4cb4d35357"
+    },
+    {
+      "path": "packages/deezer-sdk/src/errors.ts",
+      "sha": "36c8b05fbf2f8494d138adf49c05d6c4f834a045"
+    },
+    {
+      "path": "packages/deezer-sdk/src/gw.ts",
+      "sha": "7afdaa89b42cae8f9a9f5dfeaa1b84ac49b70ffb"
+    },
+    {
+      "path": "packages/deezer-sdk/src/index.ts",
+      "sha": "9b7f3a12dcb1703ea18bdc2a777b164d10b9f2ab"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/album-schema.ts",
+      "sha": "827106ebbe6e85be6d150be4680ba549639db165"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/contributor-schema.ts",
+      "sha": "dcc1f68ee1f00879f5636a2ff3f1cca3807a9709"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/playlist-schema.ts",
+      "sha": "9081d66ce5165342e11c2c1d9f2a459cb376a407"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/track-schema.ts",
+      "sha": "72e8b12f82f1869c11ca7f272a6ad5612278cf28"
+    },
+    {
+      "path": "packages/deezer-sdk/src/store.ts",
+      "sha": "ba95fea2228c6519df46e2fc1e7d89d4c7789121"
+    },
+    {
+      "path": "packages/deezer-sdk/src/tests/api.test.ts",
+      "sha": "8e27fd09418f83d349b1695e3de90de98b36ebc8"
+    },
+    {
+      "path": "packages/deezer-sdk/src/types.ts",
+      "sha": "3614145af9d1d17d03d5bdb35b775e7322865b9e"
+    },
+    {
+      "path": "packages/deezer-sdk/src/utils.ts",
+      "sha": "45ba26e0b5887b7139a3dd120244e223c41c79fe"
+    },
+    {
+      "path": "packages/deezer-sdk/tsconfig.json",
+      "sha": "98d86c1587cfcb4d650c17a61a95ef2fb250f1d3"
+    },
+    {
+      "path": "packages/deezer-sdk/vitest.config.ts",
+      "sha": "954ff1236f3703a9ca3d6151b170f788a3e507f8"
+    },
+    {
+      "path": "packages/gui/CHANGELOG.md",
+      "sha": "9433b2b4aa7583d5a0ac3de97861a3421a742741"
+    },
+    {
+      "path": "packages/gui/build/64x64.png",
+      "sha": "dc7ba217cf47b0042974ce35b19384da3a916bb4"
+    },
+    {
+      "path": "packages/gui/build/icon.icns",
+      "sha": "ec0ca045aa5e74716ccf4ca55b9662621d5f79da"
+    },
+    {
+      "path": "packages/gui/build/icon.ico",
+      "sha": "7c07bf81407a995d30cf51533ab39efa91efec3f"
+    },
+    {
+      "path": "packages/gui/build/icon.svg",
+      "sha": "dd4cbc7ec9c95d55654e0e4c4fb1a24e0adec60f"
+    },
+    {
+      "path": "packages/gui/forge.config.js",
+      "sha": "eca934f888852924fd7ff361df82088a7b28b103"
+    },
+    {
+      "path": "packages/gui/package.json",
+      "sha": "18aed89c01f9564e19e89096feab35abfb07b129"
+    },
+    {
+      "path": "packages/gui/scripts/build.js",
+      "sha": "0ccdccf56b277208ed015f6897b051fb8b0aa8ee"
+    },
+    {
+      "path": "packages/gui/scripts/cjs-shim.js",
+      "sha": "7d7bbfd79fc9fc5188a50e583c92315ddc5cd0ed"
+    },
+    {
+      "path": "packages/gui/scripts/utils.js",
+      "sha": "60a3c976ac05c17fe6dad0cbdbf663ce730e4fe1"
+    },
+    {
+      "path": "packages/gui/src/main.ts",
+      "sha": "c4e856dd93bf7cad9c459a0a377717a8b9479ef7"
+    },
+    {
+      "path": "packages/gui/src/preload.ts",
+      "sha": "12dbe75deb4cb519d1d94c1ca6a6f519fe420390"
+    },
+    {
+      "path": "packages/gui/tsconfig.json",
+      "sha": "1f4e7208ec676b6060a3412c2a235a57fbff2cb2"
+    },
+    {
+      "path": "packages/webui/CHANGELOG.md",
+      "sha": "8e02faad25a734ad6a596788f8501e233556d760"
+    },
+    {
+      "path": "packages/webui/README.md",
+      "sha": "f348caf81e671e276b9437883c93fc71b89fd986"
+    },
+    {
+      "path": "packages/webui/index.html",
+      "sha": "b060abc35702a58f3ac054b50da98caee7221576"
+    },
+    {
+      "path": "packages/webui/package.json",
+      "sha": "da35cf520de672d9efe4ae24158acda6fce27c92"
+    },
+    {
+      "path": "packages/webui/postcss.config.cjs",
+      "sha": "7648842394dcbb3d0469cc2669dba39c8f135b55"
+    },
+    {
+      "path": "packages/webui/public/favicon.png",
+      "sha": "dc7ba217cf47b0042974ce35b19384da3a916bb4"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/LICENSE.txt",
+      "sha": "d645695673349e3947e8e5ae42332d0ac3164cd7"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOUehpOqc.woff2",
+      "sha": "eff71c00128ccb05408e2874a9102d480ed4ccb6"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOUuhp.woff2",
+      "sha": "3a38286c672d781462fb22dc0b27393c8972ad13"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOVuhpOqc.woff2",
+      "sha": "43d5a7cadcb005b9b35880084f90cee58495e3b9"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOX-hpOqc.woff2",
+      "sha": "baec66cc98321bed3bf0c2273d26707a79fa7fec"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOXOhpOqc.woff2",
+      "sha": "c805bc07444dec9415abe72e1ad9fdb9e1c6d438"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOXehpOqc.woff2",
+      "sha": "ea8feb29fbc35f2aabdc4eb66aaab1920c1a2bf3"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOXuhpOqc.woff2",
+      "sha": "1302cd53e2294a058aaf06b2ed5c90f0273bfed6"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOUehpOqc.woff2",
+      "sha": "8a419a171889356cf8ca5752b9712624a0fb72cd"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOUuhp.woff2",
+      "sha": "86a8a8757e9be36e9a69ff1e4d7adf901ae37442"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOVuhpOqc.woff2",
+      "sha": "9c199fd211f6a5bf621ed29306ff9d1bc430e296"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOX-hpOqc.woff2",
+      "sha": "b3fa3dadac33dc3183c2d4918cdd1df02a1d03f1"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOXOhpOqc.woff2",
+      "sha": "1476f0f3bc3a2190faab179517b7e9cc07b1bc91"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOXehpOqc.woff2",
+      "sha": "4feeeab5f5426bcf1d55883ebbb63657dbe469bf"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOXuhpOqc.woff2",
+      "sha": "6ec620ffcef95a3ed98978f34e82eeaee07097e1"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OUehpOqc.woff2",
+      "sha": "456c550dd9be7a7a386f155fef797877c2243d81"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OUuhp.woff2",
+      "sha": "7bf901c28ed2604e948f6e7afa54c8c93ee5eb06"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OVuhpOqc.woff2",
+      "sha": "d3bbaba4281eca4f6aedb645ad1b235225d07efc"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OX-hpOqc.woff2",
+      "sha": "2ea4253f98102268889671b34cf527ea791b7399"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OXOhpOqc.woff2",
+      "sha": "1ed5f4ff6c072fd880a6b09005db76adc2a071a0"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OXehpOqc.woff2",
+      "sha": "d36e95d00fa9e841b38a4930fadcf474b07b876e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OXuhpOqc.woff2",
+      "sha": "7c251dc3251163030c68ced730e39720fe59c1cd"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOUehpOqc.woff2",
+      "sha": "59855dc855258a3569d79c0f1ae3b6be31663718"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOUuhp.woff2",
+      "sha": "5c5d54e2f292590b493385ac8694f163a9d6b2b7"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOVuhpOqc.woff2",
+      "sha": "f8a4ea3a32a1016c61a73aca95f5414de6799867"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOX-hpOqc.woff2",
+      "sha": "4587c68175ee02ef3a38af63444f15b5b0071858"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOXOhpOqc.woff2",
+      "sha": "83b1803694c7df8418f0ebb5d145498e89a6c4b8"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOXehpOqc.woff2",
+      "sha": "9518615b4f64d9d69e990e5476aa00f1fc4cbed5"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOXuhpOqc.woff2",
+      "sha": "9a9a5c6d055a025576211e545e01102482b88076"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Udc1UAw.woff2",
+      "sha": "b4d9f612b847d611d7f82dadc0ddf72c76db7fda"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Vdc1UAw.woff2",
+      "sha": "3426d9bb560698d93b6972d931af01f325620a42"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Wdc1UAw.woff2",
+      "sha": "e4d49fe0a38faeda9bc1465b95c7f099e60cab1e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Xdc1UAw.woff2",
+      "sha": "ca1b2b1eef8c99ef728f1cc956ca2b4802517b5e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Zdc0.woff2",
+      "sha": "10031c02259c75aaa8e09662239eeb53ad385f9b"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0adc1UAw.woff2",
+      "sha": "04139efb3df23b2fc7fdc39ac8256b909b0aa477"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0ddc1UAw.woff2",
+      "sha": "a7b01fa0c8c51871ea6a46ca909d38fb2a138889"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFUZ0bbck.woff2",
+      "sha": "4c5a6f0f4d14edaf1c78de663d627e0786bd0bce"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFVZ0b.woff2",
+      "sha": "e9f58b775ec05aedecb58eaa34d0fd2a8d5d1aae"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFVp0bbck.woff2",
+      "sha": "3770a39d6e75c7c54cb358fe49456ca61dd0476b"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFW50bbck.woff2",
+      "sha": "4e74089d8f46c0c8842e1b1aa751ba967943eeb3"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFWJ0bbck.woff2",
+      "sha": "1f2f58842ae4aabd646435d60c42bb52b21db68a"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFWZ0bbck.woff2",
+      "sha": "1675bab177e947caee680e0ec629f2390b88fc4e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFWp0bbck.woff2",
+      "sha": "d72068a0c52eb282cf9b910db2e1c6d2491eaf98"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hkIqOjjg.woff2",
+      "sha": "20c325dbd843fca49e056b0b945f2b081bf4168f"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hlIqOjjg.woff2",
+      "sha": "7dbd8fa112152fd557b3c6bef99ce20f9af2c039"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hmIqOjjg.woff2",
+      "sha": "ccb1a12efbb8dbf049f462d9abcff21d9bb1f84c"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hnIqOjjg.woff2",
+      "sha": "aaf73e2afcc47cbdae7a53aa5568f32dc325f2aa"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hoIqOjjg.woff2",
+      "sha": "7f0aa701c263ec9bb4a2f32e89dfd45bd7c6f318"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hrIqM.woff2",
+      "sha": "82a1f00d3a4c7aa4bb7e475b5e7a87b676f71fd4"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hvIqOjjg.woff2",
+      "sha": "3d996a8d984eef727cccab2e9efc3a3ddb2a3983"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhkIqOjjg.woff2",
+      "sha": "0c7ef0aa87e9028d3943fee3459ced8c504db9c7"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhlIqOjjg.woff2",
+      "sha": "5b3484fe3022de3db0a7a635f9e9caa70a801ccf"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhmIqOjjg.woff2",
+      "sha": "9854e0e575d8efcad6dab74893296b7fa19d84e8"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhnIqOjjg.woff2",
+      "sha": "8a4187c5f4575034f56b737ab01dd066d1ad9a73"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhoIqOjjg.woff2",
+      "sha": "45362f16594dc30926570c6d92ff9bc13c4ceab2"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhrIqM.woff2",
+      "sha": "5153813388dade92abf088e0db77711608ca12e0"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhvIqOjjg.woff2",
+      "sha": "0307dec8b6096fc9e4ea49ba5e804966b5b742b9"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hkIqOjjg.woff2",
+      "sha": "35801c0c0469713921a5a94d5a255dee9e4794b9"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hlIqOjjg.woff2",
+      "sha": "8f5da525bbfd8a16c966dd9f9286733294c393e6"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hmIqOjjg.woff2",
+      "sha": "be29757f5620808d710b335c9db4b24cae6748f8"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hnIqOjjg.woff2",
+      "sha": "ccbc46024ae0e9eff174dedad7001b3276c592fb"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hoIqOjjg.woff2",
+      "sha": "e44fa881ddd26bec54e4eb4343d4f07313204a6e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hrIqM.woff2",
+      "sha": "6d4334ee81b7870afbcc832e7a160167bb6ea59e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hvIqOjjg.woff2",
+      "sha": "d91cb0bd7ff231718a994e9c9847deda4eda122b"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhkIqOjjg.woff2",
+      "sha": "0f28f1260b5bcc33915c8d5f9cc06f44ba7a3d0f"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhlIqOjjg.woff2",
+      "sha": "ccf4acb1286617c48812e19a16ba7cd3a0eaaf2e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhmIqOjjg.woff2",
+      "sha": "1dd821c322062d7781d0ba905d06c9b65bddcb12"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhnIqOjjg.woff2",
+      "sha": "c2f5b87935a5049c8003ba8ee26075157e15a694"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhoIqOjjg.woff2",
+      "sha": "686806694d0725c1e796724b3e934d9c5a0e4fa3"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhrIqM.woff2",
+      "sha": "c2450f3e6410d0f2790a003087b694c5100f3a14"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhvIqOjjg.woff2",
+      "sha": "1a1fa021ceed22107d04ee3c080330277612795d"
+    },
+    {
+      "path": "packages/webui/public/fonts/icons/MaterialIcons-Regular.ttf",
+      "sha": "be4be29c8664ae8199bd0fa6c8df9e8e140d354f"
+    },
+    {
+      "path": "packages/webui/public/res/InfoSpotifyFeatures/ClientIdSecret.png",
+      "sha": "82470ee73021249ad172981ab64962ab57586e08"
+    },
+    {
+      "path": "packages/webui/public/res/InfoSpotifyFeatures/CreateApp.png",
+      "sha": "78ae7291194f86bc1bbd8df68bb811d8d34b617f"
+    },
+    {
+      "path": "packages/webui/public/res/InfoSpotifyFeatures/CreateAppForm.png",
+      "sha": "8e749ba17a5ac1b63190f0a66df917664c5b04e1"
+    },
+    {
+      "path": "packages/webui/src/client/App.vue",
+      "sha": "8bb0506d62d089f0370508250a4481cbc5555728"
+    },
+    {
+      "path": "packages/webui/src/client/assets/ar.svg",
+      "sha": "37670909c8987cdfef435c8f7bf051c2e56aa63f"
+    },
+    {
+      "path": "packages/webui/src/client/assets/deemix-icon.svg",
+      "sha": "d45054e738e514f386dbab5a29788586e754d5e4"
+    },
+    {
+      "path": "packages/webui/src/client/components/TheContent.vue",
+      "sha": "e1521da3b88e8d59b20100bee4b3a09c4142b7ca"
+    },
+    {
+      "path": "packages/webui/src/client/components/TheSearchBar.vue",
+      "sha": "774ec9530a979cf0c0a7ae50918e8bf799aedf2b"
+    },
+    {
+      "path": "packages/webui/src/client/components/TheSidebar.vue",
+      "sha": "51f62ec467ea549662f0e28bcafbcabc149c0fd0"
+    },
+    {
+      "path": "packages/webui/src/client/components/ThemePicker.vue",
+      "sha": "598ec49cd1e82472751153742fd24663057e9b2f"
+    },
+    {
+      "path": "packages/webui/src/client/components/downloads/QueueItem.vue",
+      "sha": "efff6ff1661da075aa59efc9b677ec197e675698"
+    },
+    {
+      "path": "packages/webui/src/client/components/downloads/TheDownloadBar.vue",
+      "sha": "dffa48c691ee640735d2d587b0c2900a63dd773d"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BackButton.vue",
+      "sha": "9a6305652480bb26a25baedb900427d686775b99"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseAccordion.vue",
+      "sha": "1b7553cbff18cc63438e873e531b67e9e4211cf3"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseLoadingPlaceholder.vue",
+      "sha": "550184031c746fdfb7684088d242719b361c1d26"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseTab.vue",
+      "sha": "b4c812f89b9e9dd67f65d8290b0e9a21f216fdc7"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseTabs.vue",
+      "sha": "1cfb72edf1a9b30301de012c4a7a4d2eddacd6af"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/CoverContainer.vue",
+      "sha": "f6a20a981fb003b983bd6e6248297e010ed3373f"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/DeezerWarning.vue",
+      "sha": "27f986be21462332a88ce761336958dc81f0dc4d"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/PreviewControls.vue",
+      "sha": "1f57975aa7a11b9a6590bb0ae32b94c0cf871e18"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/TheContextMenu.vue",
+      "sha": "ebe6a2468807e79779c4296319c416931d37ea89"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/TheQualityModal.vue",
+      "sha": "c7a486e5f0a08f9fb5c5537a1121eca046ca42db"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/TheTrackPreview.vue",
+      "sha": "aef56821ed938a64e9987b6567edd3e824d11883"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsAlbums.vue",
+      "sha": "eb511176fa635d4a03b78087710fac25decb3015"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsAll.vue",
+      "sha": "97d0aee2939d64cdbd6f526939f45a2630730e0b"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsArtists.vue",
+      "sha": "9699f9f5c7c893afcdd178275d4e71354a2923c6"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsError.vue",
+      "sha": "8406d89cefbfe0fcdd8b22b49040ad0562b1b5b3"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsPlaylists.vue",
+      "sha": "6c2be5cb746ba53d517fffd80524d5da75e1e75a"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsTracks.vue",
+      "sha": "72a7ca4fc05f928bb81134be7676b39cf9054495"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/TopResult.vue",
+      "sha": "b16869ca6b67a634241c14976fcb98ae32fe073e"
+    },
+    {
+      "path": "packages/webui/src/client/components/settings/TemplateVariablesList.vue",
+      "sha": "c7d863867113b163f9af379ae015a206ab5b5d86"
+    },
+    {
+      "path": "packages/webui/src/client/data/artist.ts",
+      "sha": "36439506faa0bcfb2dd2ee3cf25097e407b9722d"
+    },
+    {
+      "path": "packages/webui/src/client/data/charts.ts",
+      "sha": "ba4e10c25d91f153b41ca3571848d3af9de62476"
+    },
+    {
+      "path": "packages/webui/src/client/data/file-templates.ts",
+      "sha": "cb0e1a7cbff312e3bfd0cc5331ab734a9a1f525f"
+    },
+    {
+      "path": "packages/webui/src/client/data/home.ts",
+      "sha": "7c70fd3ca3801a613ac56675529fd35f3fed71e7"
+    },
+    {
+      "path": "packages/webui/src/client/data/qualities.ts",
+      "sha": "0207b91857a6452a5455a648e5510dbe4001e04d"
+    },
+    {
+      "path": "packages/webui/src/client/data/search.ts",
+      "sha": "8fd48b5f03efeb3b41cd42f7c31672f99de35417"
+    },
+    {
+      "path": "packages/webui/src/client/data/settings.ts",
+      "sha": "413fa66b1616338e4c1b25327e9eadccb611c5b9"
+    },
+    {
+      "path": "packages/webui/src/client/data/sidebar.ts",
+      "sha": "0cd9012dbccb9a617d4c3750e41b27d31357cae5"
+    },
+    {
+      "path": "packages/webui/src/client/data/standardize.ts",
+      "sha": "0c3f20fa0f3383c2773901930de0f9e20caebb4f"
+    },
+    {
+      "path": "packages/webui/src/client/electron-window.d.ts",
+      "sha": "8466eec698cc8b81a73326471c8fc77dc11546ec"
+    },
+    {
+      "path": "packages/webui/src/client/env.d.ts",
+      "sha": "3fc2cf0e45f3e53464efcda7d71156813d7d1ada"
+    },
+    {
+      "path": "packages/webui/src/client/lang/ar.mjs",
+      "sha": "1e6a729d66374315244b001e08bfe632ee72b283"
+    },
+    {
+      "path": "packages/webui/src/client/lang/de.mjs",
+      "sha": "689654f9bb46550aa8401f59e96daf3dc251f2d7"
+    },
+    {
+      "path": "packages/webui/src/client/lang/el.mjs",
+      "sha": "db74ed36589c715179caa28ee61351931585f653"
+    },
+    {
+      "path": "packages/webui/src/client/lang/en.mjs",
+      "sha": "16f7e288b8b95dc7cb3e07c3db885b68a3f396fb"
+    },
+    {
+      "path": "packages/webui/src/client/lang/es.mjs",
+      "sha": "e7c8b2722c834165187f7cf2ae31f832fe15488d"
+    },
+    {
+      "path": "packages/webui/src/client/lang/fil.mjs",
+      "sha": "149e16a97a5ad21456458cc0e0669c487d4e441f"
+    },
+    {
+      "path": "packages/webui/src/client/lang/fr.mjs",
+      "sha": "9cc6eb8635f528b187a75b70f692dcde11268fd6"
+    },
+    {
+      "path": "packages/webui/src/client/lang/hr.mjs",
+      "sha": "df71d959a26e6e9378af20ef92cd62a3abc2fe12"
+    },
+    {
+      "path": "packages/webui/src/client/lang/id.mjs",
+      "sha": "d10d2ee16bc8ae97ce21223a380f81e808882ce4"
+    },
+    {
+      "path": "packages/webui/src/client/lang/index.js",
+      "sha": "6e754e57bd447f9a887ef419909629ff6c030d37"
+    },
+    {
+      "path": "packages/webui/src/client/lang/it.mjs",
+      "sha": "afb3bca72b39229c3da1f81412e1a5a3961f4c9f"
+    },
+    {
+      "path": "packages/webui/src/client/lang/ko.mjs",
+      "sha": "36c8f0ddecb21e779b03e5b89f42e995508a6b9d"
+    },
+    {
+      "path": "packages/webui/src/client/lang/pl.mjs",
+      "sha": "61cf3dccd7922f94b3c8480542b4b74ece1aab38"
+    },
+    {
+      "path": "packages/webui/src/client/lang/pt-br.mjs",
+      "sha": "72e6709271755a74b1c92b95ebf98af5fdf677e9"
+    },
+    {
+      "path": "packages/webui/src/client/lang/pt-pt.mjs",
+      "sha": "17c9f068e879c4ff669141e4c29f1eff2de318fe"
+    },
+    {
+      "path": "packages/webui/src/client/lang/ru.mjs",
+      "sha": "2df3c573087991d7637ecb337035e8873f517270"
+    },
+    {
+      "path": "packages/webui/src/client/lang/sr.mjs",
+      "sha": "dbd2ba1290fc43b1d42b17d6994323bcf3a03a01"
+    },
+    {
+      "path": "packages/webui/src/client/lang/th.mjs",
+      "sha": "483ad8559a7e944daef8903b14756fc93f938310"
+    },
+    {
+      "path": "packages/webui/src/client/lang/tr.mjs",
+      "sha": "24f2d50a2d8dab10dde0f0af15a1288a2d964744"
+    },
+    {
+      "path": "packages/webui/src/client/lang/vi.mjs",
+      "sha": "2b4999db94d50f1b91f3b3a861bd8409c182e2e9"
+    },
+    {
+      "path": "packages/webui/src/client/lang/zh-tw.mjs",
+      "sha": "6300c1b81488a86d88ae7b28071d6c2328e7c2d1"
+    },
+    {
+      "path": "packages/webui/src/client/main.ts",
+      "sha": "a1fed89eeda7303bce1a50b63cfd21860ccd1548"
+    },
+    {
+      "path": "packages/webui/src/client/plugins/i18n.ts",
+      "sha": "78a8275cb8c245cbcec04c1eb78918e494b3d861"
+    },
+    {
+      "path": "packages/webui/src/client/router/index.ts",
+      "sha": "f3fc266ea0355cd537122a7cc47739c747fb2288"
+    },
+    {
+      "path": "packages/webui/src/client/stores/appInfo.ts",
+      "sha": "df84c21e8ae8b40eb39abab48e9ed3020138cd27"
+    },
+    {
+      "path": "packages/webui/src/client/stores/errors.ts",
+      "sha": "526f4a2cbb06728773b84092bb5317e827a62c56"
+    },
+    {
+      "path": "packages/webui/src/client/stores/index.ts",
+      "sha": "cafea68967e7df463ff5473351ab10d6098d449c"
+    },
+    {
+      "path": "packages/webui/src/client/stores/login.ts",
+      "sha": "696d5d87854d9a8fa1e548a197543f324e8aed26"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/global.css",
+      "sha": "6513708ceb0616fe6681542a5b6a5fd1a158e440"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/helpers.css",
+      "sha": "c9b89db20d78df725545c100fc9664674a8b0076"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/icons.css",
+      "sha": "a382b15274bdc7b87d2aadf11448cd95663df02d"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/normalize.css",
+      "sha": "4e3ffa46ead2133985211140bc952bdeb7b8cbb7"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/tables.css",
+      "sha": "d5606470c1694480e95b810c3bd0b7ef92796608"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/toasts.css",
+      "sha": "092c78dfd0f035b119041ffe17096f12247191ee"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/typography.css",
+      "sha": "53a41722e8f6bd79edf371714b9797f03e6a2052"
+    },
+    {
+      "path": "packages/webui/src/client/styles/vendor/OpenSans.css",
+      "sha": "b743b7ec97b2ab61b1b6df62cad2e0c379f8eb41"
+    },
+    {
+      "path": "packages/webui/src/client/styles/vendor/animate.css",
+      "sha": "a55f47bdb45e373c3e423dcacda3a8ac0dad0b5a"
+    },
+    {
+      "path": "packages/webui/src/client/styles/vendor/material-icons.css",
+      "sha": "0d5897ccea2fac93cc0fb9433e8dac9f8d638362"
+    },
+    {
+      "path": "packages/webui/src/client/tests/testlang.js",
+      "sha": "d047f7c1e42547310dde685bacca25d8e79c6b4e"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/dates.test.ts",
+      "sha": "fa079e745789a261ed3cf6b417c08c8b97e555b0"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/downloads.test.ts",
+      "sha": "6d7fab6d0d232ff23426480b4f9e663489a0cd1a"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/texts.test.ts",
+      "sha": "6c39675c20cf66c524319a0d875c35c3cd746461"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/utils.test.ts",
+      "sha": "fe49c86f5d6332b5d59fdc7cfd978775a0682a9b"
+    },
+    {
+      "path": "packages/webui/src/client/tsconfig.json",
+      "sha": "98d3c594c361148bb176cbab128b7b43b355c06e"
+    },
+    {
+      "path": "packages/webui/src/client/use/favorites.ts",
+      "sha": "9959f995cf2210307c88370e3dbb94bddc77135d"
+    },
+    {
+      "path": "packages/webui/src/client/use/main-search.ts",
+      "sha": "6d5d24d169babd05ccc1c47fb0116daec696a188"
+    },
+    {
+      "path": "packages/webui/src/client/use/online.ts",
+      "sha": "c2c1316a35cc869cad7795566ca6d8761e88675e"
+    },
+    {
+      "path": "packages/webui/src/client/use/search.ts",
+      "sha": "0c6e71fb200dd4a97321c5bd9aa025d96730e185"
+    },
+    {
+      "path": "packages/webui/src/client/use/theme.ts",
+      "sha": "f51ef4d0da5d14656758625c144822a22eb76616"
+    },
+    {
+      "path": "packages/webui/src/client/utils/adjust-volume.ts",
+      "sha": "ccb27f5b724839703732706dddac02967038dfdd"
+    },
+    {
+      "path": "packages/webui/src/client/utils/api-utils.ts",
+      "sha": "0a6c53311df39d0da32261258d634e165d95fa26"
+    },
+    {
+      "path": "packages/webui/src/client/utils/countries.ts",
+      "sha": "345057d4757321178e33efb0ca181408f272fc8f"
+    },
+    {
+      "path": "packages/webui/src/client/utils/dates.ts",
+      "sha": "af9a33694360395dcf767a5a4b4317dc111280e2"
+    },
+    {
+      "path": "packages/webui/src/client/utils/downloads.ts",
+      "sha": "dde51cb6c46e23bfa7f69b9aa8eac66ee87f9250"
+    },
+    {
+      "path": "packages/webui/src/client/utils/emitter.ts",
+      "sha": "f5f72a3195904bc6687f69438de18498d5d638f2"
+    },
+    {
+      "path": "packages/webui/src/client/utils/flags.ts",
+      "sha": "028e266ea2a53a62744ca5b0cd08bf146164f56a"
+    },
+    {
+      "path": "packages/webui/src/client/utils/forms.ts",
+      "sha": "5c4e37eabf802f0f3ba07491ea45ae0229f64c4b"
+    },
+    {
+      "path": "packages/webui/src/client/utils/socket.ts",
+      "sha": "618ae14eb45f57ae626c51e0f08d7e968a49f9f0"
+    },
+    {
+      "path": "packages/webui/src/client/utils/texts.ts",
+      "sha": "45ddc3a0094087774fa3f6d57cfa95215bd7e7f2"
+    },
+    {
+      "path": "packages/webui/src/client/utils/toasts.ts",
+      "sha": "dfe7f3205e73db57bcc6b53c54df110926cbed4a"
+    },
+    {
+      "path": "packages/webui/src/client/utils/utils.ts",
+      "sha": "a6fa5cbb98e4ba067352a12de09b55f7f722e93e"
+    },
+    {
+      "path": "packages/webui/src/client/views/AboutView.vue",
+      "sha": "86b688624ab1997e329577aef70678fbd00152cd"
+    },
+    {
+      "path": "packages/webui/src/client/views/ArtistView.vue",
+      "sha": "601d720e9b12c59853a2b2812f192634d2be2a0e"
+    },
+    {
+      "path": "packages/webui/src/client/views/ChartsView.vue",
+      "sha": "3ff7316eb6555fafd0c3c362243703c7cf083f8e"
+    },
+    {
+      "path": "packages/webui/src/client/views/ErrorsView.vue",
+      "sha": "0f9ef3732f2ad5b81afad3a82b455fe857dffe37"
+    },
+    {
+      "path": "packages/webui/src/client/views/FavoritesView.vue",
+      "sha": "8ab171dc33d57df5c0e3db5b070375d3b40896b1"
+    },
+    {
+      "path": "packages/webui/src/client/views/HomeView.vue",
+      "sha": "7e2158a30b7de941c73481f7911731ee9ab0dd27"
+    },
+    {
+      "path": "packages/webui/src/client/views/InfoArl.vue",
+      "sha": "32cf5bb2ab9da100a2a0e7e9205892824cba7af9"
+    },
+    {
+      "path": "packages/webui/src/client/views/InfoSpotifyFeatures.vue",
+      "sha": "a8ab9ccdf59f237427207c976d9c858610c52f6a"
+    },
+    {
+      "path": "packages/webui/src/client/views/LinkAnalyzer.vue",
+      "sha": "55cd0beb0cec74efb7a0411e7437f2863159e61e"
+    },
+    {
+      "path": "packages/webui/src/client/views/SearchView.vue",
+      "sha": "42259e7077e52e643d5fccf9297ef5350987d788"
+    },
+    {
+      "path": "packages/webui/src/client/views/SettingsPage.vue",
+      "sha": "278430f944e56019bd12d51836aea105738d7d58"
+    },
+    {
+      "path": "packages/webui/src/client/views/TracklistView.vue",
+      "sha": "c8991170e476653a52a2233f01dc71bef44c5b9b"
+    },
+    {
+      "path": "packages/webui/src/server/deemixApp.ts",
+      "sha": "93a1fe42a1d359b828c187e39b5988a4d3f928dd"
+    },
+    {
+      "path": "packages/webui/src/server/env.d.ts",
+      "sha": "a275b60cb27071996f1425aa09b60f52d1fed1da"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/errors.ts",
+      "sha": "4ec7b3085c00d4824c925cccb5e7969dec3559c6"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/logger.ts",
+      "sha": "bdd5ec0ce8d035e12fae8777eb6820d5859d39d5"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/loginStorage.ts",
+      "sha": "1c4b179825eaaa4a545a075ebbeb48720c9c2334"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/port.ts",
+      "sha": "1b10c52c3684145111467df85d3396d8d40f520b"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/primitive-checks.ts",
+      "sha": "4e1c8bd22deb45f7202194743651112650e798be"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/server-callbacks.ts",
+      "sha": "31b11a329e605062321f7e318f25c3ad8dc40245"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/versions.ts",
+      "sha": "386355b7eb14cbb7013dfdc7f68b74f367df22ef"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/web-version.ts",
+      "sha": "b2b84e2f3c2853acfe34b1aa2a9269fcaf34fb21"
+    },
+    {
+      "path": "packages/webui/src/server/main.ts",
+      "sha": "d1bebd8a28593cb2afe6f956681907df2a749846"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/delete/index.ts",
+      "sha": "c311e45367ea5159875c90182146de5cdcd7266e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/albumSearch.test.ts",
+      "sha": "71a57a4c7e2e2169f88c781a5ae8b8090fbf9f2f"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/albumSearch.ts",
+      "sha": "c6143fa3185dd6f4e4dad8eb8460a9f86775f0ea"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/analyzeLink.test.ts",
+      "sha": "4ac9b1b3a68ddfbe43ed5ae4e642a684b0256331"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/analyzeLink.ts",
+      "sha": "63ce5f2eb01a19f387267c38d5868c17d57ac7ce"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/checkForUpdates.ts",
+      "sha": "424231e737e8e89284c3b8e0fc7300ea1f213148"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/connect.ts",
+      "sha": "6231c672e5d3a7145c8e5e5f7e1ba562ef356ccd"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getChartTracks.ts",
+      "sha": "89c4bf2dc8b13ae0d12b9a595cc872692a1b649a"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getCharts.ts",
+      "sha": "fe9cf625b13da8be48610a658b4ee8ee298c5c91"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getHome.ts",
+      "sha": "3aad37ec57893db7b6e4f8b6529b378a325b325d"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getQueue.ts",
+      "sha": "a40e164d4fd904a9982142608e7bb1ea75927504"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getSettings.ts",
+      "sha": "1089579905d1672a160f91735bee843d74e07c8f"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getTracklist.ts",
+      "sha": "87574d247afb0444742113cf48dc671711bcb4d1"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserAlbums.ts",
+      "sha": "1ada50857806978a4d2efd8ea6a3630ef6bc1e69"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserArtists.ts",
+      "sha": "771fe38a250014d8abea6ae922aa783e9903854d"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserFavorites.ts",
+      "sha": "3bf2191bbd3d2ea00ecbf6b31a7f28ce70c19baa"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserPlaylists.ts",
+      "sha": "dd4678ddade984b1fc2435efad4185206ebb960c"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserSpotifyPlaylists.ts",
+      "sha": "941492c22f48b033b3f956d8cea6ec1c30466800"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserTracks.ts",
+      "sha": "c26b73af894c80cdf5f0f2457298d07eebef078e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/index.ts",
+      "sha": "0fea82668a605d6510716962b9b0bdbd9480b7bb"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/mainSearch.ts",
+      "sha": "42e827d5b6c7438c926eddda737278cab1c46847"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/newReleases.ts",
+      "sha": "965898b0819619991c87235daca0cac260a1620c"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/search.ts",
+      "sha": "8aecc0323d35d6dc7a3c4b791ac623335f5375e1"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/spotifyStatus.ts",
+      "sha": "10304f0e764ad22f41de3d15f068fc187407a4e8"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/patch/index.ts",
+      "sha": "c311e45367ea5159875c90182146de5cdcd7266e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/addToQueue.ts",
+      "sha": "2d8b8ed17424e72023af1bc279e81261c7aeae89"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/cancelAllDownloads.ts",
+      "sha": "f61416caae76cd723717a4d788ba4934ac44f1f6"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/changeAccount.test.ts",
+      "sha": "3f9a332f2f40894853932e1648fc6494d80ab1ab"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/changeAccount.ts",
+      "sha": "06e30e97f3479834527da305943857502cb73e0d"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/index.ts",
+      "sha": "2c2a5df23b5f0fbd69e2c13d64b9f532be2d1123"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/loginArl.test.ts",
+      "sha": "163ef5461d67041663b742e1b3da3166be0a162e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/loginArl.ts",
+      "sha": "b1cd004166d782b36c5a97768eed97e5f704ec6c"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/logout.ts",
+      "sha": "f68b3d7f110cd0e01174fe631e5383c287446198"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/removeFinishedDownloads.ts",
+      "sha": "608ba1e8cb40983223d9d35a2c3f57da547fb8f8"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/removeFromQueue.ts",
+      "sha": "9096e0dd6059f23766612933c0278292bb5fe8eb"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/retryDownload.ts",
+      "sha": "45694378805c838eb6a5107212ae79c0db85ab5f"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/saveSettings.ts",
+      "sha": "51db3287685d13ddbd3ef9ab6a6c7aefbefaa550"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/register.ts",
+      "sha": "d3a03403d1ffdca1186e7f217fb6a8aa0950db32"
+    },
+    {
+      "path": "packages/webui/src/server/routes/index.ts",
+      "sha": "184dc5b5a8b5ee3d67fe1b9c720cf86c71bd783f"
+    },
+    {
+      "path": "packages/webui/src/server/tests/utils.ts",
+      "sha": "0dbaac35a4040623a536fd82c3694b925adeea3c"
+    },
+    {
+      "path": "packages/webui/src/server/tsconfig.json",
+      "sha": "3c764d4ae19d93efbe045c78a1ac57dc84c87d1f"
+    },
+    {
+      "path": "packages/webui/src/server/types.ts",
+      "sha": "72062e85d4369f8d4ccd15690274569edacb4a11"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/index.ts",
+      "sha": "2b90ce5cd4c8847ed13bb413fe6cc1df0f1388e8"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/cancelAllDownloads.ts",
+      "sha": "6ccaa25dcec5d11747bedbcff628e58c932cf796"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/index.ts",
+      "sha": "39bcd2758d7f64902f04813c2142ed210a719245"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/removeFinishedDownloads.ts",
+      "sha": "34f6cddcc5d12b83940304864e0e4a2c849ee0ee"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/removeFromQueue.ts",
+      "sha": "2fa2f419cf1a3589ae969e153bed35b084255759"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/saveSettings.ts",
+      "sha": "78f1bc106e5da8c035e029df79d2a96c49eee473"
+    },
+    {
+      "path": "packages/webui/tailwind.config.mjs",
+      "sha": "776073f0621db69213d97738c4b0392f22a07841"
+    },
+    {
+      "path": "packages/webui/tsconfig.config.json",
+      "sha": "cdb5e6d78eb905131bfc7032bf427987081d12df"
+    },
+    {
+      "path": "packages/webui/tsconfig.json",
+      "sha": "7566f7f84dbb5091fa63472549a05e94b8488e10"
+    },
+    {
+      "path": "packages/webui/vite.config.mts",
+      "sha": "9306e7ec9317ef8041c421c4d65c4ba2aa55f631"
+    },
+    {
+      "path": "packages/webui/vitest.config.ts",
+      "sha": "1c3992b94a7735887ed7f8ee76cf0e4d63d069b0"
+    },
+    {
+      "path": "pkgs/deemix.nix",
+      "sha": "22b7d9374754bdc7befc58d5f5545952834a4b32"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha": "6b8b24789b73500b272dfb4096a2b945c1550715"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "sha": "9e14c1df8317397b352abce846fdc4b173b5f43f"
+    },
+    {
+      "path": "prettier.config.mjs",
+      "sha": "a0caf8e1d453e69a0c0231e72dbac5f5f0064e33"
+    },
+    {
+      "path": "renovate.json",
+      "sha": "a09e72f400a26d6126844b09852ac27b4341a14b"
+    },
+    {
+      "path": "turbo.json",
+      "sha": "62b1dcca137eedae8e44770454991c78fe316c59"
+    },
+    {
+      "path": "vercel.json",
+      "sha": "1a648a90b0e36a03d32ad115faa074b201f62ed8"
+    },
+    {
+      "path": "vitest.config.ts",
+      "sha": "e74aab69ccb3ad28f0e9ed1247a6ab2ea1159204"
+    }
+  ],
+  "fork_files": [
+    {
+      "path": ".changeset/README.md",
+      "sha": "e5b6d8d6a67ad0dca8f20117fbfc72e076882d00"
+    },
+    {
+      "path": ".changeset/config.json",
+      "sha": "30198285353104cd68bfacc2d24fd129b2395f69"
+    },
+    {
+      "path": ".changeset/funny-pillows-rush.md",
+      "sha": "54d28faf1ba6fbae0896953e64fef4f77b862395"
+    },
+    {
+      "path": ".changeset/nine-lions-enjoy.md",
+      "sha": "8dc134e5a19a9f2705425fa8a22a4c42baee9643"
+    },
+    {
+      "path": ".changeset/quiet-codebase-hardening.md",
+      "sha": "4e90ee9d6d14aae393602431e09cc499e25f9485"
+    },
+    {
+      "path": ".commitlintrc.json",
+      "sha": "db59e1527977744b4237f3b6b4f746910d2fcf5b"
+    },
+    {
+      "path": ".dockerignore",
+      "sha": "d489c057baaf17d4e09bd198a380ca1dd4600ad3"
+    },
+    {
+      "path": ".gitattributes",
+      "sha": "ee783f9eeceda000fc08343a71a71628710baa52"
+    },
+    {
+      "path": ".github/CODEOWNERS",
+      "sha": "c99b200e148bc9b011942e95bae31ee173681e6f"
+    },
+    {
+      "path": ".github/FUNDING.yml",
+      "sha": "4059a302adf4f547bbafd66442fe82c32e99a76e"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "sha": "160740ee5ae705b04dd973bb68c2afcb9a510c33"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "sha": "628665035450c13871c7dc408eb8d7bf665a8796"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "sha": "2bc90ab5f36aa1c98db1742ca71d52d90bec61ab"
+    },
+    {
+      "path": ".github/workflows/build-publish-docker.yml",
+      "sha": "b8c2af2e536ce06a10de594c4cf829a337267bdb"
+    },
+    {
+      "path": ".github/workflows/build-release-cli.yml",
+      "sha": "7005c2f5dd0a4d7e2a2e305382ad3ea470375631"
+    },
+    {
+      "path": ".github/workflows/build-release-electron.yml",
+      "sha": "797f0f33ac92c8db5db79b4d00f703ee1dc77d12"
+    },
+    {
+      "path": ".github/workflows/build-windows-gui.yml",
+      "sha": "05620640729c0179a9d80c6245e3334f3c16e164"
+    },
+    {
+      "path": ".github/workflows/pull-request.yml",
+      "sha": "c33373e3bc6413e439a8aa6d1156972770432b4c"
+    },
+    {
+      "path": ".gitignore",
+      "sha": "0f824db9658dab38ec86af0e67666c8b2c318614"
+    },
+    {
+      "path": ".husky/commit-msg",
+      "sha": "47ff70a52c9c099128b0245700f047874fe53620"
+    },
+    {
+      "path": ".husky/pre-commit",
+      "sha": "d0a778429a369218df7f719986395c730290d97c"
+    },
+    {
+      "path": ".prettierignore",
+      "sha": "97d4647d50cec781c36200cb556dd28702a3fc19"
+    },
+    {
+      "path": "Dockerfile",
+      "sha": "3d0cc1ccb39bc535cb77166a6e789db8fb9e749f"
+    },
+    {
+      "path": "LICENSE.txt",
+      "sha": "810fce6e9bf2aa10265b85614db5ac65941ecf81"
+    },
+    {
+      "path": "README.md",
+      "sha": "ee4f91cd534e4af062a1710017c2a76c30c7d468"
+    },
+    {
+      "path": "SOFTWARE_RULES.md",
+      "sha": "aa6ac3324964fc14b1d8ab96b06bea79808329b1"
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha": "501bd3902ba3e9f99ef14c96b4940d05d64fa231"
+    },
+    {
+      "path": "docker/custom-cont-init.d/10-fix_folders",
+      "sha": "2134d0e717bdea45fabfe778790617d83f38ba6f"
+    },
+    {
+      "path": "docker/custom-cont-init.d/15-checks",
+      "sha": "c43d371262239527a246cddea85afd30c1427a5f"
+    },
+    {
+      "path": "docker/custom-services.d/deemix",
+      "sha": "738f85424ff65d48aaf3e6b3141edcb9c2bb336e"
+    },
+    {
+      "path": "docker/usr/local/bin/deemix",
+      "sha": "a657b8a4f6cd60840fa7243c8a1a9ea70f068a26"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "sha": "8174a7eb70a85b822e57a5204b6f6bccd474a904"
+    },
+    {
+      "path": "flake.lock",
+      "sha": "751194f8333b5eaa0fc80dd9761f031329b7c489"
+    },
+    {
+      "path": "flake.nix",
+      "sha": "1547ed3ad522c82993996701e8ea86c51d28f539"
+    },
+    {
+      "path": "lint-staged.config.mjs",
+      "sha": "5a36f365a49a3c4f869fa1074324e913c6d1803b"
+    },
+    {
+      "path": "package.json",
+      "sha": "bdcbdf7616b15d395297dd30a18d3810181c37a9"
+    },
+    {
+      "path": "packages/cli/.gitignore",
+      "sha": "f733c4b5fb40899f62e54d786d259c701938eba3"
+    },
+    {
+      "path": "packages/cli/CHANGELOG.md",
+      "sha": "28408333fd7eb5f3d605a6b9da38715723852d1d"
+    },
+    {
+      "path": "packages/cli/CONTINUITY.md",
+      "sha": "83fe2c00c9d98631e55c21404615987f98e64d5e"
+    },
+    {
+      "path": "packages/cli/README.md",
+      "sha": "803b47692d7eadd5f0bc5926f284dfc89e638949"
+    },
+    {
+      "path": "packages/cli/package.json",
+      "sha": "a571aff95c3017dbe5172449cbfd6b55c9c1c4c5"
+    },
+    {
+      "path": "packages/cli/src/bitrate.test.ts",
+      "sha": "ef0bd17b6729b35d5ac67380e67e2508a6b539f1"
+    },
+    {
+      "path": "packages/cli/src/bitrate.ts",
+      "sha": "08d2fc197ef40711c612b0f862b44c2cfad80441"
+    },
+    {
+      "path": "packages/cli/src/download.ts",
+      "sha": "c628732eb9bbc718dd320d10e2609dfa5c0ed407"
+    },
+    {
+      "path": "packages/cli/src/login.test.ts",
+      "sha": "ed04e87a86e4ba5444872df4e50d23652050d1d2"
+    },
+    {
+      "path": "packages/cli/src/login.ts",
+      "sha": "7ecbf69fcf916c2916fb474e54748c2724bb1322"
+    },
+    {
+      "path": "packages/cli/src/main.ts",
+      "sha": "14cb07f9dae6800f1e1868ab194f0742252196ea"
+    },
+    {
+      "path": "packages/cli/tsconfig.json",
+      "sha": "fa6192305a441e5af2233c2db539cbe1be6a6238"
+    },
+    {
+      "path": "packages/cli/tsup.config.ts",
+      "sha": "c383d10ae8f803c6cb991c998a7776d407d81871"
+    },
+    {
+      "path": "packages/cli/vitest.config.ts",
+      "sha": "954ff1236f3703a9ca3d6151b170f788a3e507f8"
+    },
+    {
+      "path": "packages/deemix/CHANGELOG.md",
+      "sha": "113714e1f6ef666036113508b543722821c00e6e"
+    },
+    {
+      "path": "packages/deemix/CONTINUITY.md",
+      "sha": "3c74422fd4037205ced7f4a147bc5f175a08cb8a"
+    },
+    {
+      "path": "packages/deemix/package.json",
+      "sha": "d3f6fedd626ad03e5c8c70a9f6741fe8ea6c9252"
+    },
+    {
+      "path": "packages/deemix/src/credentials.test.ts",
+      "sha": "35b4bcfb2be78d02a3c23e4d08aa77be079f9814"
+    },
+    {
+      "path": "packages/deemix/src/credentials.ts",
+      "sha": "a369f12e30a23736137251b402edf4d9a4cd15ed"
+    },
+    {
+      "path": "packages/deemix/src/decryption.ts",
+      "sha": "ec3cdab5ac252239200720a2da499521308021a9"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/Collection.ts",
+      "sha": "310799830d6a0a21641efbed464f4fb328a348f7"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/DownloadObject.ts",
+      "sha": "613a796346fb470be5512b106a1453f4ef6bd65a"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/Single.ts",
+      "sha": "65cd6ec5a997961de88586dac7ea602853fd17bb"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generateAlbumItem.test.ts",
+      "sha": "f285cd31959e3142535421ad53db29675a33737d"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generateAlbumItem.ts",
+      "sha": "b1e57f1a12114eebdadddea85a581d63008fe05b"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generateArtistTopItem.ts",
+      "sha": "3a0ef158097ada886c72dbd0d80ede8887549c92"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generatePlaylistItem.ts",
+      "sha": "d9044be906f8f1024392f36f92ac6c84a9affe7e"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/generateTrackItem.ts",
+      "sha": "39ecfbaa49af0178793fbcd454053009899042d8"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/index.ts",
+      "sha": "30c348dbb07342a078ed872183ea740b706e811c"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/musicbrainzReleaseDiscovery.test.ts",
+      "sha": "c6896f93b042fd9b75e4222b02e2eeef20e9f4cd"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/musicbrainzReleaseDiscovery.ts",
+      "sha": "c2d3c656cbb23c32bc527ef852e9939981a24277"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/releaseVariants.test.ts",
+      "sha": "8b6bccf42b6b1a4bf54e90b6bdff162382a1c69a"
+    },
+    {
+      "path": "packages/deemix/src/download-objects/releaseVariants.ts",
+      "sha": "d1bdde838b253bebb30608fe804c1e1891e6c562"
+    },
+    {
+      "path": "packages/deemix/src/downloader.test.ts",
+      "sha": "38bfd48bc3bcb547429e8022578226a394f635f3"
+    },
+    {
+      "path": "packages/deemix/src/downloader.ts",
+      "sha": "98d2e6590fb7012e184ccc57f1a1012b71dd1e62"
+    },
+    {
+      "path": "packages/deemix/src/errors.ts",
+      "sha": "970dd82bc29bcc4eabe3964b2f670e3a9e57c453"
+    },
+    {
+      "path": "packages/deemix/src/index.ts",
+      "sha": "0d3127c0ddae86838709edc9669ac44ea8598761"
+    },
+    {
+      "path": "packages/deemix/src/plugins/base.ts",
+      "sha": "c7ae4b59beda51638d039f380511437479294973"
+    },
+    {
+      "path": "packages/deemix/src/plugins/index.ts",
+      "sha": "7b83554d3c1aab2c56cf85dc8bdce0a2debef3d2"
+    },
+    {
+      "path": "packages/deemix/src/plugins/listenbrainz.ts",
+      "sha": "9bb6adc80cdb3a6e92f1f81239888632d600fe32"
+    },
+    {
+      "path": "packages/deemix/src/plugins/spotify.test.ts",
+      "sha": "c34fc6c4709bae928473c64d46e53146d19e9224"
+    },
+    {
+      "path": "packages/deemix/src/plugins/spotify.ts",
+      "sha": "d9ef0029e86a6b0c57b05ddf0d6dfd01dcb9c56b"
+    },
+    {
+      "path": "packages/deemix/src/plugins/types.test.ts",
+      "sha": "985f06a4126a66cd89a4c4adeeee4c78cfdc42d8"
+    },
+    {
+      "path": "packages/deemix/src/plugins/types.ts",
+      "sha": "dc9ad4197b3c89acf5d524f7ec7f8e14d9583224"
+    },
+    {
+      "path": "packages/deemix/src/settings.ts",
+      "sha": "5479edeb565e88cf8a40d86f32466ce13a411b1f"
+    },
+    {
+      "path": "packages/deemix/src/tagger.ts",
+      "sha": "2d6a3988a837ee80e3a460d4e05485ac83fc31e8"
+    },
+    {
+      "path": "packages/deemix/src/types/Album.ts",
+      "sha": "36e4b39763cd90b28a5ceb6ca737215ed9f7eb39"
+    },
+    {
+      "path": "packages/deemix/src/types/Artist.ts",
+      "sha": "6f9f705cf6d2b763734201c770668a8f225a1527"
+    },
+    {
+      "path": "packages/deemix/src/types/CustomDate.ts",
+      "sha": "ad7277058c9e57aca646b7b74c972eb8f5462f76"
+    },
+    {
+      "path": "packages/deemix/src/types/LoginFile.ts",
+      "sha": "4aab6f3aaac2cdf05d9f75235ca9880082823728"
+    },
+    {
+      "path": "packages/deemix/src/types/Lyrics.ts",
+      "sha": "240861fd428cba1162b817f0d38e84eafdae943a"
+    },
+    {
+      "path": "packages/deemix/src/types/Picture.ts",
+      "sha": "f646aec73d0207f6773049560d1f5571f8659754"
+    },
+    {
+      "path": "packages/deemix/src/types/Playlist.ts",
+      "sha": "d08a1ea42e7e6519642d4aebb5034c9d2402dd7c"
+    },
+    {
+      "path": "packages/deemix/src/types/Settings.ts",
+      "sha": "d860e6a809cd1fc7998e57742c63f7d522ac6164"
+    },
+    {
+      "path": "packages/deemix/src/types/Track.ts",
+      "sha": "957930a4dff36616e00e2af2b5a8328dd480375f"
+    },
+    {
+      "path": "packages/deemix/src/types/index.ts",
+      "sha": "c2b8c60786753071d48dd5a35baae03d45df6fc4"
+    },
+    {
+      "path": "packages/deemix/src/types/listener.ts",
+      "sha": "a9b248b0186714a21cb781620aa1a8175908779e"
+    },
+    {
+      "path": "packages/deemix/src/utils/blowfish.cjs",
+      "sha": "1b12ab44d8957826b257868382b970e277c2591f"
+    },
+    {
+      "path": "packages/deemix/src/utils/core.ts",
+      "sha": "a79818633476e1de684f6875d0aca9642e39e61f"
+    },
+    {
+      "path": "packages/deemix/src/utils/crypto.ts",
+      "sha": "46445c17cac70e9357719e35149ac0816b2b7075"
+    },
+    {
+      "path": "packages/deemix/src/utils/deezer.ts",
+      "sha": "eb1c9008c04442c96d18c7c83c4d0228826a63e0"
+    },
+    {
+      "path": "packages/deemix/src/utils/downloadImage.ts",
+      "sha": "92eaa31fa0587c4bf9b738d9bd052cb33b866259"
+    },
+    {
+      "path": "packages/deemix/src/utils/downloadUtils.ts",
+      "sha": "350471ae35268808f39d44b9e25a92032680962a"
+    },
+    {
+      "path": "packages/deemix/src/utils/fallbackTimeout.test.ts",
+      "sha": "4eec3172adceed522df2b2f839944ac163cf95b8"
+    },
+    {
+      "path": "packages/deemix/src/utils/fallbackTimeout.ts",
+      "sha": "48b3cd5067776bae01b9879547b56b78e3bb3163"
+    },
+    {
+      "path": "packages/deemix/src/utils/getPreferredBitrate.ts",
+      "sha": "74e108282b785f8dbc9de40e09fc3de1dbd945a6"
+    },
+    {
+      "path": "packages/deemix/src/utils/index.ts",
+      "sha": "b3cf7daa2eef70c3c8db7f0f727cc977a2cd27a4"
+    },
+    {
+      "path": "packages/deemix/src/utils/isrcCache.test.ts",
+      "sha": "a054da1dfde3434c9a7f0d533fbf1e38c0e46051"
+    },
+    {
+      "path": "packages/deemix/src/utils/isrcCache.ts",
+      "sha": "55aca2d92c4c97465649dea94fc3156f2d16972f"
+    },
+    {
+      "path": "packages/deemix/src/utils/localpaths.ts",
+      "sha": "24aaa55596881f747527e62ffba8161ac83651d6"
+    },
+    {
+      "path": "packages/deemix/src/utils/lyricsFallback.test.ts",
+      "sha": "a3fd08d4c79c0004c067632b7097cac2324436a9"
+    },
+    {
+      "path": "packages/deemix/src/utils/lyricsFallback.ts",
+      "sha": "f25354a17c0ad7435aef50575a38ddc88da4a4bc"
+    },
+    {
+      "path": "packages/deemix/src/utils/musicbrainzFallback.test.ts",
+      "sha": "f4fd2b51b9484a47ded88370b1c16cbe75103cc4"
+    },
+    {
+      "path": "packages/deemix/src/utils/musicbrainzFallback.ts",
+      "sha": "9649f880e8047ca7be2cce2909b4450bb6eae32a"
+    },
+    {
+      "path": "packages/deemix/src/utils/musicbrainzHttp.test.ts",
+      "sha": "367ba825caefaefe6776685fc3c76c5e483ca040"
+    },
+    {
+      "path": "packages/deemix/src/utils/musicbrainzHttp.ts",
+      "sha": "415607b6d734a92d3637fa2dc62febfcda6a803f"
+    },
+    {
+      "path": "packages/deemix/src/utils/pathtemplates.test.ts",
+      "sha": "0ae172dece3cdbfeda8720bded552cb14620d01d"
+    },
+    {
+      "path": "packages/deemix/src/utils/pathtemplates.ts",
+      "sha": "ee44e0e9076c11bc29fe206b629dde0b918f2037"
+    },
+    {
+      "path": "packages/deemix/src/utils/protectedStorage.ts",
+      "sha": "aebf6a1bb68d1ba5f8a68711ef265c83115b52f7"
+    },
+    {
+      "path": "packages/deemix/tsconfig.json",
+      "sha": "3e70d9e73d53fc2543fc92d69e46fc6f634f61ec"
+    },
+    {
+      "path": "packages/deemix/vitest.config.ts",
+      "sha": "1c3992b94a7735887ed7f8ee76cf0e4d63d069b0"
+    },
+    {
+      "path": "packages/deezer-sdk/CHANGELOG.md",
+      "sha": "93157f1cd5e56d6265da89a956c009d96eeff492"
+    },
+    {
+      "path": "packages/deezer-sdk/CONTINUITY.md",
+      "sha": "e99c4fa3940b4aa1e3be2ebee3fd7a11cf021726"
+    },
+    {
+      "path": "packages/deezer-sdk/package.json",
+      "sha": "1fca5788a0e7604d7789d678817254b9c360762d"
+    },
+    {
+      "path": "packages/deezer-sdk/src/api.ts",
+      "sha": "0510c41f876464073be6af8e25f6dd759a24c60e"
+    },
+    {
+      "path": "packages/deezer-sdk/src/deezer.ts",
+      "sha": "979fd5b33d328ea246496439da514a4cb4d35357"
+    },
+    {
+      "path": "packages/deezer-sdk/src/errors.ts",
+      "sha": "36c8b05fbf2f8494d138adf49c05d6c4f834a045"
+    },
+    {
+      "path": "packages/deezer-sdk/src/gw.ts",
+      "sha": "e8d2e7070c6e03edd1ec0221ed364649615bf83d"
+    },
+    {
+      "path": "packages/deezer-sdk/src/index.ts",
+      "sha": "9b7f3a12dcb1703ea18bdc2a777b164d10b9f2ab"
+    },
+    {
+      "path": "packages/deezer-sdk/src/retry.test.ts",
+      "sha": "0ba1ad537fbc900acee1009bc6bcd3932248787c"
+    },
+    {
+      "path": "packages/deezer-sdk/src/retry.ts",
+      "sha": "793fde05481c011fce2dfc633f6c2acac71adc94"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/album-schema.ts",
+      "sha": "827106ebbe6e85be6d150be4680ba549639db165"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/contributor-schema.ts",
+      "sha": "dcc1f68ee1f00879f5636a2ff3f1cca3807a9709"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/playlist-schema.ts",
+      "sha": "9081d66ce5165342e11c2c1d9f2a459cb376a407"
+    },
+    {
+      "path": "packages/deezer-sdk/src/schema/track-schema.ts",
+      "sha": "72e8b12f82f1869c11ca7f272a6ad5612278cf28"
+    },
+    {
+      "path": "packages/deezer-sdk/src/store.ts",
+      "sha": "ba95fea2228c6519df46e2fc1e7d89d4c7789121"
+    },
+    {
+      "path": "packages/deezer-sdk/src/tests/api.test.ts",
+      "sha": "8e27fd09418f83d349b1695e3de90de98b36ebc8"
+    },
+    {
+      "path": "packages/deezer-sdk/src/types.ts",
+      "sha": "3614145af9d1d17d03d5bdb35b775e7322865b9e"
+    },
+    {
+      "path": "packages/deezer-sdk/src/utils.ts",
+      "sha": "cea2d6b5b816fd1a654bf4c8a81bb54ebf6396ca"
+    },
+    {
+      "path": "packages/deezer-sdk/tsconfig.json",
+      "sha": "98d86c1587cfcb4d650c17a61a95ef2fb250f1d3"
+    },
+    {
+      "path": "packages/deezer-sdk/vitest.config.ts",
+      "sha": "954ff1236f3703a9ca3d6151b170f788a3e507f8"
+    },
+    {
+      "path": "packages/gui/CHANGELOG.md",
+      "sha": "d102a6f535e354c805b86a5c82626b8b313a4b38"
+    },
+    {
+      "path": "packages/gui/CONTINUITY.md",
+      "sha": "2ba30498a0e8f8e64c8c791814106234960f3c34"
+    },
+    {
+      "path": "packages/gui/build/64x64.png",
+      "sha": "dc7ba217cf47b0042974ce35b19384da3a916bb4"
+    },
+    {
+      "path": "packages/gui/build/icon.icns",
+      "sha": "ec0ca045aa5e74716ccf4ca55b9662621d5f79da"
+    },
+    {
+      "path": "packages/gui/build/icon.ico",
+      "sha": "7c07bf81407a995d30cf51533ab39efa91efec3f"
+    },
+    {
+      "path": "packages/gui/build/icon.svg",
+      "sha": "dd4cbc7ec9c95d55654e0e4c4fb1a24e0adec60f"
+    },
+    {
+      "path": "packages/gui/forge.config.js",
+      "sha": "68f623d930cf0777253bcf3df4a91bf632165405"
+    },
+    {
+      "path": "packages/gui/package.json",
+      "sha": "8b8dfef6c31bc7a9e2e3e3c059684b129ff2fec5"
+    },
+    {
+      "path": "packages/gui/scripts/build.js",
+      "sha": "86110fb0d12c1f8ffae892030e7a94fd55a8c17a"
+    },
+    {
+      "path": "packages/gui/scripts/cjs-shim.js",
+      "sha": "7d7bbfd79fc9fc5188a50e583c92315ddc5cd0ed"
+    },
+    {
+      "path": "packages/gui/scripts/utils.js",
+      "sha": "60a3c976ac05c17fe6dad0cbdbf663ce730e4fe1"
+    },
+    {
+      "path": "packages/gui/src/main.ts",
+      "sha": "9ff2b108b38ab4c3c533a15f6f26d52f5d822bcc"
+    },
+    {
+      "path": "packages/gui/src/preload.ts",
+      "sha": "fc2f946511e46f5cd6221c61fc7f76d98924e593"
+    },
+    {
+      "path": "packages/gui/tsconfig.json",
+      "sha": "1f4e7208ec676b6060a3412c2a235a57fbff2cb2"
+    },
+    {
+      "path": "packages/webui/CHANGELOG.md",
+      "sha": "23f817883e35216de5334804759015f294a76331"
+    },
+    {
+      "path": "packages/webui/CONTINUITY.md",
+      "sha": "67ff02433e7c6fa4cc4d48a0e8d6b2daa032e04f"
+    },
+    {
+      "path": "packages/webui/README.md",
+      "sha": "f348caf81e671e276b9437883c93fc71b89fd986"
+    },
+    {
+      "path": "packages/webui/index.html",
+      "sha": "de44d6dda978b00cc0b1415cd025386495ec9b56"
+    },
+    {
+      "path": "packages/webui/package.json",
+      "sha": "28ab5e180e39518b68d1c6eace28cd442cbf426f"
+    },
+    {
+      "path": "packages/webui/postcss.config.cjs",
+      "sha": "7648842394dcbb3d0469cc2669dba39c8f135b55"
+    },
+    {
+      "path": "packages/webui/public/favicon.png",
+      "sha": "dc7ba217cf47b0042974ce35b19384da3a916bb4"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/LICENSE.txt",
+      "sha": "d645695673349e3947e8e5ae42332d0ac3164cd7"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOUehpOqc.woff2",
+      "sha": "eff71c00128ccb05408e2874a9102d480ed4ccb6"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOUuhp.woff2",
+      "sha": "3a38286c672d781462fb22dc0b27393c8972ad13"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOVuhpOqc.woff2",
+      "sha": "43d5a7cadcb005b9b35880084f90cee58495e3b9"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOX-hpOqc.woff2",
+      "sha": "baec66cc98321bed3bf0c2273d26707a79fa7fec"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOXOhpOqc.woff2",
+      "sha": "c805bc07444dec9415abe72e1ad9fdb9e1c6d438"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOXehpOqc.woff2",
+      "sha": "ea8feb29fbc35f2aabdc4eb66aaab1920c1a2bf3"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN7rgOXuhpOqc.woff2",
+      "sha": "1302cd53e2294a058aaf06b2ed5c90f0273bfed6"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOUehpOqc.woff2",
+      "sha": "8a419a171889356cf8ca5752b9712624a0fb72cd"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOUuhp.woff2",
+      "sha": "86a8a8757e9be36e9a69ff1e4d7adf901ae37442"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOVuhpOqc.woff2",
+      "sha": "9c199fd211f6a5bf621ed29306ff9d1bc430e296"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOX-hpOqc.woff2",
+      "sha": "b3fa3dadac33dc3183c2d4918cdd1df02a1d03f1"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOXOhpOqc.woff2",
+      "sha": "1476f0f3bc3a2190faab179517b7e9cc07b1bc91"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOXehpOqc.woff2",
+      "sha": "4feeeab5f5426bcf1d55883ebbb63657dbe469bf"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN8rsOXuhpOqc.woff2",
+      "sha": "6ec620ffcef95a3ed98978f34e82eeaee07097e1"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OUehpOqc.woff2",
+      "sha": "456c550dd9be7a7a386f155fef797877c2243d81"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OUuhp.woff2",
+      "sha": "7bf901c28ed2604e948f6e7afa54c8c93ee5eb06"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OVuhpOqc.woff2",
+      "sha": "d3bbaba4281eca4f6aedb645ad1b235225d07efc"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OX-hpOqc.woff2",
+      "sha": "2ea4253f98102268889671b34cf527ea791b7399"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OXOhpOqc.woff2",
+      "sha": "1ed5f4ff6c072fd880a6b09005db76adc2a071a0"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OXehpOqc.woff2",
+      "sha": "d36e95d00fa9e841b38a4930fadcf474b07b876e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UN_r8OXuhpOqc.woff2",
+      "sha": "7c251dc3251163030c68ced730e39720fe59c1cd"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOUehpOqc.woff2",
+      "sha": "59855dc855258a3569d79c0f1ae3b6be31663718"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOUuhp.woff2",
+      "sha": "5c5d54e2f292590b493385ac8694f163a9d6b2b7"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOVuhpOqc.woff2",
+      "sha": "f8a4ea3a32a1016c61a73aca95f5414de6799867"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOX-hpOqc.woff2",
+      "sha": "4587c68175ee02ef3a38af63444f15b5b0071858"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOXOhpOqc.woff2",
+      "sha": "83b1803694c7df8418f0ebb5d145498e89a6c4b8"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOXehpOqc.woff2",
+      "sha": "9518615b4f64d9d69e990e5476aa00f1fc4cbed5"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem5YaGs126MiZpBA-UNirkOXuhpOqc.woff2",
+      "sha": "9a9a5c6d055a025576211e545e01102482b88076"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Udc1UAw.woff2",
+      "sha": "b4d9f612b847d611d7f82dadc0ddf72c76db7fda"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Vdc1UAw.woff2",
+      "sha": "3426d9bb560698d93b6972d931af01f325620a42"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Wdc1UAw.woff2",
+      "sha": "e4d49fe0a38faeda9bc1465b95c7f099e60cab1e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Xdc1UAw.woff2",
+      "sha": "ca1b2b1eef8c99ef728f1cc956ca2b4802517b5e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0Zdc0.woff2",
+      "sha": "10031c02259c75aaa8e09662239eeb53ad385f9b"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0adc1UAw.woff2",
+      "sha": "04139efb3df23b2fc7fdc39ac8256b909b0aa477"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem6YaGs126MiZpBA-UFUK0ddc1UAw.woff2",
+      "sha": "a7b01fa0c8c51871ea6a46ca909d38fb2a138889"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFUZ0bbck.woff2",
+      "sha": "4c5a6f0f4d14edaf1c78de663d627e0786bd0bce"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFVZ0b.woff2",
+      "sha": "e9f58b775ec05aedecb58eaa34d0fd2a8d5d1aae"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFVp0bbck.woff2",
+      "sha": "3770a39d6e75c7c54cb358fe49456ca61dd0476b"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFW50bbck.woff2",
+      "sha": "4e74089d8f46c0c8842e1b1aa751ba967943eeb3"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFWJ0bbck.woff2",
+      "sha": "1f2f58842ae4aabd646435d60c42bb52b21db68a"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFWZ0bbck.woff2",
+      "sha": "1675bab177e947caee680e0ec629f2390b88fc4e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/mem8YaGs126MiZpBA-UFWp0bbck.woff2",
+      "sha": "d72068a0c52eb282cf9b910db2e1c6d2491eaf98"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hkIqOjjg.woff2",
+      "sha": "20c325dbd843fca49e056b0b945f2b081bf4168f"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hlIqOjjg.woff2",
+      "sha": "7dbd8fa112152fd557b3c6bef99ce20f9af2c039"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hmIqOjjg.woff2",
+      "sha": "ccb1a12efbb8dbf049f462d9abcff21d9bb1f84c"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hnIqOjjg.woff2",
+      "sha": "aaf73e2afcc47cbdae7a53aa5568f32dc325f2aa"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hoIqOjjg.woff2",
+      "sha": "7f0aa701c263ec9bb4a2f32e89dfd45bd7c6f318"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hrIqM.woff2",
+      "sha": "82a1f00d3a4c7aa4bb7e475b5e7a87b676f71fd4"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKW-U9hvIqOjjg.woff2",
+      "sha": "3d996a8d984eef727cccab2e9efc3a3ddb2a3983"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhkIqOjjg.woff2",
+      "sha": "0c7ef0aa87e9028d3943fee3459ced8c504db9c7"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhlIqOjjg.woff2",
+      "sha": "5b3484fe3022de3db0a7a635f9e9caa70a801ccf"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhmIqOjjg.woff2",
+      "sha": "9854e0e575d8efcad6dab74893296b7fa19d84e8"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhnIqOjjg.woff2",
+      "sha": "8a4187c5f4575034f56b737ab01dd066d1ad9a73"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhoIqOjjg.woff2",
+      "sha": "45362f16594dc30926570c6d92ff9bc13c4ceab2"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhrIqM.woff2",
+      "sha": "5153813388dade92abf088e0db77711608ca12e0"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWiUNhvIqOjjg.woff2",
+      "sha": "0307dec8b6096fc9e4ea49ba5e804966b5b742b9"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hkIqOjjg.woff2",
+      "sha": "35801c0c0469713921a5a94d5a255dee9e4794b9"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hlIqOjjg.woff2",
+      "sha": "8f5da525bbfd8a16c966dd9f9286733294c393e6"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hmIqOjjg.woff2",
+      "sha": "be29757f5620808d710b335c9db4b24cae6748f8"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hnIqOjjg.woff2",
+      "sha": "ccbc46024ae0e9eff174dedad7001b3276c592fb"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hoIqOjjg.woff2",
+      "sha": "e44fa881ddd26bec54e4eb4343d4f07313204a6e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hrIqM.woff2",
+      "sha": "6d4334ee81b7870afbcc832e7a160167bb6ea59e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKWyV9hvIqOjjg.woff2",
+      "sha": "d91cb0bd7ff231718a994e9c9847deda4eda122b"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhkIqOjjg.woff2",
+      "sha": "0f28f1260b5bcc33915c8d5f9cc06f44ba7a3d0f"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhlIqOjjg.woff2",
+      "sha": "ccf4acb1286617c48812e19a16ba7cd3a0eaaf2e"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhmIqOjjg.woff2",
+      "sha": "1dd821c322062d7781d0ba905d06c9b65bddcb12"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhnIqOjjg.woff2",
+      "sha": "c2f5b87935a5049c8003ba8ee26075157e15a694"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhoIqOjjg.woff2",
+      "sha": "686806694d0725c1e796724b3e934d9c5a0e4fa3"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhrIqM.woff2",
+      "sha": "c2450f3e6410d0f2790a003087b694c5100f3a14"
+    },
+    {
+      "path": "packages/webui/public/fonts/OpenSans/memnYaGs126MiZpBA-UFUKXGUdhvIqOjjg.woff2",
+      "sha": "1a1fa021ceed22107d04ee3c080330277612795d"
+    },
+    {
+      "path": "packages/webui/public/fonts/icons/MaterialIcons-Regular.ttf",
+      "sha": "be4be29c8664ae8199bd0fa6c8df9e8e140d354f"
+    },
+    {
+      "path": "packages/webui/public/res/InfoSpotifyFeatures/ClientIdSecret.png",
+      "sha": "82470ee73021249ad172981ab64962ab57586e08"
+    },
+    {
+      "path": "packages/webui/public/res/InfoSpotifyFeatures/CreateApp.png",
+      "sha": "78ae7291194f86bc1bbd8df68bb811d8d34b617f"
+    },
+    {
+      "path": "packages/webui/public/res/InfoSpotifyFeatures/CreateAppForm.png",
+      "sha": "8e749ba17a5ac1b63190f0a66df917664c5b04e1"
+    },
+    {
+      "path": "packages/webui/src/client/App.vue",
+      "sha": "8bb0506d62d089f0370508250a4481cbc5555728"
+    },
+    {
+      "path": "packages/webui/src/client/assets/ar.svg",
+      "sha": "37670909c8987cdfef435c8f7bf051c2e56aa63f"
+    },
+    {
+      "path": "packages/webui/src/client/assets/deemix-icon.svg",
+      "sha": "d45054e738e514f386dbab5a29788586e754d5e4"
+    },
+    {
+      "path": "packages/webui/src/client/components/TheContent.vue",
+      "sha": "e1521da3b88e8d59b20100bee4b3a09c4142b7ca"
+    },
+    {
+      "path": "packages/webui/src/client/components/TheSearchBar.vue",
+      "sha": "774ec9530a979cf0c0a7ae50918e8bf799aedf2b"
+    },
+    {
+      "path": "packages/webui/src/client/components/TheSidebar.vue",
+      "sha": "51f62ec467ea549662f0e28bcafbcabc149c0fd0"
+    },
+    {
+      "path": "packages/webui/src/client/components/ThemePicker.vue",
+      "sha": "9d2257a82dbb78bbac1b74b2e017ec65cd0fb117"
+    },
+    {
+      "path": "packages/webui/src/client/components/downloads/QueueItem.vue",
+      "sha": "38a53c5778636696626bfb6cb8eb4e3d163cb918"
+    },
+    {
+      "path": "packages/webui/src/client/components/downloads/TheDownloadBar.vue",
+      "sha": "214e3adecff2959898d23414beb4c8e573594093"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BackButton.vue",
+      "sha": "9a6305652480bb26a25baedb900427d686775b99"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseAccordion.vue",
+      "sha": "1b7553cbff18cc63438e873e531b67e9e4211cf3"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseLoadingPlaceholder.vue",
+      "sha": "550184031c746fdfb7684088d242719b361c1d26"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseTab.vue",
+      "sha": "b4c812f89b9e9dd67f65d8290b0e9a21f216fdc7"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/BaseTabs.vue",
+      "sha": "1cfb72edf1a9b30301de012c4a7a4d2eddacd6af"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/CoverContainer.vue",
+      "sha": "1203f53beec19bdb2b56577723a375f7a4739b87"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/DeezerWarning.vue",
+      "sha": "27f986be21462332a88ce761336958dc81f0dc4d"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/PreviewControls.vue",
+      "sha": "1f57975aa7a11b9a6590bb0ae32b94c0cf871e18"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/TheContextMenu.vue",
+      "sha": "29db994796e7f04deb5fd864a138f3fc090fa0c6"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/TheQualityModal.vue",
+      "sha": "c7a486e5f0a08f9fb5c5537a1121eca046ca42db"
+    },
+    {
+      "path": "packages/webui/src/client/components/globals/TheTrackPreview.vue",
+      "sha": "aef56821ed938a64e9987b6567edd3e824d11883"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsAlbums.vue",
+      "sha": "eb511176fa635d4a03b78087710fac25decb3015"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsAll.vue",
+      "sha": "97d0aee2939d64cdbd6f526939f45a2630730e0b"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsArtists.vue",
+      "sha": "3cfc509d4e77be4f0d77c3292abc6849308e5694"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsError.vue",
+      "sha": "8406d89cefbfe0fcdd8b22b49040ad0562b1b5b3"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsPlaylists.vue",
+      "sha": "6c2be5cb746ba53d517fffd80524d5da75e1e75a"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/ResultsTracks.vue",
+      "sha": "ffb70137e31922207c6603498733fc8e8906b5ad"
+    },
+    {
+      "path": "packages/webui/src/client/components/search/TopResult.vue",
+      "sha": "6f787a5e9e1bc9f4272b8dbd70bf23b720ef1948"
+    },
+    {
+      "path": "packages/webui/src/client/components/settings/TemplateVariablesList.vue",
+      "sha": "c7d863867113b163f9af379ae015a206ab5b5d86"
+    },
+    {
+      "path": "packages/webui/src/client/data/artist.ts",
+      "sha": "36439506faa0bcfb2dd2ee3cf25097e407b9722d"
+    },
+    {
+      "path": "packages/webui/src/client/data/charts.ts",
+      "sha": "ba4e10c25d91f153b41ca3571848d3af9de62476"
+    },
+    {
+      "path": "packages/webui/src/client/data/file-templates.ts",
+      "sha": "cb0e1a7cbff312e3bfd0cc5331ab734a9a1f525f"
+    },
+    {
+      "path": "packages/webui/src/client/data/home.ts",
+      "sha": "7c70fd3ca3801a613ac56675529fd35f3fed71e7"
+    },
+    {
+      "path": "packages/webui/src/client/data/qualities.ts",
+      "sha": "0207b91857a6452a5455a648e5510dbe4001e04d"
+    },
+    {
+      "path": "packages/webui/src/client/data/search.ts",
+      "sha": "8fd48b5f03efeb3b41cd42f7c31672f99de35417"
+    },
+    {
+      "path": "packages/webui/src/client/data/settings.ts",
+      "sha": "fe80259d1f4164b19cb89f32907a367289f2733d"
+    },
+    {
+      "path": "packages/webui/src/client/data/sidebar.ts",
+      "sha": "0cd9012dbccb9a617d4c3750e41b27d31357cae5"
+    },
+    {
+      "path": "packages/webui/src/client/data/standardize.ts",
+      "sha": "0c3f20fa0f3383c2773901930de0f9e20caebb4f"
+    },
+    {
+      "path": "packages/webui/src/client/electron-window.d.ts",
+      "sha": "f37b4f9fb2675aed4fc9a39ed186469c8674f0d1"
+    },
+    {
+      "path": "packages/webui/src/client/env.d.ts",
+      "sha": "3fc2cf0e45f3e53464efcda7d71156813d7d1ada"
+    },
+    {
+      "path": "packages/webui/src/client/lang/ar.mjs",
+      "sha": "1e6a729d66374315244b001e08bfe632ee72b283"
+    },
+    {
+      "path": "packages/webui/src/client/lang/de.mjs",
+      "sha": "689654f9bb46550aa8401f59e96daf3dc251f2d7"
+    },
+    {
+      "path": "packages/webui/src/client/lang/el.mjs",
+      "sha": "db74ed36589c715179caa28ee61351931585f653"
+    },
+    {
+      "path": "packages/webui/src/client/lang/en.mjs",
+      "sha": "fdcba86f59f7bd5a249693e96d55e85ec7e8d38c"
+    },
+    {
+      "path": "packages/webui/src/client/lang/es.mjs",
+      "sha": "e7c8b2722c834165187f7cf2ae31f832fe15488d"
+    },
+    {
+      "path": "packages/webui/src/client/lang/fil.mjs",
+      "sha": "149e16a97a5ad21456458cc0e0669c487d4e441f"
+    },
+    {
+      "path": "packages/webui/src/client/lang/fr.mjs",
+      "sha": "9cc6eb8635f528b187a75b70f692dcde11268fd6"
+    },
+    {
+      "path": "packages/webui/src/client/lang/hr.mjs",
+      "sha": "df71d959a26e6e9378af20ef92cd62a3abc2fe12"
+    },
+    {
+      "path": "packages/webui/src/client/lang/id.mjs",
+      "sha": "d10d2ee16bc8ae97ce21223a380f81e808882ce4"
+    },
+    {
+      "path": "packages/webui/src/client/lang/index.js",
+      "sha": "6e754e57bd447f9a887ef419909629ff6c030d37"
+    },
+    {
+      "path": "packages/webui/src/client/lang/it.mjs",
+      "sha": "afb3bca72b39229c3da1f81412e1a5a3961f4c9f"
+    },
+    {
+      "path": "packages/webui/src/client/lang/ko.mjs",
+      "sha": "36c8f0ddecb21e779b03e5b89f42e995508a6b9d"
+    },
+    {
+      "path": "packages/webui/src/client/lang/pl.mjs",
+      "sha": "61cf3dccd7922f94b3c8480542b4b74ece1aab38"
+    },
+    {
+      "path": "packages/webui/src/client/lang/pt-br.mjs",
+      "sha": "72e6709271755a74b1c92b95ebf98af5fdf677e9"
+    },
+    {
+      "path": "packages/webui/src/client/lang/pt-pt.mjs",
+      "sha": "17c9f068e879c4ff669141e4c29f1eff2de318fe"
+    },
+    {
+      "path": "packages/webui/src/client/lang/ru.mjs",
+      "sha": "290903b886160394b8f602b4d422fb5629869150"
+    },
+    {
+      "path": "packages/webui/src/client/lang/sr.mjs",
+      "sha": "dbd2ba1290fc43b1d42b17d6994323bcf3a03a01"
+    },
+    {
+      "path": "packages/webui/src/client/lang/th.mjs",
+      "sha": "483ad8559a7e944daef8903b14756fc93f938310"
+    },
+    {
+      "path": "packages/webui/src/client/lang/tr.mjs",
+      "sha": "24f2d50a2d8dab10dde0f0af15a1288a2d964744"
+    },
+    {
+      "path": "packages/webui/src/client/lang/vi.mjs",
+      "sha": "2b4999db94d50f1b91f3b3a861bd8409c182e2e9"
+    },
+    {
+      "path": "packages/webui/src/client/lang/zh-tw.mjs",
+      "sha": "6300c1b81488a86d88ae7b28071d6c2328e7c2d1"
+    },
+    {
+      "path": "packages/webui/src/client/main.ts",
+      "sha": "33d57cf5b7ba3bdc833222e1a78f9de21d174c98"
+    },
+    {
+      "path": "packages/webui/src/client/plugins/i18n.ts",
+      "sha": "78a8275cb8c245cbcec04c1eb78918e494b3d861"
+    },
+    {
+      "path": "packages/webui/src/client/router/index.ts",
+      "sha": "f3fc266ea0355cd537122a7cc47739c747fb2288"
+    },
+    {
+      "path": "packages/webui/src/client/stores/appInfo.ts",
+      "sha": "df84c21e8ae8b40eb39abab48e9ed3020138cd27"
+    },
+    {
+      "path": "packages/webui/src/client/stores/errors.ts",
+      "sha": "526f4a2cbb06728773b84092bb5317e827a62c56"
+    },
+    {
+      "path": "packages/webui/src/client/stores/index.ts",
+      "sha": "cafea68967e7df463ff5473351ab10d6098d449c"
+    },
+    {
+      "path": "packages/webui/src/client/stores/login.ts",
+      "sha": "ce56bfc7e06ecb7427a0491daeaaa0d92e7a89ae"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/global.css",
+      "sha": "6513708ceb0616fe6681542a5b6a5fd1a158e440"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/helpers.css",
+      "sha": "c9b89db20d78df725545c100fc9664674a8b0076"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/icons.css",
+      "sha": "a382b15274bdc7b87d2aadf11448cd95663df02d"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/normalize.css",
+      "sha": "4e3ffa46ead2133985211140bc952bdeb7b8cbb7"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/tables.css",
+      "sha": "d5606470c1694480e95b810c3bd0b7ef92796608"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/toasts.css",
+      "sha": "092c78dfd0f035b119041ffe17096f12247191ee"
+    },
+    {
+      "path": "packages/webui/src/client/styles/css/typography.css",
+      "sha": "53a41722e8f6bd79edf371714b9797f03e6a2052"
+    },
+    {
+      "path": "packages/webui/src/client/styles/vendor/OpenSans.css",
+      "sha": "b743b7ec97b2ab61b1b6df62cad2e0c379f8eb41"
+    },
+    {
+      "path": "packages/webui/src/client/styles/vendor/animate.css",
+      "sha": "a55f47bdb45e373c3e423dcacda3a8ac0dad0b5a"
+    },
+    {
+      "path": "packages/webui/src/client/styles/vendor/material-icons.css",
+      "sha": "0d5897ccea2fac93cc0fb9433e8dac9f8d638362"
+    },
+    {
+      "path": "packages/webui/src/client/tests/testlang.js",
+      "sha": "d047f7c1e42547310dde685bacca25d8e79c6b4e"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/data/settings.test.ts",
+      "sha": "18250b5dcc73f9622cda034f3f167b789387dfef"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/dates.test.ts",
+      "sha": "fa079e745789a261ed3cf6b417c08c8b97e555b0"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/downloads.test.ts",
+      "sha": "6d7fab6d0d232ff23426480b4f9e663489a0cd1a"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/texts.test.ts",
+      "sha": "6c39675c20cf66c524319a0d875c35c3cd746461"
+    },
+    {
+      "path": "packages/webui/src/client/tests/unit/utils/utils.test.ts",
+      "sha": "fe49c86f5d6332b5d59fdc7cfd978775a0682a9b"
+    },
+    {
+      "path": "packages/webui/src/client/tsconfig.json",
+      "sha": "98d3c594c361148bb176cbab128b7b43b355c06e"
+    },
+    {
+      "path": "packages/webui/src/client/use/favorites.ts",
+      "sha": "9959f995cf2210307c88370e3dbb94bddc77135d"
+    },
+    {
+      "path": "packages/webui/src/client/use/main-search.ts",
+      "sha": "6d5d24d169babd05ccc1c47fb0116daec696a188"
+    },
+    {
+      "path": "packages/webui/src/client/use/online.ts",
+      "sha": "c2c1316a35cc869cad7795566ca6d8761e88675e"
+    },
+    {
+      "path": "packages/webui/src/client/use/search.ts",
+      "sha": "0c6e71fb200dd4a97321c5bd9aa025d96730e185"
+    },
+    {
+      "path": "packages/webui/src/client/use/theme.ts",
+      "sha": "5dd339dea62228fd4087a7d7e9c6af3d331dea9e"
+    },
+    {
+      "path": "packages/webui/src/client/utils/adjust-volume.ts",
+      "sha": "ccb27f5b724839703732706dddac02967038dfdd"
+    },
+    {
+      "path": "packages/webui/src/client/utils/api-utils.ts",
+      "sha": "0a6c53311df39d0da32261258d634e165d95fa26"
+    },
+    {
+      "path": "packages/webui/src/client/utils/countries.ts",
+      "sha": "345057d4757321178e33efb0ca181408f272fc8f"
+    },
+    {
+      "path": "packages/webui/src/client/utils/dates.ts",
+      "sha": "af9a33694360395dcf767a5a4b4317dc111280e2"
+    },
+    {
+      "path": "packages/webui/src/client/utils/downloads.ts",
+      "sha": "a2b8f1d1d334cf1b58c2550616738540c218f00a"
+    },
+    {
+      "path": "packages/webui/src/client/utils/emitter.ts",
+      "sha": "f5f72a3195904bc6687f69438de18498d5d638f2"
+    },
+    {
+      "path": "packages/webui/src/client/utils/flags.ts",
+      "sha": "028e266ea2a53a62744ca5b0cd08bf146164f56a"
+    },
+    {
+      "path": "packages/webui/src/client/utils/forms.ts",
+      "sha": "5c4e37eabf802f0f3ba07491ea45ae0229f64c4b"
+    },
+    {
+      "path": "packages/webui/src/client/utils/socket.ts",
+      "sha": "618ae14eb45f57ae626c51e0f08d7e968a49f9f0"
+    },
+    {
+      "path": "packages/webui/src/client/utils/texts.ts",
+      "sha": "45ddc3a0094087774fa3f6d57cfa95215bd7e7f2"
+    },
+    {
+      "path": "packages/webui/src/client/utils/toasts.ts",
+      "sha": "dfe7f3205e73db57bcc6b53c54df110926cbed4a"
+    },
+    {
+      "path": "packages/webui/src/client/utils/utils.ts",
+      "sha": "1226354cd149f92a808151a22968755cba285341"
+    },
+    {
+      "path": "packages/webui/src/client/views/AboutView.vue",
+      "sha": "86b688624ab1997e329577aef70678fbd00152cd"
+    },
+    {
+      "path": "packages/webui/src/client/views/ArtistView.vue",
+      "sha": "89c23efdb3bc40050fb91e93e8bdd491e9ffeeee"
+    },
+    {
+      "path": "packages/webui/src/client/views/ChartsView.vue",
+      "sha": "8698ce456ff32b9ffdcb4e5999f35ea0bfaf5d6a"
+    },
+    {
+      "path": "packages/webui/src/client/views/ErrorsView.vue",
+      "sha": "0f9ef3732f2ad5b81afad3a82b455fe857dffe37"
+    },
+    {
+      "path": "packages/webui/src/client/views/FavoritesView.vue",
+      "sha": "0168bbb8322d39d20a31da45a38d831abccd1a0b"
+    },
+    {
+      "path": "packages/webui/src/client/views/HomeView.vue",
+      "sha": "7e2158a30b7de941c73481f7911731ee9ab0dd27"
+    },
+    {
+      "path": "packages/webui/src/client/views/InfoArl.vue",
+      "sha": "32cf5bb2ab9da100a2a0e7e9205892824cba7af9"
+    },
+    {
+      "path": "packages/webui/src/client/views/InfoSpotifyFeatures.vue",
+      "sha": "a8ab9ccdf59f237427207c976d9c858610c52f6a"
+    },
+    {
+      "path": "packages/webui/src/client/views/LinkAnalyzer.vue",
+      "sha": "55cd0beb0cec74efb7a0411e7437f2863159e61e"
+    },
+    {
+      "path": "packages/webui/src/client/views/SearchView.vue",
+      "sha": "42259e7077e52e643d5fccf9297ef5350987d788"
+    },
+    {
+      "path": "packages/webui/src/client/views/SettingsPage.vue",
+      "sha": "27972f534c2ec17766665782118dd580a5826682"
+    },
+    {
+      "path": "packages/webui/src/client/views/TracklistView.vue",
+      "sha": "b046823c64395c2dd50e43382b223fa425d09696"
+    },
+    {
+      "path": "packages/webui/src/server/deemixApp.ts",
+      "sha": "82a9233e6cf354b6867c8b6cc557cd7cf32844e3"
+    },
+    {
+      "path": "packages/webui/src/server/env.d.ts",
+      "sha": "a275b60cb27071996f1425aa09b60f52d1fed1da"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/errors.ts",
+      "sha": "4ec7b3085c00d4824c925cccb5e7969dec3559c6"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/logger.ts",
+      "sha": "bdd5ec0ce8d035e12fae8777eb6820d5859d39d5"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/loginStorage.ts",
+      "sha": "1c4b179825eaaa4a545a075ebbeb48720c9c2334"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/port.ts",
+      "sha": "1b10c52c3684145111467df85d3396d8d40f520b"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/primitive-checks.ts",
+      "sha": "4e1c8bd22deb45f7202194743651112650e798be"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/server-callbacks.ts",
+      "sha": "31b11a329e605062321f7e318f25c3ad8dc40245"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/spotifyRedirectUri.ts",
+      "sha": "e426dc128f1240f54b56857d1108e912c04036f1"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/versions.ts",
+      "sha": "386355b7eb14cbb7013dfdc7f68b74f367df22ef"
+    },
+    {
+      "path": "packages/webui/src/server/helpers/web-version.ts",
+      "sha": "b2b84e2f3c2853acfe34b1aa2a9269fcaf34fb21"
+    },
+    {
+      "path": "packages/webui/src/server/main.ts",
+      "sha": "da21a5293b23150f23f1e90aa6946938ef3ad5ea"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/delete/index.ts",
+      "sha": "c311e45367ea5159875c90182146de5cdcd7266e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/albumSearch.test.ts",
+      "sha": "71a57a4c7e2e2169f88c781a5ae8b8090fbf9f2f"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/albumSearch.ts",
+      "sha": "c6143fa3185dd6f4e4dad8eb8460a9f86775f0ea"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/analyzeLink.test.ts",
+      "sha": "4ac9b1b3a68ddfbe43ed5ae4e642a684b0256331"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/analyzeLink.ts",
+      "sha": "63ce5f2eb01a19f387267c38d5868c17d57ac7ce"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/checkForUpdates.ts",
+      "sha": "424231e737e8e89284c3b8e0fc7300ea1f213148"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/connect.ts",
+      "sha": "6231c672e5d3a7145c8e5e5f7e1ba562ef356ccd"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getChartTracks.ts",
+      "sha": "89c4bf2dc8b13ae0d12b9a595cc872692a1b649a"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getCharts.ts",
+      "sha": "fe9cf625b13da8be48610a658b4ee8ee298c5c91"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getHome.ts",
+      "sha": "3aad37ec57893db7b6e4f8b6529b378a325b325d"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getQueue.ts",
+      "sha": "a40e164d4fd904a9982142608e7bb1ea75927504"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getSettings.ts",
+      "sha": "1089579905d1672a160f91735bee843d74e07c8f"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getTracklist.ts",
+      "sha": "87574d247afb0444742113cf48dc671711bcb4d1"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserAlbums.ts",
+      "sha": "1ada50857806978a4d2efd8ea6a3630ef6bc1e69"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserArtists.ts",
+      "sha": "771fe38a250014d8abea6ae922aa783e9903854d"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserFavorites.ts",
+      "sha": "3bf2191bbd3d2ea00ecbf6b31a7f28ce70c19baa"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserPlaylists.ts",
+      "sha": "dd4678ddade984b1fc2435efad4185206ebb960c"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserSpotifyPlaylists.ts",
+      "sha": "941492c22f48b033b3f956d8cea6ec1c30466800"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/getUserTracks.ts",
+      "sha": "c26b73af894c80cdf5f0f2457298d07eebef078e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/index.ts",
+      "sha": "d486987da76de298c4073f08230ccc169647cd69"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/mainSearch.ts",
+      "sha": "42e827d5b6c7438c926eddda737278cab1c46847"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/newReleases.ts",
+      "sha": "965898b0819619991c87235daca0cac260a1620c"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/search.ts",
+      "sha": "8aecc0323d35d6dc7a3c4b791ac623335f5375e1"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/spotifyCallback.ts",
+      "sha": "8eff2abe95a6db6bad33c0b962ae03a517ff35fb"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/spotifyLogin.ts",
+      "sha": "956b4d1489374f1356c9af397bf61eab1f3f5c25"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/get/spotifyStatus.ts",
+      "sha": "10304f0e764ad22f41de3d15f068fc187407a4e8"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/patch/index.ts",
+      "sha": "c311e45367ea5159875c90182146de5cdcd7266e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/addToQueue.ts",
+      "sha": "2d8b8ed17424e72023af1bc279e81261c7aeae89"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/cancelAllDownloads.ts",
+      "sha": "f61416caae76cd723717a4d788ba4934ac44f1f6"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/changeAccount.test.ts",
+      "sha": "3f9a332f2f40894853932e1648fc6494d80ab1ab"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/changeAccount.ts",
+      "sha": "06e30e97f3479834527da305943857502cb73e0d"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/index.ts",
+      "sha": "0362faea94195b1f3f04de92e8021cd269323d80"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/loginArl.test.ts",
+      "sha": "163ef5461d67041663b742e1b3da3166be0a162e"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/loginArl.ts",
+      "sha": "f1a50700f9ad10aa3a4e6fec26f679b052fce72b"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/loginSession.test.ts",
+      "sha": "400281165a56c61b1e0e19855320d83ef0a4d208"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/logout.ts",
+      "sha": "f68b3d7f110cd0e01174fe631e5383c287446198"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/removeFinishedDownloads.ts",
+      "sha": "608ba1e8cb40983223d9d35a2c3f57da547fb8f8"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/removeFromQueue.ts",
+      "sha": "9096e0dd6059f23766612933c0278292bb5fe8eb"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/retryDownload.ts",
+      "sha": "45694378805c838eb6a5107212ae79c0db85ab5f"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/saveSettings.test.ts",
+      "sha": "9b2c38bab9da263cc60ec6b7d7bfe672c162bf24"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/saveSettings.ts",
+      "sha": "3c656439019caa62ad1b87273d0e73ad7585ed74"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/post/spotifyLogout.ts",
+      "sha": "ea9f792d4571f56057e35280977cd1b619375821"
+    },
+    {
+      "path": "packages/webui/src/server/routes/api/register.ts",
+      "sha": "d3a03403d1ffdca1186e7f217fb6a8aa0950db32"
+    },
+    {
+      "path": "packages/webui/src/server/routes/index.ts",
+      "sha": "184dc5b5a8b5ee3d67fe1b9c720cf86c71bd783f"
+    },
+    {
+      "path": "packages/webui/src/server/security.test.ts",
+      "sha": "e6fe76f82c75ec7ba2735031bf648d1230190d34"
+    },
+    {
+      "path": "packages/webui/src/server/security.ts",
+      "sha": "02fd66388125206ac229bd37c638e27056ced08f"
+    },
+    {
+      "path": "packages/webui/src/server/tests/utils.ts",
+      "sha": "0dbaac35a4040623a536fd82c3694b925adeea3c"
+    },
+    {
+      "path": "packages/webui/src/server/tsconfig.json",
+      "sha": "3c764d4ae19d93efbe045c78a1ac57dc84c87d1f"
+    },
+    {
+      "path": "packages/webui/src/server/types.ts",
+      "sha": "72062e85d4369f8d4ccd15690274569edacb4a11"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/index.ts",
+      "sha": "46ebd93210b6ebf83f600f202f799efc2b474e28"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/cancelAllDownloads.ts",
+      "sha": "6ccaa25dcec5d11747bedbcff628e58c932cf796"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/index.ts",
+      "sha": "39bcd2758d7f64902f04813c2142ed210a719245"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/removeFinishedDownloads.ts",
+      "sha": "34f6cddcc5d12b83940304864e0e4a2c849ee0ee"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/removeFromQueue.ts",
+      "sha": "2fa2f419cf1a3589ae969e153bed35b084255759"
+    },
+    {
+      "path": "packages/webui/src/server/websocket/modules/saveSettings.ts",
+      "sha": "f2762990511d4b3fb467fd9a5397dc5a4eaa195d"
+    },
+    {
+      "path": "packages/webui/tailwind.config.mjs",
+      "sha": "776073f0621db69213d97738c4b0392f22a07841"
+    },
+    {
+      "path": "packages/webui/tsconfig.config.json",
+      "sha": "cdb5e6d78eb905131bfc7032bf427987081d12df"
+    },
+    {
+      "path": "packages/webui/tsconfig.json",
+      "sha": "7566f7f84dbb5091fa63472549a05e94b8488e10"
+    },
+    {
+      "path": "packages/webui/vite.config.mts",
+      "sha": "9306e7ec9317ef8041c421c4d65c4ba2aa55f631"
+    },
+    {
+      "path": "packages/webui/vitest.config.ts",
+      "sha": "1c3992b94a7735887ed7f8ee76cf0e4d63d069b0"
+    },
+    {
+      "path": "pkgs/deemix.nix",
+      "sha": "22b7d9374754bdc7befc58d5f5545952834a4b32"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha": "e0f3788508ea4f0cea1fa892b65203ca53f872b8"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "sha": "9e14c1df8317397b352abce846fdc4b173b5f43f"
+    },
+    {
+      "path": "prettier.config.mjs",
+      "sha": "a0caf8e1d453e69a0c0231e72dbac5f5f0064e33"
+    },
+    {
+      "path": "renovate.json",
+      "sha": "a09e72f400a26d6126844b09852ac27b4341a14b"
+    },
+    {
+      "path": "turbo.json",
+      "sha": "62b1dcca137eedae8e44770454991c78fe316c59"
+    },
+    {
+      "path": "vercel.json",
+      "sha": "1a648a90b0e36a03d32ad115faa074b201f62ed8"
+    },
+    {
+      "path": "vitest.config.ts",
+      "sha": "e74aab69ccb3ad28f0e9ed1247a6ab2ea1159204"
+    }
+  ]
+}
