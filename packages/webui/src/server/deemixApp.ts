@@ -45,6 +45,7 @@ export class DeemixApp {
 	queueOrder: string[];
 	queue: Record<string, any>;
 	currentJob: boolean | Downloader | null;
+	queuePaused: boolean;
 
 	deezerAvailable?: DeezerAvailable;
 	latestVersion: string | null;
@@ -62,6 +63,13 @@ export class DeemixApp {
 		this.queueOrder = [];
 		this.queue = {};
 		this.currentJob = null;
+		// Saved pause state survives a restart or software update.
+		try {
+			const saved = JSON.parse(fs.readFileSync(configFolder + "queue-control.json", "utf8"));
+			this.queuePaused = saved.paused === true;
+		} catch {
+			this.queuePaused = false;
+		}
 
 		this.plugins = {
 			spotify: new SpotifyPlugin(),
@@ -201,6 +209,7 @@ export class DeemixApp {
 		const result: any = {
 			queue: this.queue,
 			queueOrder: this.queueOrder,
+			queuePaused: this.queuePaused,
 		};
 
 		if (this.currentJob instanceof Downloader) {
@@ -253,6 +262,27 @@ export class DeemixApp {
 		} finally {
 			fs.rmSync(tempPath, { force: true });
 		}
+	}
+
+	private persistQueueControl(): void {
+		this.writeQueueJson(configFolder + "queue-control.json", { paused: this.queuePaused });
+	}
+
+	/** Pause dispatch after the running release completes, keeping pending entries. */
+	pauseQueue(): void {
+		this.queuePaused = true;
+		this.persistQueueControl();
+		this.listener.send("queueStateChanged", { paused: true });
+	}
+
+	/** Resume previously queued releases without reconstructing artist URLs. */
+	resumeQueue(dz: Deezer): boolean {
+		if (!dz.loggedIn) return false;
+		this.queuePaused = false;
+		this.persistQueueControl();
+		this.listener.send("queueStateChanged", { paused: false });
+		void this.startQueue(dz);
+		return true;
 	}
 
 	private persistQueueOrder(): void {
@@ -386,7 +416,7 @@ export class DeemixApp {
 
 	async startQueue(dz: Deezer) {
 		do {
-			if (this.currentJob !== null || this.queueOrder.length === 0) {
+			if (this.queuePaused || this.currentJob !== null || this.queueOrder.length === 0) {
 				return null;
 			}
 
