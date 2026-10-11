@@ -7,7 +7,7 @@ import {
 	type APIAlbum,
 	type APITrack,
 } from "deezer-sdk";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync, unlinkSync } from "fs";
 import { HTTPError } from "got";
 import { tmpdir } from "os";
 import { streamTrack } from "./decryption.js";
@@ -72,6 +72,7 @@ export class Downloader {
 	bitrate: number;
 	listener: Listener;
 	playlistCovername?: string;
+	createdFiles: Set<string>;
 	playlistURLs: { url: string; ext: string }[];
 	coverQueue: Record<string, string>;
 
@@ -88,6 +89,7 @@ export class Downloader {
 		this.listener = listener;
 
 		this.playlistURLs = [];
+		this.createdFiles = new Set<string>();
 
 		this.coverQueue = {};
 	}
@@ -110,6 +112,24 @@ export class Downloader {
 			state,
 			solution,
 		});
+	}
+
+	/** Clean only paths not present before the release began, never user files. */
+	cleanupStoppedRelease(): { removed: number; failed: number } {
+		let removed = 0;
+		let failed = 0;
+		for (const file of this.createdFiles) {
+			try {
+				if (!existsSync(file)) continue;
+				if (!statSync(file).isFile()) continue;
+				unlinkSync(file);
+				removed++;
+			} catch {
+				failed++;
+			}
+		}
+		this.createdFiles.clear();
+		return { removed, failed };
 	}
 
 	async start() {
@@ -204,18 +224,13 @@ export class Downloader {
 
 				await q.drain();
 			}
-			if (!skipIncompleteRelease) await this.afterDownloadCollection(tracks);
+			if (!skipIncompleteRelease && !this.downloadObject.isCanceled)
+				await this.afterDownloadCollection(tracks);
 		}
 
 		if (this.downloadObject.isCanceled) {
-			this.listener.send("currentItemCancelled", {
-				uuid: this.downloadObject.uuid,
-				title: this.downloadObject.title,
-			});
-			this.listener.send("removedFromQueue", {
-				uuid: this.downloadObject.uuid,
-				title: this.downloadObject.title,
-			});
+			// Stop is not a completed or removed download.
+			return;
 		}
 
 		this.listener.send("finishDownload", {
@@ -552,9 +567,14 @@ export class Downloader {
 					this.settings.overwriteFile
 				)
 			) {
-				writeFileSync(`${filepath}/${filename}.lrc`, track.lyrics.sync);
+				const lyricsPath = `${filepath}/${filename}.lrc`;
+				if (!existsSync(lyricsPath)) this.createdFiles.add(lyricsPath);
+				writeFileSync(lyricsPath, track.lyrics.sync);
 			}
 		}
+
+		// Files present before this attempt must never be deleted on Stop.
+		if (!existsSync(writepath)) this.createdFiles.add(writepath);
 
 		// Download the track
 		track.downloadURL = track.urls[formatsName[track.bitrate]];
