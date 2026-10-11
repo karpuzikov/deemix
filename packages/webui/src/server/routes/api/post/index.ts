@@ -6,6 +6,7 @@ import removeFinishedDownloads from "./removeFinishedDownloads.js";
 import removeErroredDownloads from "./removeErroredDownloads.js";
 import pauseQueue from "./pauseQueue.js";
 import resumeQueue from "./resumeQueue.js";
+import setSessionDownloadLocation from "./setSessionDownloadLocation.js";
 import removeFromQueue from "./removeFromQueue.js";
 import logout from "./logout.js";
 import saveSettings from "./saveSettings.js";
@@ -21,6 +22,7 @@ export default [
 	removeErroredDownloads,
 	pauseQueue,
 	resumeQueue,
+	setSessionDownloadLocation,
 	removeFromQueue,
 	logout,
 	saveSettings,
