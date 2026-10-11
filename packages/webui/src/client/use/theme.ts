@@ -7,6 +7,7 @@ const THEMES = {
 };
 
 const initialTheme =
+	localStorage.getItem("deemix-selectedTheme") ||
 	localStorage.getItem("selectedTheme") ||
 	document.documentElement.dataset.theme ||
 	THEMES.dark;
@@ -16,7 +17,7 @@ watch(currentTheme, (newTheme, oldTheme) => {
 	// No operation needed
 	if (oldTheme === newTheme) return;
 
-	localStorage.setItem("selectedTheme", newTheme);
+	localStorage.setItem("deemix-selectedTheme", newTheme);
 	document.documentElement.dataset.theme = newTheme;
 
 });
