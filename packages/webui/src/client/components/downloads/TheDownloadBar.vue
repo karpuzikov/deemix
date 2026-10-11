@@ -31,6 +31,7 @@ const cachedTabWidth = ref(
 const queue = ref([]);
 const queueList = ref<any>({});
 const queueComplete = ref([]);
+const queueIsPaused = ref(false);
 const isExpanded = ref(localStorage.getItem("downloadTabOpen") === "true");
 
 const clientMode = computed(() => loginStore.clientMode);
@@ -84,11 +85,14 @@ function setTabWidth(newWidth?: number) {
 function initQueue(data) {
 	const {
 		queueOrder: initQueue,
+		queuePaused: savedQueuePaused,
 		//		queueComplete: initQueueComplete,
 		current: currentItem,
 		queue: initQueueList,
 		restored,
 	} = data;
+
+	queueIsPaused.value = savedQueuePaused === true;
 
 	const initQueueComplete = Object.values(initQueueList)
 		.filter((el: any) =>
@@ -302,6 +306,22 @@ function cleanQueue() {
 	socket.emit("removeFinishedDownloads");
 }
 
+async function toggleQueuePause() {
+	const command = queueIsPaused.value ? "resumeQueue" : "pauseQueue";
+	try {
+		const response = await postToServer(command, {});
+		if (response?.result !== true) {
+			toast(t("globals.queue_control_failed"), "error");
+		}
+	} catch {
+		toast(t("globals.queue_control_failed"), "error");
+	}
+}
+
+function queueStateChanged({ paused }: { paused: boolean }) {
+	queueIsPaused.value = paused === true;
+}
+
 async function removeErroredDownloads() {
 	try {
 		const result = await postToServer("removeErroredDownloads", {});
@@ -397,6 +417,7 @@ onMounted(() => {
 	socket.on("removedAllDownloads", removeAllDownloads);
 	socket.on("removedFinishedDownloads", removedFinishedDownloads);
 	socket.on("removedErroredDownloads", removedErroredDownloads);
+	socket.on("queueStateChanged", queueStateChanged);
 
 	fetchData("getQueue")
 		.then((res) => {
@@ -482,6 +503,15 @@ onUnmounted(() => {
 				<button
 					type="button"
 					class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
+					:title="queueIsPaused ? t('globals.resume_downloads') : t('globals.pause_downloads')"
+					:aria-label="queueIsPaused ? t('globals.resume_downloads') : t('globals.pause_downloads')"
+					@click="toggleQueuePause"
+				>
+					<i class="material-icons" aria-hidden="true">{{ queueIsPaused ? "play_arrow" : "pause" }}</i>
+				</button>
+				<button
+					type="button"
+					class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
 					:title="t('globals.remove_errored_downloads')"
 					:aria-label="t('globals.remove_errored_downloads')"
 					@click="removeErroredDownloads"
@@ -564,6 +594,15 @@ onUnmounted(() => {
 			>
 				folder_open
 			</i>
+			<button
+				type="button"
+				class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
+				:title="queueIsPaused ? t('globals.resume_downloads') : t('globals.pause_downloads')"
+				:aria-label="queueIsPaused ? t('globals.resume_downloads') : t('globals.pause_downloads')"
+				@click="toggleQueuePause"
+			>
+				<i class="material-icons" aria-hidden="true">{{ queueIsPaused ? "play_arrow" : "pause" }}</i>
+			</button>
 			<button
 				type="button"
 				class="m-1 inline-flex cursor-pointer items-center justify-center rounded p-1 text-xl focus-visible:outline focus-visible:outline-2"
