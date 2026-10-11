@@ -13,6 +13,7 @@ const en = {
 		remove_errored_downloads: "Remove downloads with errors",
 		remove_errored_downloads_failed: "Could not remove downloads with errors",
 		pause_downloads: "Pause after current release",
+		stop_downloads: "Stop and discard unfinished release files (queue retained)",
 		resume_downloads: "Resume downloads",
 		queue_control_failed: "Could not change download queue state",
 		cancel_queue_hint: "Cancel All",
