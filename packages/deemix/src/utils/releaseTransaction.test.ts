@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync,
+  existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
   rmSync, writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -158,3 +158,77 @@ describe("Album geo / selected quality regression - Deezer 53346642", () => {
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 });
+
+function requireStageCount(root: string) {
+	return readdirSync(root).filter(name => name.startsWith(".deemix-incomplete-")).length;
+}
+
+	describe("Old settings cannot bypass mandatory album rollback", () => {
+		it("ignores a saved false flag and rejects album 53346642 before downloading", async () => {
+			const root = mkdtempSync(join(tmpdir(), "deemix-mandatory-preflight-"));
+			try {
+				const d = new Downloader({} as any, geoAlbum(), {
+					downloadLocation: root, dontDownloadIncompleteReleases: false,
+					queueConcurrency: 1,
+				} as any, { send: vi.fn() } as any);
+				vi.spyOn(d, "findExistingCompleteRelease").mockReturnValue({ complete: false, folder: "" });
+				vi.spyOn(d, "findUnavailableReleaseTracks").mockResolvedValue([{
+					id: 440060362, title: "My Dreams", artist: "Inna",
+					reason: "Your account can't stream the track from your current country and no alternative found.",
+				}]);
+				const called = vi.spyOn(d, "downloadWrapper");
+				await d.start();
+				expect(called).not.toHaveBeenCalled();
+				expect(d.downloadObject.downloaded).toBe(0);
+				expect(d.downloadObject.errors.some((e: any) => e.message.includes("Release skipped"))).toBe(true);
+			} finally { rmSync(root, { recursive: true, force: true }); }
+		});
+		it("removes 9 staged tracks if track 10 reports a country restriction with the flag OFF", async () => {
+			const root = mkdtempSync(join(tmpdir(), "deemix-ten-track-regression-"));
+			try {
+				writeFileSync(join(root, "preexisting.flac"), "do not delete");
+				const album = new Collection({
+					type: "album", id: "53346642", bitrate: 9,
+					title: "Album with blocked 10th track", artist: "Inna", cover: "",
+					size: 10,
+					collection: {
+						tracks: Array.from({ length: 10 }, (_, i) => ({
+							id: i === 9 ? 440060362 : 1000 + i,
+							title: i === 9 ? "My Dreams" : "Track " + (i + 1),
+							artist: { name: "Inna" },
+						})),
+						albumAPI: { id: 53346642, title: "Album with blocked 10th track" },
+					},
+				} as any);
+				const d = new Downloader({} as any, album, {
+					downloadLocation: root, dontDownloadIncompleteReleases: false,
+					queueConcurrency: 1, fallbackBitrate: true,
+					logErrors: false, logSearched: false, saveArtwork: false,
+					saveArtworkArtist: false, createM3U8File: false, executeCommand: "",
+					tags: {},
+				} as any, { send: vi.fn() } as any);
+				vi.spyOn(d, "findExistingCompleteRelease").mockReturnValue({ complete: false, folder: "" });
+				vi.spyOn(d, "findUnavailableReleaseTracks").mockResolvedValue([]);
+				vi.spyOn(d, "afterDownloadCollection").mockResolvedValue(undefined);
+				vi.spyOn(d, "downloadWrapper").mockImplementation(async extra => {
+					if (extra.trackAPI.id === 440060362) return { error: {
+						message: "Your account can't stream the track from your current country and no alternative found.",
+					}} as any;
+					const file = join(d.settings.downloadLocation, String(extra.trackAPI.id) + ".flac");
+					writeFileSync(file, "FLAC");
+					d.downloadObject.downloaded++;
+					d.downloadObject.files.push({ path: file });
+					return { path: file, bitrate: 9, filename: String(extra.trackAPI.id) + ".flac" } as any;
+				});
+				await d.start();
+				expect(d.downloadObject.downloaded).toBe(0);
+				expect(d.downloadObject.files).toEqual([]);
+				expect(d.downloadObject.errors.some((e: any) => e.message.includes("My Dreams"))).toBe(true);
+				for (let i = 0; i < 9; i++) {
+					expect(existsSync(join(root, String(1000 + i) + ".flac"))).toBe(false);
+				}
+				expect(readFileSync(join(root, "preexisting.flac"), "utf8")).toBe("do not delete");
+				expect(requireStageCount(root)).toBe(0);
+			} finally { rmSync(root, { recursive: true, force: true }); }
+		});
+	});

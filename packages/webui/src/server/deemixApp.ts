@@ -461,7 +461,6 @@ export class DeemixApp {
 				if (!downloadObject.isCanceled && this.queue[currentUUID]) {
 					if (
 						(downloadObject.type === "album" &&
-							effectiveSettings.dontDownloadIncompleteReleases &&
 							downloadObject.downloaded < downloadObject.size) ||
 						(downloadObject.failed === downloadObject.size &&
 							downloadObject.size !== 0)

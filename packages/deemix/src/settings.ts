@@ -45,7 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	fallbackBitrate: false,
 	fallbackSearch: false,
 	fallbackISRC: false,
-	dontDownloadIncompleteReleases: false,
+	dontDownloadIncompleteReleases: true,
 	skipCleanIfExplicitAvailable: false,
 	musicBrainzMetadataFallback: false,
 	logErrors: true,
@@ -112,6 +112,9 @@ export function saveSettings(settings: Settings, configFolder) {
 	configFolder = configFolder || getConfigFolder();
 	fs.mkdirSync(configFolder, { recursive: true });
 
+	// Compatibility with v0.5.8 configurations: never persist a setting
+	// that can enable partial album downloads again.
+	settings.dontDownloadIncompleteReleases = true;
 	fs.writeFileSync(
 		configFolder + "config.json",
 		JSON.stringify(settings, null, 2)
@@ -158,6 +161,10 @@ function check(settings: Settings) {
 			changes++;
 		}
 	});
+	if (settings.dontDownloadIncompleteReleases !== true) {
+		settings.dontDownloadIncompleteReleases = true;
+		changes++;
+	}
 	if (settings.downloadLocation === "") {
 		settings.downloadLocation = DEFAULT_SETTINGS.downloadLocation;
 		changes++;

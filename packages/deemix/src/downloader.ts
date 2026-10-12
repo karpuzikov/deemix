@@ -143,10 +143,9 @@ export class Downloader {
 				return;
 			}
 
-			if (
-				this.settings.dontDownloadIncompleteReleases &&
-				this.downloadObject.type === "album"
-			) {
+			// All Deezer albums must be complete at the requested bitrate,
+			// regardless of settings saved by earlier application versions.
+			if (this.downloadObject.type === "album") {
 				let unavailableTracks: Awaited<ReturnType<Downloader["findUnavailableReleaseTracks"]>>;
 				try {
 					unavailableTracks = await this.findUnavailableReleaseTracks();
@@ -182,11 +181,7 @@ export class Downloader {
 				}
 			}
 
-			if (
-				!skipIncompleteRelease &&
-				this.settings.dontDownloadIncompleteReleases &&
-				this.downloadObject.type === "album"
-			) {
+			if (!skipIncompleteRelease && this.downloadObject.type === "album") {
 				// A successful preflight is NOT enough: country restrictions or
 				// stream failures may appear after the first audio file is written.
 				await this.downloadStrictAlbum();
