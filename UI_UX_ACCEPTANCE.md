@@ -45,3 +45,7 @@ Before ANY UI modification, record a control contract for the affected workflows
 ## Next action
 
 Fill the control contract and real-world screenshot/interaction matrix for every UI surface above. Fix all FAIL and NOT RUN before declaring UI verified. Preserve software behavior and target-platform compatibility.
+
+### 2026-10-12 v0.4.7 acceptance checkpoint
+
+A native Python fix candidate was produced in the conversation. See `packages/native/CONTINUITY.md` for the complete control map, exact hash and offline test results. **Visual acceptance remains NOT RUN**: real Windows 11 Qt viewport and screenshots, hover/select, scrolling and keyboard/focus, all dialogs and error states, real Deezer end-to-end and user acceptance are required. Existing releases are not silently modified. v0.4.7 is Under construction ⚠️.
