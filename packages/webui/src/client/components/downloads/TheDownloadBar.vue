@@ -202,11 +202,19 @@ function updateQueue(update) {
 		errid,
 		stack,
 		postFailed,
+		resetDownloaded,
 		downloadFolder,
 		extrasPath,
 	} = update;
 
 	if (uuid && queue.value.includes(uuid)) {
+		if (resetDownloaded) {
+			// A strict-quality album was rejected: staged tracks were discarded.
+			queueList.value[uuid].downloaded = 0;
+			queueList.value[uuid].progress = 0;
+			queueList.value[uuid].downloadFolder = "";
+			queueList.value[uuid].extrasPath = "";
+		}
 		if (downloaded || alreadyDownloaded) {
 			queueList.value[uuid].downloaded++;
 		}
