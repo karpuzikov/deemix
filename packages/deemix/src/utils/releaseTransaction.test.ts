@@ -78,7 +78,8 @@ function geoAlbum() {
 
 describe("Album geo / selected quality regression - Deezer 53346642", () => {
   it("preflight country-blocked 440060362 never creates release files", async () => {
-    await new Promise<void>(resolve => fixture(root => {
+    const root = mkdtempSync(join(tmpdir(), "deemix-geo-preflight-"));
+    try {
       const d = new Downloader({} as any, geoAlbum(), {
         downloadLocation: root, dontDownloadIncompleteReleases: true,
         queueConcurrency: 1,
@@ -89,13 +90,11 @@ describe("Album geo / selected quality regression - Deezer 53346642", () => {
         reason: "Your account can't stream the track from your current country and no alternative found.",
       }]);
       const called = vi.spyOn(d, "downloadWrapper");
-      d.start().then(() => {
-        expect(called).not.toHaveBeenCalled();
-        expect(d.downloadObject.downloaded).toBe(0);
-        expect(existsSync(join(root, "First.flac"))).toBe(false);
-        resolve();
-      }).catch(e => { throw e; });
-    }));
+      await d.start();
+      expect(called).not.toHaveBeenCalled();
+      expect(d.downloadObject.downloaded).toBe(0);
+      expect(existsSync(join(root, "First.flac"))).toBe(false);
+    } finally { rmSync(root, { recursive: true, force: true }); }
   });
   it("stream failure after first FLAC rolls back every new track", async () => {
     const root = mkdtempSync(join(tmpdir(), "deemix-geo-stream-"));
