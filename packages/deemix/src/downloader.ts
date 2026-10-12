@@ -7,7 +7,7 @@ import {
 	type APIAlbum,
 	type APITrack,
 } from "deezer-sdk";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { HTTPError } from "got";
 import { tmpdir } from "os";
 import { streamTrack } from "./decryption.js";
@@ -35,6 +35,7 @@ import { enrichMetadataFromMusicBrainz } from "./utils/musicbrainzFallback.js";
 import { downloadImage } from "./utils/downloadImage.js";
 import { checkShouldDownload, tagTrack } from "./utils/downloadUtils.js";
 import { getPreferredBitrate } from "./utils/getPreferredBitrate.js";
+import { ReleaseTransaction, recoverReleaseTransactions } from "./utils/releaseTransaction.js";
 import {
 	generateAlbumName,
 	generateArtistName,
@@ -181,30 +182,37 @@ export class Downloader {
 				}
 			}
 
-			const q = queue(
-				async (data: { track: APITrack; pos: number }, callback) => {
-					if (this.downloadObject instanceof Collection) {
-						const { track, pos } = data;
-						tracks[pos] = await this.downloadWrapper({
-							trackAPI: track,
-							albumAPI: this.downloadObject.collection.albumAPI,
-							playlistAPI: this.downloadObject.collection.playlistAPI,
-						});
-					}
-
-					callback();
-				},
-				this.settings.queueConcurrency
-			);
-
-			if (!skipIncompleteRelease && this.downloadObject.collection.tracks.length) {
-				this.downloadObject.collection.tracks.forEach((track, pos) => {
-					q.push({ track, pos }, () => {});
-				});
-
-				await q.drain();
+			if (
+				!skipIncompleteRelease &&
+				this.settings.dontDownloadIncompleteReleases &&
+				this.downloadObject.type === "album"
+			) {
+				// A successful preflight is NOT enough: country restrictions or
+				// stream failures may appear after the first audio file is written.
+				await this.downloadStrictAlbum();
+			} else if (!skipIncompleteRelease) {
+				const q = queue(
+					async (data: { track: APITrack; pos: number }, callback) => {
+						if (this.downloadObject instanceof Collection) {
+							const { track, pos } = data;
+							tracks[pos] = await this.downloadWrapper({
+								trackAPI: track,
+								albumAPI: this.downloadObject.collection.albumAPI,
+								playlistAPI: this.downloadObject.collection.playlistAPI,
+							});
+						}
+						callback();
+					},
+					this.settings.queueConcurrency
+				);
+				if (this.downloadObject.collection.tracks.length) {
+					this.downloadObject.collection.tracks.forEach((track, pos) => {
+						q.push({ track, pos }, () => {});
+					});
+					await q.drain();
+				}
+				await this.afterDownloadCollection(tracks);
 			}
-			if (!skipIncompleteRelease) await this.afterDownloadCollection(tracks);
 		}
 
 		if (this.downloadObject.isCanceled) {
@@ -222,6 +230,131 @@ export class Downloader {
 			uuid: this.downloadObject.uuid,
 			title: this.downloadObject.title,
 		});
+	}
+
+	/**
+	 * Exact-quality albums use a private directory on the target volume.
+	 * No staged file is visible in the user's release folders until ALL
+	 * requested tracks are successfully streamed and tagged at the exact format.
+	 * Publication refuses all preexisting file collisions, even if the user
+	 * selected an overwrite mode: protecting existing music is mandatory.
+	 */
+	async downloadStrictAlbum(): Promise<void> {
+		if (!(this.downloadObject instanceof Collection)) return;
+		const savedSettings = this.settings;
+		let transaction: ReleaseTransaction | undefined;
+		const expected = this.downloadObject.collection.tracks as APITrack[];
+		const results: any[] = new Array(expected.length);
+
+		try {
+			recoverReleaseTransactions(savedSettings.downloadLocation);
+			transaction = new ReleaseTransaction(savedSettings.downloadLocation);
+			this.settings = {
+				...savedSettings,
+				downloadLocation: transaction.stage,
+				overwriteFile: OverwriteOption.DONT_OVERWRITE,
+				fallbackBitrate: false,
+				// User-configured scripts must never run on private staging files.
+				executeCommand: "",
+			};
+			const q = queue(
+				async (data: { track: APITrack; pos: number }, callback) => {
+					const { track, pos } = data;
+					results[pos] = await this.downloadWrapper(
+						{
+							trackAPI: track,
+							albumAPI: this.downloadObject instanceof Collection
+								? this.downloadObject.collection.albumAPI : undefined,
+						},
+						undefined, true, undefined, true, false, true
+					);
+					callback();
+				},
+				Math.max(1, Number(savedSettings.queueConcurrency) || 1)
+			);
+			for (let pos = 0; pos < expected.length; pos++) {
+				q.push({ track: expected[pos], pos }, () => {});
+			}
+			await q.drain();
+			if (this.downloadObject.isCanceled) throw new DownloadCanceled();
+
+			const seen = new Set<string>();
+			for (let i = 0; i < expected.length; i++) {
+				const item = results[i];
+				if (item?.error) {
+					throw new Error(
+						`Track "${expected[i].title}" cannot be downloaded at the selected quality: ${item.error.message}`
+					);
+				}
+				if (!item?.path || Number(item.bitrate) !== Number(this.bitrate) ||
+					!existsSync(item.path) || statSync(item.path).size === 0 ||
+					seen.has(item.path)) {
+					throw new Error(
+						`Track "${expected[i].title}" was not downloaded as a unique, nonempty file at the selected quality`
+					);
+				}
+				seen.add(item.path);
+			}
+			await this.afterDownloadCollection(results);
+			if (this.downloadObject.isCanceled) throw new DownloadCanceled();
+			transaction.publish();
+
+			// Once published, report final paths rather than the private stage.
+			const stage = transaction;
+			const mapPath = (value: string) =>
+				value && value.startsWith(stage.stage + "/") || value && value.startsWith(stage.stage + "\\")
+					? stage.finalPath(value) : value;
+			this.downloadObject.extrasPath = mapPath(this.downloadObject.extrasPath);
+			for (const file of this.downloadObject.files) {
+				if (file?.path) file.path = mapPath(file.path);
+			}
+			this.listener?.send("updateQueue", {
+				uuid: this.downloadObject.uuid,
+				downloadFolder: this.downloadObject.extrasPath,
+				extrasPath: this.downloadObject.extrasPath,
+			});
+
+			// External command runs only AFTER complete publication.
+			if (process.env.DEEMIX_ALLOW_POST_DOWNLOAD_COMMANDS === "true" &&
+				savedSettings.executeCommand) {
+				try {
+					const child = exec(
+						savedSettings.executeCommand
+							.replaceAll("%folder%", shellEscape(this.downloadObject.extrasPath))
+							.replaceAll("%filename%", ""),
+						(error, stdout, stderr) => {
+							if (error) this.afterDownloadErrorReport("ExecuteCommand", error);
+							if (stdout) this.log({ stdout }, "stdout");
+							if (stderr) this.log({ stderr }, "stderr");
+							}
+					);
+					await new Promise(resolve => child.on("close", resolve));
+				} catch (error) {
+					this.afterDownloadErrorReport("ExecuteCommand", error);
+				}
+			}
+		} catch (error) {
+			// No preexisting file or directory is deleted, even after a stream failure.
+			this.downloadObject.downloaded = 0;
+			this.downloadObject.files = [];
+			this.downloadObject.extrasPath = "";
+			if (!(error instanceof DownloadCanceled) && !this.downloadObject.isCanceled) {
+				const message = `Incomplete release discarded: ${String(error instanceof Error ? error.message : error)}`;
+				this.downloadObject.failed = Math.max(1, this.downloadObject.failed);
+				this.downloadObject.errors.push({ message, type: "post" });
+				this.listener?.send("updateQueue", {
+					uuid: this.downloadObject.uuid, resetDownloaded: true,
+					postFailed: true, error: message, type: "post",
+				});
+			} else {
+				this.listener?.send("updateQueue", {
+					uuid: this.downloadObject.uuid, resetDownloaded: true,
+				});
+			}
+		} finally {
+			this.settings = savedSettings;
+			transaction?.dispose();
+		}
 	}
 
 	async download(
@@ -331,6 +464,9 @@ export class Downloader {
 			console.error(e);
 			throw e;
 		}
+		if (requireExactBitrate && selectedFormat !== this.bitrate) {
+			throw new DownloadFailed("wrongBitrate", track);
+		}
 		track.bitrate = selectedFormat;
 		track.album.bitrate = selectedFormat;
 
@@ -390,6 +526,7 @@ export class Downloader {
 			returnData.filename = writepath.slice(extrasPath.length + 1);
 			returnData.data = itemData;
 			returnData.path = String(writepath);
+			returnData.bitrate = track.bitrate;
 
 			this.downloadObject.files.push(returnData);
 
@@ -586,6 +723,7 @@ export class Downloader {
 		returnData.filename = writepath.slice(extrasPath.length + 1);
 		returnData.data = itemData;
 		returnData.path = String(writepath);
+		returnData.bitrate = track.bitrate;
 		this.downloadObject.files.push(returnData);
 		return returnData;
 	}
