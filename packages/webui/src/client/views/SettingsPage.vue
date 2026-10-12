@@ -1020,15 +1020,7 @@ function canDownload(bitrate: number) {
 						}}</span>
 					</label>
 
-					<label class="with-checkbox">
-						<input
-							v-model="settings.dontDownloadIncompleteReleases"
-							type="checkbox"
-						/>
-						<span class="checkbox-text">{{
-							t("settings.downloads.dontDownloadIncompleteReleases")
-						}}</span>
-					</label>
+					<!-- All-or-nothing album downloads are mandatory. No toggle. -->
 
 					<label class="with-checkbox" title="Only skip clean duplicates when a matching explicit release is in this download batch. Different editions and tracklists remain available.">
 						<input v-model="settings.skipCleanIfExplicitAvailable" type="checkbox" />
