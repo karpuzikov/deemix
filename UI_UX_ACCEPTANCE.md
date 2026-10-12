@@ -24,24 +24,24 @@ Before ANY UI modification, record a control contract for the affected workflows
 | Error, cancellation, persistence, restart, recovery | NOT RUN |
 | Real host/OS end-to-end workflow and final acceptance | NOT RUN |
 
-## Applications: original Deemix Electron/Vue GUI and native Python development
+## Application: Deemix v0.5.7 Electron/Vue desktop UI
 
-**Original GUI source:** `packages/webui/src/client/` (sidebar, search bar/results, artwork tiles, downloads/queue, settings, album/artist/playlist details, context menus, responsive application shell), `packages/gui/` Electron host.
+**Production source of truth:** [Deemix v0.5.7 Electron release](https://github.com/karpuzikov/deemix/releases/tag/windows-latest), Git commit `c960d0180f4c7c1c6ea146e2139fa7f129ecbd28`. Download asset: `Deemix.v0.5.7.exe`. The only supported development target in the repository is the original Electron/TypeScript Deemix (Vue web UI + Deemix core + Deezer SDK). Do not reintroduce the abandoned Python-native experiment without an explicit new user request.
 
-**Native Python GUI:** versioned `Deemix Python v0.4.6.pyw` from conversation artifact, tracked only in `packages/native/CONTINUITY.md` on `native-pyw-v0.1.0` branch as of 2026-10-12. **Do not claim this source lives in GitHub until actually committed.** The branch must also follow identical UI rules.
+**UI source:** `packages/webui/src/client/` (search, queue, settings, album, artist, playlist and favorites, previews, context menus, navigation, account/login, errors) and `packages/gui/` (Electron host and window/IPC integration). Keep existing Deezer and Spotify/ListenBrainz behavior, custom fork modifications and all existing settings.
 
-### High-priority control contracts
+### Required UI control contracts and acceptance
 
-- Artist/album/playlist card hover: **Download to...** opens required folder picker for ONE item; **checkmark** toggles selection only (never downloads).
-- Mixed selection: stable selection across tabs, one bulk **Download to... (N)** path picker, enqueue each item with its explicitly selected destination. Cancel queues nothing.
-- Search: exactly one primary search input per page, no duplicate actions; artwork grids and artist portraits load asynchronously with fallback.
-- Queue: pause, stop, restart, error deletion, path change, legacy no-path recovery, artist-to-album target inheritance, transactional cleanup. No global download path in Settings.
-- Settings: controls are unique, keyboard accessible, saved correctly; no repeated import/download action.
+- Queue: every existing action must have one distinct effect; preserve right-click **Copy Deezer link**, open folder, image/link copying, per-item status and error display, progress, retry, cancel, remove, clear finished, cover artwork, bitrate/explicit badges and track count.
+- Search, artists, album/playlist and Favorites: source-native search filters/pagination, artwork cards, track previews, browser/context actions, country/release metadata and source behavior.
+- Settings/login: restore persisted login, save settings with visible acknowledgement, existing Deezer/Spotify accounts, templates, quality and tag settings; test cancel/error states.
+- Real Windows 11 Electron launch, screenshots across normal/narrow/high-DPI window states, hover/right-click/selection, keyboard, scrolling, restart and real Deezer downloads must be tested against the reference application.
+- Version is **v0.5.7 - Under construction ⚠️** until actual user acceptance. Build and CI pass do not prove live downloading.
 
-**Reference:** SpotiFLAC actual source code and supplied comparison captures plus Fluent 2 for general tokens. The original Deemix feature set must be preserved; no Tkinter.
+### Restoration record - 2026-10-12
 
-**Real Windows Electron/PySide6 launch, actual hover/screenshots, download tests:** NOT RUN in this audit. Prior static/mock checks do not satisfy the release gate.
+The experimental Python application was abandoned by user instruction. Its source was **never committed** to this GitHub repository. The latest production executable and core code remain exactly those of the v0.5.7 Electron release; project continuity documents were restored from that release commit. This UI acceptance document and mandatory global `SOFTWARE_RULES.md`/`UI_UX_RULES.md` are retained as current compliance policy, not program behavior changes. No executable asset or release workflow has been changed.
 
 ## Next action
 
-Fill the control contract and real-world screenshot/interaction matrix for every UI surface above. Fix all FAIL and NOT RUN before declaring UI verified. Preserve software behavior and target-platform compatibility.
+Verify v0.5.7 in Windows against real Deezer/Spotify usage and document failed or unrun cases. Do not add a replacement desktop implementation without an explicit request.
