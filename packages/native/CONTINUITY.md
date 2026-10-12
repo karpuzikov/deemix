@@ -134,3 +134,29 @@ NativeDownloader.download_entry artist expansion passes the parent's target_fold
 Testing in Linux environment: Python compile pass, mocked Qt screen, artwork and interaction tests, queue input/persistence/dedupe/legacy migration tests, artist-to-album folder inheritance, offline filesystem album publication into selected folder with a deliberately different legacy configured path, and AST comparison of unaffected non-GUI components. PySide6 cannot be imported locally; real Windows hover/render, chooser dialogs, Deezer login and downloads have NOT been verified. Full original/fork parity remains incomplete; version status stays Under construction ⚠️. Do not revert to Tkinter or old Node launcher.
 
 Exact next validation: Windows image hover buttons and tooltips, canceled and selected folder dialogs, queue inheritance for artist discography after restart, selected folder preservation, no accidental downloads to config path, and full regression checks. Do not modify original Electron branch or GitHub workflows.
+
+## 2026-10-12 - v0.4.6 Fluent 2 design token pass - Under construction ⚠️
+
+The user requested applying https://fluent2.microsoft.design/ to the existing native PySide6 Deemix UI, then added a mandatory universal UI/UX testing rule. Both canonical SOFTWARE_RULES.md and UI_UX_RULES.md have been synchronized to every repository, and also to this development branch. Read BOTH rule files before further UI work. Never use Tkinter.
+
+Current standalone conversation artifact: Deemix Python v0.4.6.pyw (142283 bytes; SHA-256 be6f84176a0c4d30ec01662b965eafdc41e53a130e7806ceb209a6e9eb0357eb). The source is not yet committed to this branch. v0.4.5 is unchanged. Version constant corrected from the prior v0.4.5 internal 0.4.4 to 0.4.6.
+
+Change scope: shared Fluent 2-inspired semantic tokens and Qt QSS component states (dark neutral surfaces, amber accent retained from user-selected SpotiFLAC reference, 4px spacing scale, typography, buttons, menus, settings fields, lists/tables, tab rows, progress, focus rings, disabled/error states, icon-only sizing). Toolbar, clipboard and folder icon buttons now use a distinct zero-padding 'icon' variant, avoiding the global 36px button min-height conflicting with 28/30px fixed icon controls. Hover selection and Download to overlays remain 32px zero-padding independent actions. Shared _button helper adds an accessible name from its tooltip or label. No changes to Python Deezer, download, queue and selection engine or existing action callbacks.
+
+References studied: Fluent 2 design principles, layout, design tokens, color tokens, shapes and accessibility: https://fluent2.microsoft.design/design-principles, https://fluent2.microsoft.design/layout, https://fluent2.microsoft.design/design-tokens, https://fluent2.microsoft.design/shapes, https://fluent2.microsoft.design/accessibility; plus current UXDT principles. User's SpotiFLAC reference design remains the source of truth for specified icon/image/search layouts.
+
+### Verification matrix (mandatory)
+
+| Test | Result |
+| --- | --- |
+| Python v0.4.6 syntax compilation | PASS (local Linux) |
+| Headless import / token substitution / variant presence | PASS (local Linux) |
+| Unchanged non-UI Python 22 function/class ASTs vs v0.4.5 | PASS (local Linux) |
+| Current GitHub rules mirrors exact across 11 repos | PASS (Git blob hash check) |
+| Real Windows PySide6 startup | NOT RUN - Qt unavailable, network blocks pip install |
+| Real screenshot at 870x600, 1200x790, high DPI | NOT RUN |
+| Compare screenshot pixel/layout/icons with SpotiFLAC reference | NOT RUN |
+| Hover/click/selection/keyboard/resize/scroll/dialog/error tests on actual widgets | NOT RUN |
+| Deezer live login, queue, download, cancel/stop and restart | NOT RUN |
+
+Because real target GUI and full visual interaction acceptance are NOT RUN, this development artifact cannot be declared completed, released as stable or claimed visually verified. User must test the downloadable .pyw on Windows, provide screenshots/observed failures, or use a Windows environment/runner that can execute actual PySide6 GUI and capture evidence. Also all previously documented full-Deemix native feature-parity blockers remain. Original Electron is unchanged. Do not change GitHub workflow files without instruction.
