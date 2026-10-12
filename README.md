@@ -17,7 +17,7 @@ The docker image was heavily inspired by the fantastic work of [Bockiii](https:/
 
 ### Standalone Electron App
 
-**Current Windows GUI: v0.5.8 - Under construction ⚠️.** [Download Deemix v0.5.8.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.8.exe) or open the [release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest).
+**Current Windows GUI: v0.5.9 - Under construction ⚠️.** [Download Deemix v0.5.9.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.9.exe) or open the [release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest).
 
 Note: The app is not signed (because it's crazy expensive), so you'll need to disable the security warnings when running it.
 
@@ -166,9 +166,9 @@ A distributable GUI app can be built with the following command:
 pnpm make
 ```
 
-**Windows release status:** GUI v0.5.8 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
+**Windows release status:** GUI v0.5.9 - Under construction ⚠️. The versioned Windows installer is published from `main` to the [fork's release page](https://github.com/karpuzikov/deemix/releases/tag/windows-latest) only when Windows smoke tests succeed. On authenticated LAN use `DEEMIX_ACCESS_TOKEN` (24+ characters); when behind a TLS proxy also configure `DEEMIX_PUBLIC_URL=https://YOUR-HOST` and `DEEMIX_COOKIE_SECURE=true` for correct Spotify callback and cookies. The installed Windows app stores its configuration in Documents/Karpuzikov Tools/Deemix with automatic migration of legacy profile data.
 
-**Windows executable:** [Deemix.v0.5.8.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.8.exe) - v0.5.8 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
+**Windows executable:** [Deemix.v0.5.9.exe](https://github.com/karpuzikov/deemix/releases/download/windows-latest/Deemix.v0.5.9.exe) - v0.5.9 - Under construction ⚠️. GitHub replaces spaces in the uploaded asset filename with periods; the version is retained.
 
 **Desktop persistent login (v0.5.3):** The local Windows GUI restores the saved login using the OS-encrypted credentials, not browser localStorage. Enter login once after upgrading if necessary, then close and reopen to confirm it reconnects. Logging out clears the stored login. Network-facing multi-user WebUI behavior is unchanged.
 
@@ -182,3 +182,6 @@ pnpm make
 
 
 **v0.5.8 - Under construction ⚠️:** Albums with **Don't download incomplete releases** enabled are downloaded into a uniquely owned private stage and published only if every track finishes at the selected quality. Failed country-restricted tracks, unavailable/lower-bitrate tracks, late stream failures, or canceled downloads discard all newly downloaded album files. Existing files are protected from deletion/overwrite; destination filename collisions fail closed. The user-reported regression is [Deezer album 53346642](https://www.deezer.com/en/album/53346642), Inna - "My Dreams" (track 440060362). Release-specific regression tests, Linux CI and Windows packaged-GUI startup passed. Actual authenticated Deezer reproduction and UI visual acceptance are outstanding.
+
+
+**v0.5.9 - Under construction ⚠️:** Strict-quality completeness is now **mandatory for all album downloads**, even when old `config.json` contains `dontDownloadIncompleteReleases: false`. This was the concrete regression that allowed 9/10 files in v0.5.8. The obsolete checkbox has been removed and saved false values migrated to true. Exact-quality preflight and post-stream all-or-nothing staging are always enforced; the queue records discarded incomplete albums as failed. Regression tests cover Deezer album 53346642, Inna "My Dreams" (440060362), both preflight rejection and a tenth-track country failure after nine successfully downloaded tracks with the old option false. [CI](https://github.com/karpuzikov/deemix/actions/runs/38208815822), [Windows build](https://github.com/karpuzikov/deemix/actions/runs/38208953454) and a single versioned release asset passed. **Existing files from previous runs are not retroactively deleted**; retest in a clean directory. Authenticated live Deezer acceptance remains pending.
