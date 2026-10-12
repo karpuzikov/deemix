@@ -460,8 +460,11 @@ export class DeemixApp {
 
 				if (!downloadObject.isCanceled && this.queue[currentUUID]) {
 					if (
-						downloadObject.failed === downloadObject.size &&
-						downloadObject.size !== 0
+						(downloadObject.type === "album" &&
+							effectiveSettings.dontDownloadIncompleteReleases &&
+							downloadObject.downloaded < downloadObject.size) ||
+						(downloadObject.failed === downloadObject.size &&
+							downloadObject.size !== 0)
 					) {
 						this.queue[currentUUID].status = "failed";
 					} else if (downloadObject.failed > 0) {
