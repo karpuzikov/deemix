@@ -96,6 +96,32 @@ describe("Album geo / selected quality regression - Deezer 53346642", () => {
       expect(existsSync(join(root, "First.flac"))).toBe(false);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
+  it("rejects a track that streams at a lower quality than FLAC and removes its staged file", async () => {
+    const root = mkdtempSync(join(tmpdir(), "deemix-wrong-bitrate-"));
+    try {
+      const d = new Downloader({} as any, geoAlbum(), {
+        downloadLocation: root, dontDownloadIncompleteReleases: true,
+        queueConcurrency: 1, fallbackBitrate: true, logErrors: false,
+        logSearched: false, saveArtwork: false, createM3U8File: false,
+        executeCommand: "", tags: {},
+      } as any, { send: vi.fn() } as any);
+      vi.spyOn(d, "findExistingCompleteRelease").mockReturnValue({ complete: false, folder: "" });
+      vi.spyOn(d, "findUnavailableReleaseTracks").mockResolvedValue([]);
+      vi.spyOn(d, "afterDownloadCollection").mockResolvedValue(undefined);
+      vi.spyOn(d, "downloadWrapper").mockImplementation(async extra => {
+        const path = join(d.settings.downloadLocation, String(extra.trackAPI.id) + ".mp3");
+        writeFileSync(path, "wrong-quality");
+        d.downloadObject.downloaded++;
+        d.downloadObject.files.push({ path });
+        return { path, bitrate: extra.trackAPI.id === 440060362 ? 3 : 9 } as any;
+      });
+      await d.start();
+      expect(d.downloadObject.downloaded).toBe(0);
+      expect(d.downloadObject.errors.some((e: any) => e.message.includes("My Dreams"))).toBe(true);
+      expect(existsSync(join(root, "440060362.mp3"))).toBe(false);
+      expect(existsSync(join(root, "440060361.mp3"))).toBe(false);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
   it("stream failure after first FLAC rolls back every new track", async () => {
     const root = mkdtempSync(join(tmpdir(), "deemix-geo-stream-"));
     try {
