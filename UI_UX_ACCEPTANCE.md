@@ -49,3 +49,12 @@ Fill the control contract and real-world screenshot/interaction matrix for every
 ### 2026-10-12 v0.4.7 acceptance checkpoint
 
 A native Python fix candidate was produced in the conversation. See `packages/native/CONTINUITY.md` for the complete control map, exact hash and offline test results. **Visual acceptance remains NOT RUN**: real Windows 11 Qt viewport and screenshots, hover/select, scrolling and keyboard/focus, all dialogs and error states, real Deezer end-to-end and user acceptance are required. Existing releases are not silently modified. v0.4.7 is Under construction ⚠️.
+
+
+### 2026-10-12 - Native 0.4.8 parity and queue context menu audit
+
+- Source-grounded parity report: [docs/PYTHON_NATIVE_PARITY_AUDIT_2026-10-12.md](docs/PYTHON_NATIVE_PARITY_AUDIT_2026-10-12.md), plus full 179-row conversation Markdown artifact. **55 UI/queue feature rows, 37 core/plugin behavior rows, all 54 main setting keys and 33 tag keys.**
+- Queue right-click "Copy Deezer link" missing in v0.4.7; v0.4.8 has matching typed link generation and Qt clipboard action. Source/8 mock link cases **PASS**; actual Windows/PySide6 menu click and clipboard **NOT RUN**. The custom destination cell widget also needs a manual context-menu test.
+- Overall audit: **parity FAIL** in multiple source-proven features, including Spotify/ListenBrainz, artwork in download queue, tag-field behavior, search previews and pagination, exact original quality/template/overwrite variants, fallback caches, grouped artist discography, detailed errors, advanced settings. See report for full list and exact fork source file links.
+- Actual Windows startup/screenshots, keyboard, hover, selection, scrolling, resize, error cases, real streaming, stop/cancel/crash behavior remain **NOT RUN**. v0.4.8 remains **Under construction ⚠️**, not a replacement for the tested original Electron fork.
+- User has explicitly prohibited further feature-loss-by-discovery. The audit is an active feature-by-feature acceptance and repair queue; no completion claim until every original/fork behavior (except explicit user removals) is mapped and tested.
