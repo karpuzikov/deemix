@@ -24,9 +24,9 @@ Before ANY UI modification, record a control contract for the affected workflows
 | Error, cancellation, persistence, restart, recovery | NOT RUN |
 | Real host/OS end-to-end workflow and final acceptance | NOT RUN |
 
-## Application: Deemix v0.5.7 Electron/Vue desktop UI
+## Application: Deemix v0.5.8 Electron/Vue desktop UI
 
-**Production source of truth:** [Deemix v0.5.7 Electron release](https://github.com/karpuzikov/deemix/releases/tag/windows-latest), Git commit `c960d0180f4c7c1c6ea146e2139fa7f129ecbd28`. Download asset: `Deemix.v0.5.7.exe`. The only supported development target in the repository is the original Electron/TypeScript Deemix (Vue web UI + Deemix core + Deezer SDK). Do not reintroduce the abandoned Python-native experiment without an explicit new user request.
+**Production source of truth:** [Deemix v0.5.8 Electron release](https://github.com/karpuzikov/deemix/releases/tag/windows-latest), build commit `04e2dbe89c68abc34f3f5c647081528d869726a3`. Download asset: `Deemix.v0.5.8.exe`. The former v0.5.7 release remains in git history. The only supported development target in the repository is the original Electron/TypeScript Deemix (Vue web UI + Deemix core + Deezer SDK). Do not reintroduce the abandoned Python-native experiment without an explicit new user request.
 
 **UI source:** `packages/webui/src/client/` (search, queue, settings, album, artist, playlist and favorites, previews, context menus, navigation, account/login, errors) and `packages/gui/` (Electron host and window/IPC integration). Keep existing Deezer and Spotify/ListenBrainz behavior, custom fork modifications and all existing settings.
 
@@ -36,7 +36,7 @@ Before ANY UI modification, record a control contract for the affected workflows
 - Search, artists, album/playlist and Favorites: source-native search filters/pagination, artwork cards, track previews, browser/context actions, country/release metadata and source behavior.
 - Settings/login: restore persisted login, save settings with visible acknowledgement, existing Deezer/Spotify accounts, templates, quality and tag settings; test cancel/error states.
 - Real Windows 11 Electron launch, screenshots across normal/narrow/high-DPI window states, hover/right-click/selection, keyboard, scrolling, restart and real Deezer downloads must be tested against the reference application.
-- Version is **v0.5.7 - Under construction ⚠️** until actual user acceptance. Build and CI pass do not prove live downloading.
+- Version is **v0.5.8 - Under construction ⚠️** until actual user acceptance. Build and CI pass do not prove live downloading.
 
 ### Restoration record - 2026-10-12
 
@@ -44,4 +44,12 @@ The experimental Python application was abandoned by user instruction. Its sourc
 
 ## Next action
 
-Verify v0.5.7 in Windows against real Deezer/Spotify usage and document failed or unrun cases. Do not add a replacement desktop implementation without an explicit request.
+Verify v0.5.8 in Windows against real Deezer/Spotify usage and document failed or unrun cases. Do not add a replacement desktop implementation without an explicit request.
+
+### v0.5.8 - Strict-quality album transaction test gate (2026-10-12)
+
+- **PASS (Linux CI):** [workflow 38207075413](https://github.com/karpuzikov/deemix/actions/runs/38207075413) - full pnpm lint/test/build including album ID 53346642, geo-blocked track ID 440060362, late stream failure, lower-bitrate fallback rejection, collision safety, staged rollback and abandoned publisher recovery.
+- **PASS (Windows packaged smoke):** [workflow 38207199177](https://github.com/karpuzikov/deemix/actions/runs/38207199177) - Electron native dependency rebuild, versioned installer packaging, packaged GUI Windows startup HTTP smoke and verified single release asset `Deemix.v0.5.8.exe` (113005056 bytes).
+- **NOT RUN (real Deezer):** authenticated downloading of the specific release/track with country restriction and actual FLAC file verification; Spotify/ListenBrainz unaffected but not tested.
+- **NOT RUN (real Windows UI acceptance):** actual screenshots at supported viewports, scroll, hover, click, selection and error-state interactions. App must remain **Under construction ⚠️**. No new UI control was introduced; the queue now clears provisional downloaded counts when a strict album is discarded.
+- **Data protection:** no preexisting release file can be deleted or overwritten by strict transaction; a naming collision fails the album. Temporary private owned stage is cleaned after rejection.
